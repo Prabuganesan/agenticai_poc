@@ -1,0 +1,2468 @@
+{
+    "Status": "Success",
+    "Message": "Session is valid",
+    "ChainsysSessionid": "ZGQ9ulB3bM9K3xa",
+    "UserInfoDetails": {
+        "UserInfo": {
+            "personalInfo": {
+                "userId": 5223,
+                "userName": "sureshn",
+                "firstName": "suresh",
+                "lastName": "nallakannu",
+                "email": "suresh.nallakannu@chainsys.com",
+                "title": "",
+                "passwordExpiredDate": "21-JAN-2026",
+                "managerId": 10184,
+                "manager": "suresh",
+                "roleId": 4,
+                "role": "Development Associate",
+                "passwordResetFlag": "NONE",
+                "displayName": "sureshn",
+                "businessUnitId": 0,
+                "departmentId": 0,
+                "country": "",
+                "startDate": "02-FEB-2024",
+                "endDate": "01-JAN-1970",
+                "isPublicAccessUrl": "N",
+                "allowAccessFor": "Web/Mobile only",
+                "isIDPEnabled": "N",
+                "orgId": 30,
+                "userGroupsId": [],
+                "userResponsibilitiesId": [
+                    1,
+                    2,
+                    241,
+                    1381,
+                    2481,
+                    2861
+                ]
+            },
+            "profileInfo": {
+                "displayName": "sureshn",
+                "street": "",
+                "city": "",
+                "state": "",
+                "zip": "",
+                "country": "",
+                "mobile": "",
+                "workPhone": "",
+                "extension": "",
+                "dateFormat": "yyyy/MM/dd",
+                "applicationName": "Smart App Builder",
+                "userProfileLocale": "en$in",
+                "isFirstLogin": "NONE",
+                "applicationDisplayName": "Smart App Builder",
+                "emailConnectionId": 0,
+                "timeFormat": "24 Hour",
+                "isApplicationBased": "Y",
+                "defaultProjectId": 0,
+                "timeZoneId": "Asia/Calcutta",
+                "currencySymbol": "",
+                "groupingSize": 0,
+                "groupingUsed": true,
+                "minFractionDigit": 0,
+                "maxFractionDigit": 0,
+                "orgId": 30,
+                "photo": "null",
+                "orgDefaultLang": "en",
+                "defaultApplicationId": 5
+            }
+        },
+        "assignedApps": [
+            {
+                "appName": "QueryChangesDelegate",
+                "appId": 3715,
+                "appDisplayName": "QueryChangesDelegate",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.2",
+                "majorVersion": 0,
+                "minorVersion": 2,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/3715_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    4415
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "QueryChangesDelegate"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "salesorderheader_lists",
+                "appId": 5179,
+                "appDisplayName": "salesorderheader_lists",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.4",
+                "majorVersion": 0,
+                "minorVersion": 4,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/5179_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    6118
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "salesorderheader_lists"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "RecordSharingCR",
+                "appId": 3892,
+                "appDisplayName": "RecordSharingCR",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.33",
+                "majorVersion": 0,
+                "minorVersion": 33,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/3892_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    4576,
+                    4577,
+                    4817
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "RecordSharingCR"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "SalesOrderDashboards",
+                "appId": 5041,
+                "appDisplayName": "SalesOrderDashboards",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.16",
+                "majorVersion": 0,
+                "minorVersion": 16,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/5041_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    5962
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "SalesOrderDashboards"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "RollupIssues",
+                "appId": 2313,
+                "appDisplayName": "RollupIssues",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.5",
+                "majorVersion": 0,
+                "minorVersion": 5,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/2313_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "RollupIssues"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": true,
+                    "Statusmessage": "app under maintenance",
+                    "comments": "Application in maintenance mode.\n\tKindly reach out to the administrator for further details or assistance."
+                }
+            },
+            {
+                "appName": "dashboardsapps",
+                "appId": 5140,
+                "appDisplayName": "dashboardsapps",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.19",
+                "majorVersion": 0,
+                "minorVersion": 19,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/5140_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    6079
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "dashboardsapps"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "checklanguageapp2",
+                "appId": 1613,
+                "appDisplayName": "checklanguageapp2",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.6",
+                "majorVersion": 0,
+                "minorVersion": 6,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/1613_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [],
+                "landingPage": "cspfm_default_landing_page",
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "checklanguageapp2"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": true,
+                    "Statusmessage": "app under maintenance",
+                    "comments": "Application in maintenance mode.\n\tKindly reach out to the administrator for further details or assistance."
+                }
+            },
+            {
+                "appName": "DependentEmailFRM",
+                "appId": 2707,
+                "appDisplayName": "DependentEmailFRM",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.4",
+                "majorVersion": 0,
+                "minorVersion": 4,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/2707_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    3152
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "DependentEmailFRM"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "Lokuptestapp",
+                "appId": 3064,
+                "appDisplayName": "Lokuptestapp",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.3",
+                "majorVersion": 0,
+                "minorVersion": 3,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/3064_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "Lokuptestapp"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": true,
+                    "Statusmessage": "app under maintenance",
+                    "comments": "Application in maintenance mode.\n\tKindly reach out to the administrator for further details or assistance."
+                }
+            },
+            {
+                "appName": "stakcUI",
+                "appId": 5130,
+                "appDisplayName": "stakcUI",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.1",
+                "majorVersion": 0,
+                "minorVersion": 1,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/5130_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    6070
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "stakcUI"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "CheckTimes",
+                "appId": 3834,
+                "appDisplayName": "CheckTimes",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.1",
+                "majorVersion": 0,
+                "minorVersion": 1,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/3834_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    4478
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "CheckTimes"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "saleaorderwithoutcriteria",
+                "appId": 5024,
+                "appDisplayName": "saleaorderwithoutcriteria",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.2",
+                "majorVersion": 0,
+                "minorVersion": 2,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/5024_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    5942
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "saleaorderwithoutcriteria"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "project overview",
+                "appId": 5036,
+                "appDisplayName": "project overview",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.1",
+                "majorVersion": 0,
+                "minorVersion": 1,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/5036_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    5955
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "project overview"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "DynamicHierarchys",
+                "appId": 4071,
+                "appDisplayName": "DynamicHierarchys",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.1",
+                "majorVersion": 0,
+                "minorVersion": 1,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/4071_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    4815
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "DynamicHierarchys"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "HierarchyCases",
+                "appId": 4070,
+                "appDisplayName": "HierarchyCases",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.1",
+                "majorVersion": 0,
+                "minorVersion": 1,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/4070_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    4814
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "HierarchyCases"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "Sales Administrator",
+                "appId": 5009,
+                "appDisplayName": "Sales Administrator",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.3",
+                "majorVersion": 0,
+                "minorVersion": 3,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/5009_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "Sales Administrator",
+                "assignedMenuGroups": [
+                    5915
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "Sales Administrator"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "WidgetData",
+                "appId": 4927,
+                "appDisplayName": "WidgetData",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.2",
+                "majorVersion": 0,
+                "minorVersion": 2,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/4927_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    5789
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "WidgetData"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "file manage",
+                "appId": 1872,
+                "appDisplayName": "file manage",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.3",
+                "majorVersion": 0,
+                "minorVersion": 3,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/1872_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    2125
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "file manage"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "Task Move Process",
+                "appId": 4586,
+                "appDisplayName": "Task Move Process",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.17",
+                "majorVersion": 0,
+                "minorVersion": 17,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/4586_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    5380,
+                    5474
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "Task Move Process"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "userbasedformat",
+                "appId": 3097,
+                "appDisplayName": "userbasedformat",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.11",
+                "majorVersion": 0,
+                "minorVersion": 11,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/3097_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "userbasedformat",
+                "assignedMenuGroups": [
+                    3619,
+                    3618
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "userbasedformat"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "Lkp Application MAY07",
+                "appId": 4805,
+                "appDisplayName": "Lkp Application MAY07",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.45",
+                "majorVersion": 0,
+                "minorVersion": 45,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/4805_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    5640
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "Lkp Application MAY07"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "Test Delegation",
+                "appId": 3466,
+                "appDisplayName": "Test Delegation",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.1",
+                "majorVersion": 0,
+                "minorVersion": 1,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/3466_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    3979
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "Test Delegation"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "widgetGrid4",
+                "appId": 5044,
+                "appDisplayName": "widgetGrid4",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.1",
+                "majorVersion": 0,
+                "minorVersion": 1,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/5044_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    5964
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "widgetGrid4"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "parallelQueryapps10",
+                "appId": 3943,
+                "appDisplayName": "parallelQueryapps10",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.4",
+                "majorVersion": 0,
+                "minorVersion": 4,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/3943_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    4640
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "parallelQueryapps10"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "widgetGridCases",
+                "appId": 5028,
+                "appDisplayName": "widgetGridCases",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.2",
+                "majorVersion": 0,
+                "minorVersion": 2,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/5028_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    5945
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "widgetGridCases"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "levelcheck1",
+                "appId": 3164,
+                "appDisplayName": "levelcheck1",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.1",
+                "majorVersion": 0,
+                "minorVersion": 1,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/3164_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    3687
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "levelcheck1"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "HierarchyQueryChanges",
+                "appId": 3793,
+                "appDisplayName": "HierarchyQueryChanges",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.2",
+                "majorVersion": 0,
+                "minorVersion": 2,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/3793_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    4438
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "HierarchyQueryChanges"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "Novemaildependent",
+                "appId": 2990,
+                "appDisplayName": "Novemaildependent",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.2",
+                "majorVersion": 0,
+                "minorVersion": 2,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/2990_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "Novemaildependent"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": true,
+                    "Statusmessage": "app under maintenance",
+                    "comments": "Application in maintenance mode.\n\tKindly reach out to the administrator for further details or assistance."
+                }
+            },
+            {
+                "appName": "File Manage formula",
+                "appId": 2997,
+                "appDisplayName": "File Manage formula",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.3",
+                "majorVersion": 0,
+                "minorVersion": 3,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/2997_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    3483
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "File Manage formula"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "widget criteria",
+                "appId": 5100,
+                "appDisplayName": "widget criteria",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.26",
+                "majorVersion": 0,
+                "minorVersion": 26,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/5100_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    6037
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "widget criteria"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "libraryInfo",
+                "appId": 4014,
+                "appDisplayName": "libraryInfo",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.19",
+                "majorVersion": 0,
+                "minorVersion": 19,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/4014_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    4821,
+                    4822
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "libraryInfo"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "dynamicloading imgs",
+                "appId": 2576,
+                "appDisplayName": "dynamicImgs",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.8",
+                "majorVersion": 0,
+                "minorVersion": 8,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/2576_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "dynamicImgs"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": true,
+                    "Statusmessage": "app under maintenance",
+                    "comments": "Application in maintenance mode.\n\tKindly reach out to the administrator for further details or assistance."
+                }
+            },
+            {
+                "appName": "TestFM",
+                "appId": 5040,
+                "appDisplayName": "TestFM",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.5",
+                "majorVersion": 0,
+                "minorVersion": 5,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/5040_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    5960
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "TestFM"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "matbarApps",
+                "appId": 5159,
+                "appDisplayName": "matbarApps",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.1",
+                "majorVersion": 0,
+                "minorVersion": 1,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/5159_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    6098
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "matbarApps"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "widgetGridSimple",
+                "appId": 5033,
+                "appDisplayName": "widgetGridSimple",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.1",
+                "majorVersion": 0,
+                "minorVersion": 1,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/5033_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    5952
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "widgetGridSimple"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "rollup issues",
+                "appId": 2294,
+                "appDisplayName": "rollup issues",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.4",
+                "majorVersion": 0,
+                "minorVersion": 4,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/2294_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "rollup issues"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": true,
+                    "Statusmessage": "app under maintenance",
+                    "comments": "Application in maintenance mode.\n\tKindly reach out to the administrator for further details or assistance."
+                }
+            },
+            {
+                "appName": "ApprovalURL",
+                "appId": 4131,
+                "appDisplayName": "ApprovalURL",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.1",
+                "majorVersion": 0,
+                "minorVersion": 1,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/4131_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    4887
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "ApprovalURL"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "MarathiApp",
+                "appId": 4029,
+                "appDisplayName": "MarathiApp",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.6",
+                "majorVersion": 0,
+                "minorVersion": 6,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/4029_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    4748,
+                    4749
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "MarathiApp"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "DepartMEntObjecH",
+                "appId": 2716,
+                "appDisplayName": "DepartMEntObjecH",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.1",
+                "majorVersion": 0,
+                "minorVersion": 1,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/2716_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "DepartMEntObjecH"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": true,
+                    "Statusmessage": "app under maintenance",
+                    "comments": "Application in maintenance mode.\n\tKindly reach out to the administrator for further details or assistance."
+                }
+            },
+            {
+                "appName": "AutoApprovalDelegate",
+                "appId": 4150,
+                "appDisplayName": "AutoApprovalDelegate",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.1",
+                "majorVersion": 0,
+                "minorVersion": 1,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/4150_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    4913
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "AutoApprovalDelegate"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "workflowcobject",
+                "appId": 3080,
+                "appDisplayName": "workflowcobject",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.9",
+                "majorVersion": 0,
+                "minorVersion": 9,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/3080_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "workflowcobject",
+                "assignedMenuGroups": [
+                    3606
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "workflowcobject"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "rollupcf1ML",
+                "appId": 4025,
+                "appDisplayName": "rollupcf1ML",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.39",
+                "majorVersion": 0,
+                "minorVersion": 39,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/4025_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "rollupcf1ML",
+                "assignedMenuGroups": [
+                    4744
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "rollupcf1ML"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "HeapMemoryCks",
+                "appId": 6173,
+                "appDisplayName": "HeapMemoryCks",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.16",
+                "majorVersion": 0,
+                "minorVersion": 16,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/6173_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    7306
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "HeapMemoryCks"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "checkLanguageapp",
+                "appId": 1612,
+                "appDisplayName": "checkLanguageapp",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.19",
+                "majorVersion": 0,
+                "minorVersion": 19,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/1612_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [],
+                "landingPage": "cspfm_default_landing_page",
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "checkLanguageapp"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": true,
+                    "Statusmessage": "app under maintenance",
+                    "comments": "Application in maintenance mode.\n\tKindly reach out to the administrator for further details or assistance."
+                }
+            },
+            {
+                "appName": "WHOCOLUMNBUGAPP",
+                "appId": 2572,
+                "appDisplayName": "WHOCOLUMNBUGAPP",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.5",
+                "majorVersion": 0,
+                "minorVersion": 5,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/2572_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    2998,
+                    2999
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "WHOCOLUMNBUGAPP"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "levelCheck",
+                "appId": 3161,
+                "appDisplayName": "levelCheck",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.4",
+                "majorVersion": 0,
+                "minorVersion": 4,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/3161_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    3684
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "levelCheck"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "autoApproval",
+                "appId": 4638,
+                "appDisplayName": "autoApproval",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.6",
+                "majorVersion": 0,
+                "minorVersion": 6,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/4638_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    5476
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "autoApproval"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "Simple sequential App",
+                "appId": 3988,
+                "appDisplayName": "Simple sequential App",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.1",
+                "majorVersion": 0,
+                "minorVersion": 1,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/3988_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    4697
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "Simple sequential App"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "lookupTest",
+                "appId": 3069,
+                "appDisplayName": "lookupTest",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.1",
+                "majorVersion": 0,
+                "minorVersion": 1,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/3069_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "lookupTest"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": true,
+                    "Statusmessage": "app under maintenance",
+                    "comments": "Application in maintenance mode.\n\tKindly reach out to the administrator for further details or assistance."
+                }
+            },
+            {
+                "appName": "HierarchyConfig10",
+                "appId": 3989,
+                "appDisplayName": "HierarchyConfig10",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.1",
+                "majorVersion": 0,
+                "minorVersion": 1,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/3989_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    4698
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "HierarchyConfig10"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "DelegationTest",
+                "appId": 3587,
+                "appDisplayName": "DElegationTest",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.1",
+                "majorVersion": 0,
+                "minorVersion": 1,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/3587_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    4125
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "DElegationTest"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "FieldUpObjA",
+                "appId": 5398,
+                "appDisplayName": "FieldUpObjA",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.18",
+                "majorVersion": 0,
+                "minorVersion": 18,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/5398_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    6354
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "FieldUpObjA"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "FieldUpdateFormula",
+                "appId": 4036,
+                "appDisplayName": "FieldUpdateFormula",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.1",
+                "majorVersion": 0,
+                "minorVersion": 1,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/4036_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    4756
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "FieldUpdateFormula"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "FormulaRollup Cases",
+                "appId": 2464,
+                "appDisplayName": "FormulaRollup Cases",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.7",
+                "majorVersion": 0,
+                "minorVersion": 7,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/2464_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "FormulaRollup Cases"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": true,
+                    "Statusmessage": "app under maintenance",
+                    "comments": "Application in maintenance mode.\n\tKindly reach out to the administrator for further details or assistance."
+                }
+            },
+            {
+                "appName": "matixList",
+                "appId": 5134,
+                "appDisplayName": "matixList",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.3",
+                "majorVersion": 0,
+                "minorVersion": 3,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/5134_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    6073
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "matixList"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "ParallelCases",
+                "appId": 4002,
+                "appDisplayName": "ParallelCases",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.1",
+                "majorVersion": 0,
+                "minorVersion": 1,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/4002_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    4712
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "ParallelCases"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "MultiUSerApps",
+                "appId": 3900,
+                "appDisplayName": "MultiUSerApps",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.1",
+                "majorVersion": 0,
+                "minorVersion": 1,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/3900_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    4574
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "MultiUSerApps"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "Parallel Test Apps",
+                "appId": 3657,
+                "appDisplayName": "Parallel Test Apps",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.1",
+                "majorVersion": 0,
+                "minorVersion": 1,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/3657_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    4245
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "Parallel Test Apps"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "FinalCheckQuery",
+                "appId": 3771,
+                "appDisplayName": "FinalCheckQuery",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.1",
+                "majorVersion": 0,
+                "minorVersion": 1,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/3771_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    4418
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "FinalCheckQuery"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "widgetGrid3issue",
+                "appId": 5047,
+                "appDisplayName": "widgetGrid3issue",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.1",
+                "majorVersion": 0,
+                "minorVersion": 1,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/5047_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    5968
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "widgetGrid3issue"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "AllUserApproval",
+                "appId": 4010,
+                "appDisplayName": "AllUserApproval",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.5",
+                "majorVersion": 0,
+                "minorVersion": 5,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/4010_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    4724
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "AllUserApproval"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "sequentialConfiguration",
+                "appId": 3970,
+                "appDisplayName": "sequentialConfiguration",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.2",
+                "majorVersion": 0,
+                "minorVersion": 2,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/3970_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    4666
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "sequentialConfiguration"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "Delegation Approval",
+                "appId": 4578,
+                "appDisplayName": "Delegation Approval",
+                "specificMenuFlag": "N",
+                "versionNumber": "0.1",
+                "majorVersion": 0,
+                "minorVersion": 1,
+                "appType": "CUSTOM",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:18095/appdesigner/fscontroller/downloadfile?fileName=/dynaImages/30/app/4578_M_img.png&nodeGUID=s1eew146l2ee",
+                "appDescription": "",
+                "assignedMenuGroups": [
+                    5361,
+                    5362
+                ],
+                "landingPage": "cspfm_default_landing_page",
+                "defaultLanguage": {
+                    "code": "en",
+                    "displayName": "English"
+                },
+                "languageList": [
+                    {
+                        "code": "en",
+                        "displayName": "English"
+                    }
+                ],
+                "i18": [
+                    {
+                        "en": "Delegation Approval"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "Smart App Builder",
+                "appId": 5,
+                "appDisplayName": "Smart App Builder",
+                "specificMenuFlag": "N",
+                "versionNumber": "1.0",
+                "majorVersion": 1,
+                "minorVersion": 0,
+                "appType": "STANDARD",
+                "landingLogoDetails": "APP",
+                "appLogoURL": "http://localhost:8080/apld//images/productsicons/app-designer.svg",
+                "appDescription": "Design Custom applications on the go ... Focus on configuring Business Rules rather than technology stack.",
+                "assignedMenuGroups": [],
+                "landingPage": "cspfm_default_landing_page",
+                "i18": [
+                    {
+                        "en": "Smart App Builder"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "appADMIN",
+                "appId": 21,
+                "appDisplayName": "Admin",
+                "specificMenuFlag": "N",
+                "versionNumber": "1.0",
+                "majorVersion": 1,
+                "minorVersion": 0,
+                "appType": "STANDARD",
+                "appLogoURL": "http://localhost:8080/apld//images/productsicons/app-admin.svg",
+                "appDescription": "appADMIN",
+                "assignedMenuGroups": [],
+                "landingPage": "cspfm_default_landing_page",
+                "i18": [
+                    {
+                        "en": "Admin"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            },
+            {
+                "appName": "appCONNECT",
+                "appId": 41,
+                "appDisplayName": "dataZap",
+                "specificMenuFlag": "N",
+                "versionNumber": "1.0",
+                "majorVersion": 1,
+                "minorVersion": 0,
+                "appType": "STANDARD",
+                "appLogoURL": "http://localhost:8080/apld//images/productsicons/app-connect.svg",
+                "appDescription": "Data Integration and Migration",
+                "assignedMenuGroups": [],
+                "landingPage": "cspfm_default_landing_page",
+                "i18": [
+                    {
+                        "en": "dataZap"
+                    }
+                ],
+                "maintenanceInfo": {
+                    "isUnderMaintenance": false,
+                    "Statusmessage": "",
+                    "comments": ""
+                }
+            }
+        ],
+        "userId": 5223,
+        "orgId": 30,
+        "appBuilderURL": "http://localhost:1337/appbuilder",
+        "orgTimeZone": "Asia/Kolkata",
+        "contextName": "appconnect",
+        "platformWebNodeHostName": "http://localhost:8080",
+        "designerNodeHostName": "http://localhost:18095/appdesigner",
+        "socketServerUrl": "http://localhost:1100",
+        "displayOrgLogoInAppHeader": "N"
+    },
+    "isPublicUser": false
+}

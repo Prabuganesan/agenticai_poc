@@ -1,0 +1,13 @@
+{
+  "name": "autonomous-worker-healthcheck",
+  "version": "1.0.0",
+  "description": "Simple healthcheck server for Autonomous worker",
+  "main": "healthcheck.js",
+  "private": true,
+  "scripts": {
+    "start": "node healthcheck.js"
+  },
+  "dependencies": {
+    "express": "4.18.3"
+  }
+}

@@ -1,0 +1,474 @@
+.messagelist {
+    width: 100%;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    border-radius: 0.5rem;
+    min-height: 0;
+    max-height: 100%;
+    visibility: visible;
+    opacity: 1;
+}
+
+.messagelistloading {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.usermessage {
+    padding: 1rem 1.5rem 1rem 1.5rem;
+}
+
+.usermessage-right {
+    justify-content: flex-end;
+}
+
+.usericon-right {
+    margin-left: 1rem;
+    margin-right: 0;
+    margin-top: 1rem;
+    flex-shrink: 0;
+}
+
+.usermessagewaiting-light {
+    padding: 1rem 1.5rem 1rem 1.5rem;
+    background: linear-gradient(to left, #ede7f6, #e3f2fd, #ede7f6);
+    background-size: 200% 200%;
+    background-position: -100% 0;
+    animation: loading-gradient 2s ease-in-out infinite;
+    animation-direction: alternate;
+    animation-name: loading-gradient;
+}
+
+.usermessagewaiting-dark {
+    padding: 1rem 1.5rem 1rem 1.5rem;
+    color: #ececf1;
+    background: linear-gradient(to left, #2e2352, #1d3d60, #2e2352);
+    background-size: 200% 200%;
+    background-position: -100% 0;
+    animation: loading-gradient 2s ease-in-out infinite;
+    animation-direction: alternate;
+    animation-name: loading-gradient;
+}
+
+@keyframes loading-gradient {
+    0% {
+        background-position: -100% 0;
+    }
+    100% {
+        background-position: 100% 0;
+    }
+}
+
+.apimessage {
+    padding: 1rem 1.5rem 1rem 1.5rem;
+    animation: fadein 0.5s;
+}
+
+@keyframes fadein {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.apimessage,
+.usermessage,
+.usermessagewaiting {
+    display: flex;
+}
+
+.markdownanswer {
+    line-height: 1.75;
+}
+
+.markdownanswer-right {
+    text-align: right;
+}
+
+.markdownanswer a:hover {
+    opacity: 0.8;
+}
+
+.markdownanswer a {
+    display: block;
+    margin-right: 2.5rem;
+    word-wrap: break-word;
+    color: #16bed7;
+    font-weight: 500;
+}
+
+.markdownanswer code {
+    color: #0ab126;
+    font-weight: 500;
+    white-space: pre-wrap !important;
+}
+
+.markdownanswer ol,
+.markdownanswer ul {
+    margin: 1rem;
+}
+
+.boticon {
+    margin-top: 1rem;
+    margin-right: 1rem;
+    margin-left: 0;
+    border-radius: 1rem;
+    width: 30px;
+    height: 30px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.usericon {
+    margin-top: 1rem;
+    margin-right: 0;
+    margin-left: 1rem;
+    border-radius: 1rem;
+    width: 30px;
+    height: 30px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.usericon-right {
+    margin-left: 1rem;
+    margin-right: 0;
+    border-radius: 1rem;
+    width: 30px;
+    height: 30px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.markdownanswer h1,
+.markdownanswer h2,
+.markdownanswer h3 {
+    font-size: inherit;
+}
+
+.center {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    flex-direction: column;
+    padding: 12px;
+}
+
+.center form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    visibility: visible;
+    opacity: 1;
+}
+
+.center form textarea,
+.center form input[type="text"] {
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.center form .MuiInputBase-root {
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Main container styles */
+.chat-container {
+    height: 100%;
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+/* Input area container */
+.input-area-container {
+    flex-shrink: 0;
+    width: 100%;
+    padding: 16px;
+    position: relative;
+    z-index: 10;
+    pointer-events: auto;
+    min-height: auto;
+    visibility: visible;
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
+}
+
+/* Center input wrapper */
+.center-input-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    flex-direction: column;
+    padding: 12px;
+}
+
+/* Input form wrapper - matches css-1vb4f0l */
+.input-form-wrapper {
+    width: 100%;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    visibility: visible;
+    opacity: 1;
+    position: relative;
+    z-index: 10;
+}
+
+/* Form element styling */
+.input-form-wrapper form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Ensure input is always visible */
+.input-form-wrapper .MuiOutlinedInput-root {
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: flex !important;
+}
+
+.input-form-wrapper textarea#userInput {
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: block !important;
+    height: auto !important;
+    min-height: 20px !important;
+}
+
+/* Cloud container wrapper - matches css-nze86s */
+.cloud-container-wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Chat popup root container - matches css-15rxwd9 */
+.chat-popup-root {
+    position: fixed;
+    right: 20px;
+    top: 80px;
+    bottom: 20px;
+    width: 720px;
+    min-width: 720px;
+    max-width: 720px;
+    height: calc(-100px + 100vh);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+/* Chat popup inner wrapper - matches css-0 */
+.chat-popup-root > .MuiBox-root {
+    height: 100%;
+}
+
+/* Chat popup transition wrapper - matches css-4vejhq */
+.chat-popup-root > .MuiBox-root > .MuiBox-root {
+    height: 100%;
+}
+
+/* Chat message container - matches css-195mvu6 and css-165n1rq */
+.chat-message-container {
+    flex: 1 1 0%;
+    display: flex;
+    flex-direction: column;
+    transition: margin-left 0.3s;
+    height: 100%;
+    max-height: 100%;
+    margin-left: 0;
+    width: calc(100% - 240px);
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+    min-height: 0px;
+    box-sizing: border-box;
+}
+
+
+.cloud-wrapper {
+    width: 100% !important;
+    min-width: 100% !important;
+    height: 100% !important;
+    min-height: 100% !important;
+    max-height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    position: relative !important;
+}
+
+.cloud-dialog-wrapper {
+    width: 100%;
+    height: calc(100vh - 120px);
+}
+
+.cloud-wrapper > div,
+.cloud-dialog-wrapper > div {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    flex-direction: row;
+    position: relative;
+}
+
+.image-dropzone {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    z-index: 2001; /* Ensure it's above other content */
+}
+
+.cloud,
+.cloud-dialog {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.cloud-message {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    overflow-y: auto;
+    border-radius: 0.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.preview {
+    position: absolute;
+    bottom: 0;
+    z-index: 1000;
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* For momentum scroll on mobile devices */
+    scrollbar-width: none; /* For Firefox */
+}
+
+.file-drop-field {
+    position: relative; /* Needed to position the icon correctly */
+    /* Other styling for the field */
+}
+
+.drop-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(137, 134, 134, 0.83); /* Semi-transparent white */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000; /* Ensure it's above other content */
+    border: 2px dashed #0094ff; /* Example style */
+}
+
+.center audio {
+    height: 100%;
+    border-radius: 0;
+}
+
+/* Chat Sidebar Scrollbar Styles */
+.chat-sidebar-list {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
+/* Ensure Material-UI Box with css-1h2lawp has scrollbar */
+.MuiBox-root.chat-sidebar-list,
+.chat-sidebar-list.MuiBox-root {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
+/* Webkit scrollbar styling for sidebar */
+.chat-sidebar-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.chat-sidebar-list::-webkit-scrollbar-track {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+}
+
+.chat-sidebar-list::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+.chat-sidebar-list::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Dark mode scrollbar */
+[data-theme="dark"] .chat-sidebar-list::-webkit-scrollbar-track,
+.dark .chat-sidebar-list::-webkit-scrollbar-track {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .chat-sidebar-list::-webkit-scrollbar-thumb,
+.dark .chat-sidebar-list::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .chat-sidebar-list::-webkit-scrollbar-thumb:hover,
+.dark .chat-sidebar-list::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Firefox scrollbar */
+.chat-sidebar-list {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] .chat-sidebar-list,
+.dark .chat-sidebar-list {
+    scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.05);
+}
+
+/* MuiDrawer height styling */
+.MuiDrawer-root.MuiDrawer-docked {
+    height: 100% !important;
+}
+
+.MuiDrawer-root.MuiDrawer-docked.css-9bckhm {
+    height: 100% !important;
+}

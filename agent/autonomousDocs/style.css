@@ -1,0 +1,206 @@
+/* API Documentation Styles */
+
+:root {
+    --api-method-get: #61affe;
+    --api-method-post: #49cc90;
+    --api-method-put: #fca130;
+    --api-method-delete: #f93e3e;
+    --api-bg-light: #f8f9fa;
+    --api-border: #e9ecef;
+    --api-text-muted: #6c757d;
+}
+
+.api-reference-page {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.api-endpoint-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding: 12px;
+    background: var(--api-bg-light);
+    border-radius: 8px;
+    border: 1px solid var(--api-border);
+    font-family: 'Monaco', 'Consolas', monospace;
+}
+
+.api-method {
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 4px 8px;
+    border-radius: 4px;
+    color: white;
+    font-size: 14px;
+}
+
+.api-method.post { background-color: var(--api-method-post); }
+.api-method.get { background-color: var(--api-method-get); }
+.api-method.put { background-color: var(--api-method-put); }
+.api-method.delete { background-color: var(--api-method-delete); }
+
+.api-path {
+    font-size: 16px;
+    color: #333;
+}
+
+.api-layout {
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+}
+
+.api-left-column {
+    flex: 1;
+    min-width: 300px;
+}
+
+.api-right-column {
+    flex: 1;
+    min-width: 300px;
+    background: #1e1e1e; /* Dark background for code */
+    border-radius: 8px;
+    padding: 20px;
+    color: #d4d4d4;
+    position: sticky;
+    top: 20px;
+    height: fit-content;
+}
+
+.api-section-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-top: 32px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--api-border);
+    padding-bottom: 8px;
+}
+
+/* Auth Section */
+.api-auth-card {
+    background: white;
+    border: 1px solid var(--api-border);
+    border-radius: 6px;
+    padding: 16px;
+}
+
+.api-auth-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-weight: 500;
+}
+
+.api-tag {
+    background: #e2e8f0;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    color: #475569;
+}
+
+/* Param Table */
+.api-param-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.api-param-row {
+    border-bottom: 1px solid var(--api-border);
+}
+
+.api-param-row:last-child {
+    border-bottom: none;
+}
+
+.api-param-cell {
+    padding: 12px 0;
+}
+
+.api-param-name {
+    font-family: monospace;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.api-param-type {
+    font-size: 12px;
+    color: var(--api-text-muted);
+    margin-left: 8px;
+}
+
+.api-param-required {
+    color: #e74c3c;
+    font-size: 12px;
+    font-weight: bold;
+    margin-left: 8px;
+}
+
+.api-param-desc {
+    font-size: 14px;
+    color: #555;
+    margin-top: 4px;
+}
+
+/* Responses */
+.api-response-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.api-response-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px;
+    border: 1px solid var(--api-border);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.api-response-item:hover {
+    background: var(--api-bg-light);
+}
+
+.api-response-code {
+    font-weight: 600;
+}
+
+.api-response-code.success { color: var(--api-method-post); }
+.api-response-code.error { color: var(--api-method-delete); }
+
+/* Code Blocks in Right Column */
+.api-right-column pre {
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+}
+
+.api-right-column code {
+    color: #d4d4d4 !important;
+    font-family: 'Fira Code', monospace;
+    font-size: 13px;
+}
+
+.api-code-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    color: #888;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.api-code-block {
+    margin-bottom: 24px;
+}
+
+.api-code-block:last-child {
+    margin-bottom: 0;
+}

@@ -23,7 +23,7 @@ import {
 import moment from 'moment'
 import chatSessionsApi from '@/api/chatSessions'
 import useApi from '@/hooks/useApi'
-import ariPNG from '@/assets/images/Ari-logo.png'
+import kodivianPNG from '@/assets/images/kodivian-logo.png'
 
 const StyledDrawer = styled(Drawer)(({ theme, open, isDialog }) => ({
     width: open ? (isDialog ? 200 : 240) : 0,
@@ -173,7 +173,7 @@ const ChatSidebar = ({
                     >
                         <Box
                             component="img"
-                            src={ariPNG}
+                            src={kodivianPNG}
                             alt="ARI"
                             sx={{
                                 width: '50px',

@@ -159,14 +159,14 @@ export abstract class BaseCommand extends Command {
                 // Shut down the app after timeout if it ever stuck removing pools
                 setTimeout(async () => {
                     const { logInfo } = await import('../utils/logger/system-helper')
-                    logInfo('Autonomous was forced to shut down after 30 secs').catch(() => {})
+                    logInfo('Kodivian was forced to shut down after 30 secs').catch(() => { })
                     await this.failExit()
                 }, 30000)
 
                 await this.stopProcess()
             } catch (error) {
                 const { logError } = await import('../utils/logger/system-helper')
-                logError('There was an error shutting down Autonomous...', error).catch(() => {})
+                logError('There was an error shutting down Kodivian...', error).catch(() => { })
             }
         }
     }
@@ -189,12 +189,12 @@ export abstract class BaseCommand extends Command {
         // TODO: Get rid of this and send proper error message to ui
         process.on('uncaughtException', async (err) => {
             const { logError } = await import('../utils/logger/system-helper')
-            logError('uncaughtException: ', err).catch(() => {})
+            logError('uncaughtException: ', err).catch(() => { })
         })
 
         process.on('unhandledRejection', async (err) => {
             const { logError } = await import('../utils/logger/system-helper')
-            logError('unhandledRejection: ', err).catch(() => {})
+            logError('unhandledRejection: ', err).catch(() => { })
         })
 
         const { flags } = await this.parse(this.constructor as any)

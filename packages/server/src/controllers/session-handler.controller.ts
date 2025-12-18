@@ -30,26 +30,30 @@ export class SessionHandlerController {
             logInfo(`Session handler createSession called`).catch(() => { })
 
             // For single-org mode, we can accept requests with or without params
-            let orgId = '1' // Default to org 1
-            let chainsysSessionId = ''
+            // IMPORTANT: In single-org mode, we ALWAYS use orgId 1 regardless of client params
+            const orgId = '1' // Always force org 1 for single-org mode
+            let SessionId = ''
 
-            // Try to parse params if provided
+            // Try to parse params if provided (only use chainsysSessionId, ignore orgId from client)
             const params = req.query.params as string
             if (params) {
                 try {
                     const cleanParams = params.startsWith('"') && params.endsWith('"') ? params.slice(1, -1) : params
                     const decodedString = Buffer.from(cleanParams, 'base64').toString('utf-8')
                     const decodedParams = JSON.parse(decodedString)
-                    orgId = decodedParams.orgId || '1'
-                    chainsysSessionId = decodedParams.chainsysSessionId || ''
+                    // Note: We ignore decodedParams.orgId - always use 1 for single-org
+                    SessionId = decodedParams.chainsysSessionId || ''
+                    if (decodedParams.orgId && decodedParams.orgId !== '1') { // Changed 1 to '1' for string comparison
+                        logInfo(`Session validated (single-org mode) - ignoring client orgId: ${decodedParams.orgId}, using orgId: 1`).catch(() => { })
+                    }
                 } catch (error) {
                     // Use defaults if parsing fails
                     logWarn('Using default org 1 (params parse failed)').catch(() => { })
                 }
             }
 
-            // Check existing AUTOID cookie
-            const existingToken = req.cookies?.AUTOID
+            // Check existing KODIID cookie
+            const existingToken = req.cookies?.KODIID
             if (existingToken) {
                 const existingSession = await this.autonomousSessionService.validateAutonomousSession(existingToken, orgId)
                 if (existingSession) {
@@ -62,12 +66,12 @@ export class SessionHandlerController {
             }
 
             // Get default user data (single-org mode)
-            const userData = await this.sessionService.validateChainsysSession(orgId, chainsysSessionId)
+            const userData = await this.sessionService.validateChainsysSession(orgId, SessionId)
             const formattedUserData = this.sessionService.getUserDataForLocalStorage(userData)
 
             // Create session
             const autonomousToken = await this.autonomousSessionService.createAutonomousSession(
-                chainsysSessionId || 'single-org-session',
+                SessionId || 'single-org-session',
                 formattedUserData.userId,
                 orgId,
                 userData
@@ -92,7 +96,7 @@ export class SessionHandlerController {
                 autonomousStore: JSON.stringify(this.simpleCrypto.encryptObject(autonomousStore))
             }
 
-            // Set AUTOID cookie
+            // Set KODIID cookie
             const cookieOptions: any = {
                 path: '/',
                 httpOnly: true,
@@ -101,7 +105,7 @@ export class SessionHandlerController {
                 secure: process.env.NODE_ENV === 'production'
             }
 
-            res.cookie('AUTOID', autonomousToken, cookieOptions)
+            res.cookie('KODIID', autonomousToken, cookieOptions)
 
             // Generate redirect HTML
             const homePageUrl = `${proxyUrl}/${cleanContextPath}`
@@ -142,7 +146,7 @@ export class SessionHandlerController {
      */
     async checkSession(req: Request, res: Response) {
         try {
-            const autonomousToken = req.cookies?.AUTOID
+            const autonomousToken = req.cookies?.KODIID
 
             if (!autonomousToken) {
                 return res.json({ valid: false, message: 'No session cookie found' })

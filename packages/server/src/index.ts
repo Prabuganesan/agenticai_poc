@@ -166,7 +166,7 @@ export class App {
             // Check if it's a static file or UI route first
             const isStaticFile = /\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|json|webp|map)$/i.test(req.path)
             const isUIRoute = !req.path.includes('/api/v1') && !req.path.includes('/api/')
-            const contextPath = process.env.CONTEXT_PATH || '/autonomous'
+            const contextPath = process.env.CONTEXT_PATH || '/kodivian'
             const isContextPathRoot = req.path === contextPath || req.path === `${contextPath}/`
 
             // Allow static files and UI routes to pass through without authentication
@@ -180,7 +180,7 @@ export class App {
                 if (URL_CASE_SENSITIVE_REGEX.test(req.path)) {
                     // Normalize path by removing context path prefix for whitelist checking
                     // Express might include context path in req.path, so we need to handle both
-                    const contextPath = process.env.CONTEXT_PATH || '/autonomous'
+                    const contextPath = process.env.CONTEXT_PATH || '/kodivian'
                     let normalizedPath = req.path
                     if (normalizedPath.startsWith(contextPath)) {
                         normalizedPath = normalizedPath.substring(contextPath.length) || '/'
@@ -192,7 +192,7 @@ export class App {
                         // For whitelisted URLs, still validate session if cookie exists
                         // This allows controllers to check orgId for non-public resources
                         // while still allowing public access without authentication
-                        if (req.cookies?.AUTOID) {
+                        if (req.cookies?.KODIID) {
                             return sessionValidationMiddleware(req as any, res, next)
                         }
                         // No session cookie - allow public access
@@ -216,7 +216,7 @@ export class App {
                         return next()
                     }
                     // Step 5: Apply autonomous session validation middleware
-                    else if (req.cookies?.AUTOID) {
+                    else if (req.cookies?.KODIID) {
                         return sessionValidationMiddleware(req as any, res, next)
                     }
                     // Step 6: API key authentication for external server access
@@ -225,7 +225,7 @@ export class App {
                         // Check if API key is provided in Authorization header
                         const hasApiKey = !!(req.headers['authorization'] || req.headers['Authorization'])
 
-                        // If no API key and no AUTOID cookie, this is likely a frontend request with expired/missing session
+                        // If no API key and no KODIID cookie, this is likely a frontend request with expired/missing session
                         if (!hasApiKey) {
                             // Log security event - unauthorized access attempt
                             try {
@@ -395,7 +395,7 @@ export class App {
         this.app.use(decryptRequestMiddleware)
 
         // Mount API routes at both /api/v1 and /autonomous/api/v1 to handle context path
-        const apiContextPath = process.env.CONTEXT_PATH || '/autonomous'
+        const apiContextPath = process.env.CONTEXT_PATH || '/kodivian'
         this.app.use('/api/v1', autonomousApiV1Router)
         if (apiContextPath && apiContextPath !== '/') {
             // Also mount at context path for requests coming from /autonomous/api/v1
@@ -508,7 +508,7 @@ export class App {
         }
 
         // Get context path from environment or org config
-        const contextPath = process.env.CONTEXT_PATH || '/autonomous'
+        const contextPath = process.env.CONTEXT_PATH || '/kodivian'
 
         logInfo(`📁 [server]: Serving UI from: ${uiBuildPath}`).catch(() => { })
         logInfo(`🌐 [server]: Context path: ${contextPath}`).catch(() => { })
@@ -732,7 +732,7 @@ export class App {
             }
             await Promise.all(removePromises)
         } catch (e) {
-            logError(`❌[server]: Autonomous Server shut down error: ${e}`).catch(() => { })
+            logError(`❌[server]: Kodivian Server shut down error: ${e}`).catch(() => { })
         }
     }
 }
@@ -803,14 +803,14 @@ export async function start(): Promise<void> {
         // Step 4: Initialize autonomous session service
         // Note: UserDataService and SessionService are created per-request in session-handler.route.ts
         serverApp.autonomousSessionService = new AutonomousSessionService(serverApp.orgConfigService)
-        logInfo('✅ [server]: Autonomous session service created').catch(() => { })
+        logInfo('✅ [server]: Kodivian session service created').catch(() => { })
 
         // Step 5: Initialize Redis pools for all organizations (matching autonomous server pattern)
         // This must happen AFTER loadAllOrganizations() so Redis configs are available
         // EXACT PATTERN from autonomous server: createOrgRedisPools() called after fetchRedisDetails()
-        logInfo('🔴 [server]: Initializing Redis pools for all organizations...').catch(() => { })
+        logInfo('🔴 [server]: Initializing session pools for all organizations...').catch(() => { })
         await serverApp.autonomousSessionService.initializeRedisPools()
-        logInfo('✅ [server]: Redis pools initialized successfully').catch(() => { })
+        logInfo('✅ [server]: Session pools initialized successfully').catch(() => { })
     } catch (error) {
         logError('❌ [server]: Failed to initialize organization config service:', error).catch(() => { })
         throw error
@@ -921,7 +921,7 @@ export async function start(): Promise<void> {
         }
 
         server.listen(port, host, () => {
-            logInfo(`⚡️ [server]: Autonomous Server is listening at ${host ? 'http://' + host : ''}:${port}`).catch(() => { })
+            logInfo(`⚡️ [server]: Kodivian Server is listening at ${host ? 'http://' + host : ''}:${port}`).catch(() => { })
         })
     } catch (error) {
         logError('❌ [server]: Failed to start server:', error).catch(() => { })

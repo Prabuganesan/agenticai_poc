@@ -28,7 +28,7 @@ export class SessionService {
             UserInfoDetails: {
                 UserInfo: {
                     personalInfo: {
-                        userId: 'kodivian-user',
+                        userId: '1', // Numeric userId for compatibility with parseInt calls
                         userName: 'Kodivian User',
                         firstName: 'Kodivian',
                         lastName: 'User',
@@ -69,7 +69,7 @@ export class SessionService {
 
         return {
             roleId: personalInfo.roleId || 'admin',
-            userId: personalInfo.userId || 'kodivian-user',
+            userId: personalInfo.userId || '1',
             userName: personalInfo.userName || 'Kodivian User',
             firstName: personalInfo.firstName || 'Kodivian',
             lastName: personalInfo.lastName || 'User',

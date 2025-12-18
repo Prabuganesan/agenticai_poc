@@ -15,7 +15,7 @@ const LogoSection = () => (
         <Logo />
         <Box sx={{ ml: 1, textAlign: 'left' }}>
             <Typography variant='h3' sx={{ fontWeight: 800 }}>
-                {'Autonomous SAB'}
+                {'Kodivian Agenic AI'}
             </Typography>
         </Box>
     </ButtonBase>

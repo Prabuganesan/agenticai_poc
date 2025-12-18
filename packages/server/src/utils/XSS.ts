@@ -50,7 +50,7 @@ function parseAllowedOrigins(allowedOrigins: string): string[] {
 export function getCorsOptions(): any {
     return (req: any, callback: (err: Error | null, options?: any) => void) => {
         const corsOptions = {
-            credentials: true, // Allow cookies to be sent with requests (required for AUTOID cookie)
+            credentials: true, // Allow cookies to be sent with requests (required for KODIID cookie)
             origin: async (origin: string | undefined, originCallback: (err: Error | null, allow?: boolean) => void) => {
                 const allowedOrigins = getAllowedCorsOrigins()
                 const isPredictionReq = isPredictionRequest(req.url)

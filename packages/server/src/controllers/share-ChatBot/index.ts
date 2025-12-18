@@ -14,7 +14,7 @@ const shareChatBot = async (req: any, res: Response, next: NextFunction) => {
     }
 
     const orgId = req.orgId
-    const existingToken = req.cookies?.AUTOID
+    const existingToken = req.cookies?.KODIID
     const chatId = req.params.id
 
     try {
@@ -44,7 +44,7 @@ const shareChatBot = async (req: any, res: Response, next: NextFunction) => {
                 const formattedUserData = sessionService.getUserDataForLocalStorage(userData)
 
                 const autonomousStore = {
-                    sessionId: existingToken, // AUTOID for session validation
+                    sessionId: existingToken, // KODIID for session validation
                     baseUrl: baseUrl, // API base URL for requests
                     orgId: orgId, // Organization ID
                     userId: formattedUserData.userId, // User ID
@@ -57,7 +57,7 @@ const shareChatBot = async (req: any, res: Response, next: NextFunction) => {
                     autonomousStore: JSON.stringify(simpleCrypto.encryptObject(autonomousStore))
                 }
 
-                // Set AUTOID cookie (exact settings from autonomous server)
+                // Set KODIID cookie (exact settings from autonomous server)
                 const cookieDomain = process.env.COOKIE_DOMAIN || undefined
                 let cleanCookieDomain = cookieDomain?.startsWith('.') ? cookieDomain.substring(1) : cookieDomain
 
@@ -80,7 +80,7 @@ const shareChatBot = async (req: any, res: Response, next: NextFunction) => {
                     cookieOptions.domain = cleanCookieDomain
                 }
 
-                res.cookie('AUTOID', existingToken, cookieOptions)
+                res.cookie('KODIID', existingToken, cookieOptions)
 
                 const htmlContent = `<!DOCTYPE html>
 <html>

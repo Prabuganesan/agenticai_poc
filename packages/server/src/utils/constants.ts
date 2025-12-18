@@ -92,5 +92,5 @@ export const LICENSE_QUOTAS = {
 
 // Get server port from environment variable
 export const getServerPort = (): number => {
-    return parseInt(process.env.SERVER_PORT || '', 10) || 3030
+    return parseInt(process.env.SERVER_PORT || '', 10) || 3000
 }

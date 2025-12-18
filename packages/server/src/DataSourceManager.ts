@@ -12,8 +12,7 @@ import { logInfo, logError, logWarn } from './utils/logger/system-helper'
 import { OrganizationConfigService } from './services/org-config.service'
 import { getDatabaseSSLFromEnv } from './DataSource'
 import { createDatabaseSchema } from './database/schema/startup-schema'
-import { OracleConnectionHelper } from './utils/oracle-connection-helper'
-import { OracleNamingStrategy } from './database/utils/oracle-naming-strategy'
+
 
 export class DataSourceManager {
     private dataSources: Map<number, DataSource> = new Map()
@@ -30,22 +29,22 @@ export class DataSourceManager {
         const uniqueOrgIds = Array.from(new Set(orgIds))
 
         if (uniqueOrgIds.length === 0) {
-            logWarn('⚠️ [DataSourceManager]: No organizations found to initialize DataSources').catch(() => {})
+            logWarn('⚠️ [DataSourceManager]: No organizations found to initialize DataSources').catch(() => { })
             return
         }
 
-        logInfo(`🔌 [DataSourceManager]: Initializing DataSources for ${uniqueOrgIds.length} organizations...`).catch(() => {})
+        logInfo(`🔌 [DataSourceManager]: Initializing DataSources for ${uniqueOrgIds.length} organizations...`).catch(() => { })
 
         const useLocalDb = process.env.USE_LOCAL_DB === 'true'
         if (useLocalDb) {
-            logWarn('⚠️ [DataSourceManager]: USING LOCAL DATABASE OVERRIDE - This is for testing only!').catch(() => {})
+            logWarn('⚠️ [DataSourceManager]: USING LOCAL DATABASE OVERRIDE - This is for testing only!').catch(() => { })
         }
 
         const initializationPromises = uniqueOrgIds.map(async (orgId) => {
             try {
                 const orgConfig = orgConfigService.getOrgConfig(orgId)
                 if (!orgConfig?.platformDB) {
-                    logWarn(`⚠️ [DataSourceManager]: No platformDB config found for orgId ${orgId}, skipping`).catch(() => {})
+                    logWarn(`⚠️ [DataSourceManager]: No platformDB config found for orgId ${orgId}, skipping`).catch(() => { })
                     return { orgId, success: false, error: 'No platformDB config' }
                 }
 
@@ -63,7 +62,7 @@ export class DataSourceManager {
                         maxPoolSize: parseInt(process.env.LOCAL_DB_MAX_POOL_SIZE || '10')
                     }
                     logInfo(`🔧 [DataSourceManager]: Using LOCAL database override for orgId ${orgId}: ${dbConfig.database}`).catch(
-                        () => {}
+                        () => { }
                     )
                 } else {
                     dbConfig = {
@@ -77,95 +76,64 @@ export class DataSourceManager {
                     }
                 }
 
-                // Determine database type (default to postgres for backward compatibility with existi            ng configs)
-                const dbType = dbConfig.dbType?.toUpperCase() === 'ORACLE' ? 'oracle' : 'postgres'
-
-                // Create database-specific DataSource configuration
+                // Create PostgreSQL DataSource configuration
                 const dataSourceConfig: any = {
-                    type: dbType,
+                    type: 'postgres',
                     host: dbConfig.host,
                     port: dbConfig.port,
                     username: dbConfig.username,
                     password: dbConfig.password,
+                    database: dbConfig.database,
                     synchronize: false,
                     migrationsRun: false,
                     entities: Object.values(entities),
                     logging: ['error', 'warn'],
-                    logger: 'advanced-console'
-                }
-
-                // Add database-specific configuration
-                if (dbType === 'oracle') {
-                    // Oracle-specific configuration
-                    dataSourceConfig.sid = dbConfig.database // Use SID (can also use serviceName)
-                    dataSourceConfig.extra = {
-                        poolMin: 2,
-                        poolMax: dbConfig.maxPoolSize,
-                        poolIncrement: 1,
-                        poolTimeout: 60
-                    }
-                    // Use custom naming strategy to convert table/column names to uppercase for Oracle
-                    // This ensures TypeORM queries use uppercase table names that match Oracle's unquoted identifier storage
-                    dataSourceConfig.namingStrategy = new OracleNamingStrategy(true)
-                    logInfo(
-                        `🔧 [DataSourceManager]: Configuring Oracle connection for orgId ${orgId}: ${dbConfig.database} (with uppercase naming strategy)`
-                    ).catch(() => {})
-                } else {
-                    // PostgreSQL-specific configuration
-                    dataSourceConfig.database = dbConfig.database
-                    dataSourceConfig.ssl = getDatabaseSSLFromEnv()
-                    dataSourceConfig.extra = {
+                    logger: 'advanced-console',
+                    ssl: getDatabaseSSLFromEnv(),
+                    extra: {
                         idleTimeoutMillis: 120000,
                         max: dbConfig.maxPoolSize,
                         min: 2
-                    }
-                    dataSourceConfig.logNotifications = true
-                    dataSourceConfig.poolErrorHandler = (err: any) => {
-                        logError(`[DataSourceManager] Database pool error for orgId ${orgId}: ${JSON.stringify(err)}`).catch(() => {})
-                    }
-                    dataSourceConfig.applicationName = `Autonomous-Org-${orgId}`
-                    logInfo(`🔧 [DataSourceManager]: Configuring PostgreSQL connection for orgId ${orgId}: ${dbConfig.database}`).catch(
-                        () => {}
-                    )
+                    },
+                    logNotifications: true,
+                    poolErrorHandler: (err: any) => {
+                        logError(`[DataSourceManager] Database pool error for orgId ${orgId}: ${JSON.stringify(err)}`).catch(() => { })
+                    },
+                    applicationName: `Autonomous-Org-${orgId}`
                 }
+                logInfo(`🔧 [DataSourceManager]: Configuring PostgreSQL connection for orgId ${orgId}: ${dbConfig.database}`).catch(
+                    () => { }
+                )
 
-                // Create DataSource with appropriate configuration
+                // Create DataSource and initialize
                 const dataSource = new DataSource(dataSourceConfig)
-
-                // Initialize connection with retry logic for Oracle
-                if (dbType === 'oracle') {
-                    await this.initializeDataSourceWithRetry(dataSource, orgId, dbConfig.database)
-                } else {
-                    await dataSource.initialize()
-                }
+                await dataSource.initialize()
 
                 // Validate connection before storing
-                await this.validateDataSourceConnection(dataSource, dbType, orgId)
-
-                const dbTypeName = dbType === 'oracle' ? 'Oracle' : 'PostgreSQL'
-                logInfo(`✅ [DataSourceManager]: Connected to ${dbTypeName} for orgId ${orgId} (${dbConfig.database})`).catch(() => {})
+                await this.validateDataSourceConnection(dataSource, orgId)
+                logInfo(`✅ [DataSourceManager]: Connected to PostgreSQL for orgId ${orgId} (${dbConfig.database})`).catch(() => { })
 
                 // Create all tables and columns at startup (if enabled via ENABLE_TABLE_CREATION flag)
                 const enableTableCreation = process.env.ENABLE_TABLE_CREATION === 'true'
                 if (enableTableCreation) {
                     try {
                         await createDatabaseSchema(dataSource, orgId)
-                        logInfo(`✅ [DataSourceManager]: Schema creation completed for orgId ${orgId}`).catch(() => {})
+                        logInfo(`✅ [DataSourceManager]: Schema creation completed for orgId ${orgId}`).catch(() => { })
                     } catch (schemaError) {
-                        logError(`❌ [DataSourceManager]: Schema creation failed for orgId ${orgId}:`, schemaError).catch(() => {})
+                        logError(`❌ [DataSourceManager]: Schema creation failed for orgId ${orgId}:`, schemaError).catch(() => { })
                         // Continue - don't fail startup if schema creation fails
                     }
                 } else {
                     logInfo(
                         `⏭️  [DataSourceManager]: Table creation skipped for orgId ${orgId} (ENABLE_TABLE_CREATION not set or false)`
-                    ).catch(() => {})
+                    ).catch(() => { })
                 }
 
                 // Store DataSource
                 this.dataSources.set(orgId, dataSource)
                 return { orgId, success: true }
             } catch (error) {
-                logError(`❌ [DataSourceManager]: Failed to initialize DataSource for orgId ${orgId}:`, error).catch(() => {})
+                logError(`❌ [DataSourceManager]: Failed to initialize DataSource for orgId ${orgId}:`, error).catch(() => { })
                 // Continue with other orgs - don't fail startup
                 return { orgId, success: false, error: error instanceof Error ? error.message : String(error) }
             }
@@ -176,11 +144,11 @@ export class DataSourceManager {
         const failureCount = results.filter((r) => !r.success).length
 
         this.isInitialized = true
-        logInfo(`✅ [DataSourceManager]: Initialized ${successCount} DataSources successfully, ${failureCount} failed`).catch(() => {})
+        logInfo(`✅ [DataSourceManager]: Initialized ${successCount} DataSources successfully, ${failureCount} failed`).catch(() => { })
 
         if (failureCount > 0) {
             const failedOrgs = results.filter((r) => !r.success).map((r) => r.orgId)
-            logWarn(`⚠️ [DataSourceManager]: Failed to initialize DataSources for orgIds: [${failedOrgs.join(', ')}]`).catch(() => {})
+            logWarn(`⚠️ [DataSourceManager]: Failed to initialize DataSources for orgIds: [${failedOrgs.join(', ')}]`).catch(() => { })
         }
     }
 
@@ -213,7 +181,7 @@ export class DataSourceManager {
                 orgConfig = this.orgConfigService.getOrgConfig(orgId)
 
                 if (!orgConfig?.platformDB) {
-                    logWarn(`⚠️ [DataSourceManager]: No platformDB config found for orgId ${orgId}, skipping`).catch(() => {})
+                    logWarn(`⚠️ [DataSourceManager]: No platformDB config found for orgId ${orgId}, skipping`).catch(() => { })
                     return { orgId, success: false, error: 'No platformDB config' }
                 }
             }
@@ -233,7 +201,7 @@ export class DataSourceManager {
                     maxPoolSize: parseInt(process.env.LOCAL_DB_MAX_POOL_SIZE || '10'),
                     dbType: 'postgres'
                 }
-                logInfo(`🔧 [DataSourceManager]: Using LOCAL database override for orgId ${orgId}: ${dbConfig.database}`).catch(() => {})
+                logInfo(`🔧 [DataSourceManager]: Using LOCAL database override for orgId ${orgId}: ${dbConfig.database}`).catch(() => { })
             } else {
                 dbConfig = {
                     host: platformDB.host,
@@ -246,105 +214,74 @@ export class DataSourceManager {
                 }
             }
 
-            // Determine database type (default to postgres for backward compatibility with existing configs)
-            const dbType = dbConfig.dbType?.toUpperCase() === 'ORACLE' ? 'oracle' : 'postgres'
-
-            // Create DataSource configuration
+            // Create PostgreSQL DataSource configuration
             const dataSourceConfig: any = {
-                type: dbType,
+                type: 'postgres',
                 host: dbConfig.host,
                 port: dbConfig.port,
                 username: dbConfig.username,
                 password: dbConfig.password,
+                database: dbConfig.database,
                 synchronize: false,
                 migrationsRun: false,
                 entities: Object.values(entities),
                 logging: ['error', 'warn'],
-                logger: 'advanced-console'
-            }
-
-            // Add database-specific configuration
-            if (dbType === 'oracle') {
-                // Oracle-specific configuration
-                dataSourceConfig.sid = dbConfig.database // Use SID (can also use serviceName)
-                dataSourceConfig.extra = {
-                    poolMin: 2,
-                    poolMax: dbConfig.maxPoolSize,
-                    poolIncrement: 1,
-                    poolTimeout: 60
-                }
-                // Use custom naming strategy to convert table/column names to uppercase for Oracle
-                // This ensures TypeORM queries use uppercase table names that match Oracle's unquoted identifier storage
-                dataSourceConfig.namingStrategy = new OracleNamingStrategy(true)
-                logInfo(
-                    `🔧 [DataSourceManager]: Configuring Oracle connection for orgId ${orgId}: ${dbConfig.database} (with uppercase naming strategy)`
-                ).catch(() => {})
-            } else {
-                // PostgreSQL-specific configuration
-                dataSourceConfig.database = dbConfig.database
-                dataSourceConfig.ssl = getDatabaseSSLFromEnv()
-                dataSourceConfig.extra = {
+                logger: 'advanced-console',
+                ssl: getDatabaseSSLFromEnv(),
+                extra: {
                     idleTimeoutMillis: 120000,
                     max: dbConfig.maxPoolSize,
                     min: 2
-                }
-                dataSourceConfig.logNotifications = true
-                dataSourceConfig.poolErrorHandler = (err: any) => {
-                    logError(`[DataSourceManager] Database pool error for orgId ${orgId}: ${JSON.stringify(err)}`).catch(() => {})
-                }
-                dataSourceConfig.applicationName = `Autonomous-Org-${orgId}`
-                logInfo(`🔧 [DataSourceManager]: Configuring PostgreSQL connection for orgId ${orgId}: ${dbConfig.database}`).catch(
-                    () => {}
-                )
+                },
+                logNotifications: true,
+                poolErrorHandler: (err: any) => {
+                    logError(`[DataSourceManager] Database pool error for orgId ${orgId}: ${JSON.stringify(err)}`).catch(() => { })
+                },
+                applicationName: `Autonomous-Org-${orgId}`
             }
+            logInfo(`🔧 [DataSourceManager]: Configuring PostgreSQL connection for orgId ${orgId}: ${dbConfig.database}`).catch(
+                () => { }
+            )
 
-            // Create DataSource with appropriate configuration
+            // Create DataSource and initialize
             const dataSource = new DataSource(dataSourceConfig)
-
-            // Initialize connection with retry logic for Oracle
-            if (dbType === 'oracle') {
-                await this.initializeDataSourceWithRetry(dataSource, orgId, dbConfig.database)
-            } else {
-                await dataSource.initialize()
-            }
+            await dataSource.initialize()
 
             // Validate connection before storing
-            await this.validateDataSourceConnection(dataSource, dbType, orgId)
-
-            const dbTypeName = dbType === 'oracle' ? 'Oracle' : 'PostgreSQL'
-            logInfo(`✅ [DataSourceManager]: Connected to ${dbTypeName} for orgId ${orgId} (${dbConfig.database})`).catch(() => {})
+            await this.validateDataSourceConnection(dataSource, orgId)
+            logInfo(`✅ [DataSourceManager]: Connected to PostgreSQL for orgId ${orgId} (${dbConfig.database})`).catch(() => { })
 
             // Create all tables and columns at startup (if enabled via ENABLE_TABLE_CREATION flag)
             const enableTableCreation = process.env.ENABLE_TABLE_CREATION === 'true'
             if (enableTableCreation) {
                 try {
                     await createDatabaseSchema(dataSource, orgId)
-                    logInfo(`✅ [DataSourceManager]: Schema creation completed for orgId ${orgId}`).catch(() => {})
+                    logInfo(`✅ [DataSourceManager]: Schema creation completed for orgId ${orgId}`).catch(() => { })
                 } catch (schemaError) {
-                    logError(`❌ [DataSourceManager]: Schema creation failed for orgId ${orgId}:`, schemaError).catch(() => {})
+                    logError(`❌ [DataSourceManager]: Schema creation failed for orgId ${orgId}:`, schemaError).catch(() => { })
                     // Continue - don't fail startup if schema creation fails
                 }
             } else {
                 logInfo(
                     `⏭️  [DataSourceManager]: Table creation skipped for orgId ${orgId} (ENABLE_TABLE_CREATION not set or false)`
-                ).catch(() => {})
+                ).catch(() => { })
             }
 
             // Verify DataSource is initialized before storing
             if (!dataSource.isInitialized) {
                 const errorMsg = `DataSource for orgId ${orgId} is not initialized after initialize() call`
-                logError(`❌ [DataSourceManager]: ${errorMsg}`).catch(() => {})
+                logError(`❌ [DataSourceManager]: ${errorMsg}`).catch(() => { })
                 throw new Error(errorMsg)
             }
 
             // Store DataSource
             this.dataSources.set(orgId, dataSource)
             logInfo(`✅ [DataSourceManager]: DataSource stored for orgId ${orgId} (isInitialized: ${dataSource.isInitialized})`).catch(
-                () => {}
+                () => { }
             )
             return { orgId, success: true }
         } catch (error) {
-            logError(`❌ [DataSourceManager]: Failed to initialize DataSource for orgId ${orgId}:`, error).catch(() => {})
+            logError(`❌ [DataSourceManager]: Failed to initialize DataSource for orgId ${orgId}:`, error).catch(() => { })
             return { orgId, success: false, error: error instanceof Error ? error.message : String(error) }
         }
     }
@@ -366,13 +303,13 @@ export class DataSourceManager {
             return existingDataSource
         }
 
-        logInfo(`🔄 [DataSourceManager]: DataSource for orgId ${numericOrgId} not found, attempting to initialize...`).catch(() => {})
+        logInfo(`🔄 [DataSourceManager]: DataSource for orgId ${numericOrgId} not found, attempting to initialize...`).catch(() => { })
 
         // Ensure orgConfigService is set
         if (!this.orgConfigService) {
             logError(
                 `❌ [DataSourceManager]: orgConfigService is not set. This usually means initializeAllOrgDataSources() was not called with an orgConfigService instance.`
-            ).catch(() => {})
+            ).catch(() => { })
             throw new Error(
                 `OrganizationConfigService not initialized. Cannot initialize DataSource for orgId ${numericOrgId}. Make sure initializeAllOrgDataSources() was called first.`
             )
@@ -382,7 +319,7 @@ export class DataSourceManager {
 
         if (!result.success) {
             const errorMsg = result.error || 'Unknown error'
-            logError(`❌ [DataSourceManager]: Failed to initialize DataSource for orgId ${numericOrgId}: ${errorMsg}`).catch(() => {})
+            logError(`❌ [DataSourceManager]: Failed to initialize DataSource for orgId ${numericOrgId}: ${errorMsg}`).catch(() => { })
             throw new Error(`Failed to initialize DataSource for orgId ${numericOrgId}: ${errorMsg}`)
         }
 
@@ -391,7 +328,7 @@ export class DataSourceManager {
 
         if (!dataSource) {
             logError(`❌ [DataSourceManager]: DataSource for orgId ${numericOrgId} was not found in map after initialization`).catch(
-                () => {}
+                () => { }
             )
             throw new Error(`DataSource for orgId ${numericOrgId} was not found in map after initialization`)
         }
@@ -402,13 +339,13 @@ export class DataSourceManager {
                     isInitialized: dataSource.isInitialized,
                     options: dataSource.options?.type
                 })}`
-            ).catch(() => {})
+            ).catch(() => { })
             throw new Error(
                 `DataSource for orgId ${numericOrgId} was not properly initialized (isInitialized: ${dataSource.isInitialized})`
             )
         }
 
-        logInfo(`✅ [DataSourceManager]: DataSource for orgId ${numericOrgId} is ready`).catch(() => {})
+        logInfo(`✅ [DataSourceManager]: DataSource for orgId ${numericOrgId} is ready`).catch(() => { })
         return dataSource
     }
 
@@ -459,22 +396,22 @@ export class DataSourceManager {
      * Close all DataSource connections
      */
     async closeAll(): Promise<void> {
-        logInfo(`🔌 [DataSourceManager]: Closing all DataSource connections...`).catch(() => {})
+        logInfo(`🔌 [DataSourceManager]: Closing all DataSource connections...`).catch(() => { })
         const closePromises = Array.from(this.dataSources.entries()).map(async ([orgId, dataSource]) => {
             try {
                 if (dataSource.isInitialized) {
                     await dataSource.destroy()
-                    logInfo(`✅ [DataSourceManager]: Closed DataSource for orgId ${orgId}`).catch(() => {})
+                    logInfo(`✅ [DataSourceManager]: Closed DataSource for orgId ${orgId}`).catch(() => { })
                 }
             } catch (error) {
-                logError(`❌ [DataSourceManager]: Error closing DataSource for orgId ${orgId}:`, error).catch(() => {})
+                logError(`❌ [DataSourceManager]: Error closing DataSource for orgId ${orgId}:`, error).catch(() => { })
             }
         })
 
         await Promise.all(closePromises)
         this.dataSources.clear()
         this.isInitialized = false
-        logInfo(`✅ [DataSourceManager]: All DataSource connections closed`).catch(() => {})
+        logInfo(`✅ [DataSourceManager]: All DataSource connections closed`).catch(() => { })
     }
 
     /**
@@ -485,76 +422,22 @@ export class DataSourceManager {
     }
 
     /**
-     * Initialize DataSource with retry logic (for Oracle)
-     */
-    private async initializeDataSourceWithRetry(
-        dataSource: DataSource,
-        orgId: number,
-        database: string,
-        maxRetries: number = 3,
-        retryDelay: number = 2000
-    ): Promise<void> {
-        let lastError: Error | null = null
-
-        for (let attempt = 1; attempt <= maxRetries; attempt++) {
-            try {
-                logInfo(
-                    `[DataSourceManager] Initializing Oracle DataSource for orgId ${orgId} (attempt ${attempt}/${maxRetries})...`
-                ).catch(() => {})
-                await dataSource.initialize()
-                logInfo(`[DataSourceManager] Oracle DataSource initialized successfully for orgId ${orgId}`).catch(() => {})
-                return
-            } catch (error) {
-                lastError = error instanceof Error ? error : new Error(String(error))
-                const errorDetails = OracleConnectionHelper.getErrorDetails(lastError)
-                logWarn(
-                    `[DataSourceManager] DataSource initialization attempt ${attempt} failed for orgId ${orgId}: ${errorDetails.message}`
-                ).catch(() => {})
-
-                if (attempt < maxRetries && errorDetails.isRetryable) {
-                    const delay = retryDelay * Math.pow(2, attempt - 1) // Exponential backoff
-                    logInfo(`[DataSourceManager] Retrying in ${delay}ms...`).catch(() => {})
-                    await this.sleep(delay)
-                } else if (!errorDetails.isRetryable) {
-                    // Non-retryable error, throw immediately
-                    throw lastError
-                }
-            }
-        }
-
-        // All retries exhausted
-        logError(
-            `[DataSourceManager] Failed to initialize DataSource for orgId ${orgId} after ${maxRetries} attempts: ${lastError?.message}`,
-            lastError || undefined
-        ).catch(() => {})
-        throw lastError || new Error(`Failed to initialize DataSource for orgId ${orgId}`)
-    }
-
-    /**
      * Validate DataSource connection with a test query
      */
-    private async validateDataSourceConnection(dataSource: DataSource, dbType: 'oracle' | 'postgres', orgId: number): Promise<void> {
+    private async validateDataSourceConnection(dataSource: DataSource, orgId: number): Promise<void> {
         try {
             if (!dataSource.isInitialized) {
                 throw new Error('DataSource is not initialized')
             }
 
-            // Test connection with a simple query
-            if (dbType === 'oracle') {
-                const result = await dataSource.query('SELECT 1 as test_value, SYSDATE as current_date FROM DUAL')
-                if (!result || result.length === 0) {
-                    throw new Error('Oracle connection test query returned no results')
-                }
-                logInfo(`[DataSourceManager] Oracle connection validated for orgId ${orgId}`).catch(() => {})
-            } else {
-                const result = await dataSource.query('SELECT 1 as test_value, NOW() as current_date')
-                if (!result || result.length === 0) {
-                    throw new Error('PostgreSQL connection test query returned no results')
-                }
-                logInfo(`[DataSourceManager] PostgreSQL connection validated for orgId ${orgId}`).catch(() => {})
+            // Test connection with PostgreSQL query
+            const result = await dataSource.query('SELECT 1 as test_value, NOW() as current_date')
+            if (!result || result.length === 0) {
+                throw new Error('PostgreSQL connection test query returned no results')
             }
+            logInfo(`[DataSourceManager] PostgreSQL connection validated for orgId ${orgId}`).catch(() => { })
         } catch (error) {
-            logError(`[DataSourceManager] Connection validation failed for orgId ${orgId}:`, error).catch(() => {})
+            logError(`[DataSourceManager] Connection validation failed for orgId ${orgId}:`, error).catch(() => { })
             // Destroy the DataSource if validation fails
             try {
                 if (dataSource.isInitialized) {
@@ -562,10 +445,9 @@ export class DataSourceManager {
                 }
             } catch (destroyError) {
                 logWarn(
-                    `[DataSourceManager] Error destroying DataSource after validation failure: ${
-                        destroyError instanceof Error ? destroyError.message : String(destroyError)
+                    `[DataSourceManager] Error destroying DataSource after validation failure: ${destroyError instanceof Error ? destroyError.message : String(destroyError)
                     }`
-                ).catch(() => {})
+                ).catch(() => { })
             }
             throw error
         }
@@ -580,37 +462,15 @@ export class DataSourceManager {
         for (const [orgId, dataSource] of this.dataSources.entries()) {
             try {
                 if (dataSource.isInitialized) {
-                    const dbType = dataSource.options.type
-                    if (dbType === 'oracle') {
-                        // Oracle pool stats (if available through driver)
-                        const oracleOptions = dataSource.options as any
-                        monitoring[orgId] = {
-                            type: 'oracle',
-                            isInitialized: true,
-                            database: oracleOptions.sid || oracleOptions.serviceName,
-                            host: oracleOptions.host,
-                            port: oracleOptions.port
-                        }
-                    } else if (dbType === 'postgres') {
-                        // PostgreSQL pool stats
-                        const postgresOptions = dataSource.options as any
-                        monitoring[orgId] = {
-                            type: 'postgres',
-                            isInitialized: true,
-                            database: postgresOptions.database,
-                            host: postgresOptions.host,
-                            port: postgresOptions.port
-                            // Note: TypeORM doesn't expose pool stats directly
-                        }
-                    } else {
-                        // Other database types
-                        monitoring[orgId] = {
-                            type: dbType,
-                            isInitialized: true,
-                            database: (dataSource.options as any).database,
-                            host: (dataSource.options as any).host,
-                            port: (dataSource.options as any).port
-                        }
+                    // PostgreSQL pool stats
+                    const postgresOptions = dataSource.options as any
+                    monitoring[orgId] = {
+                        type: 'postgres',
+                        isInitialized: true,
+                        database: postgresOptions.database,
+                        host: postgresOptions.host,
+                        port: postgresOptions.port
+                        // Note: TypeORM doesn't expose pool stats directly
                     }
                 } else {
                     monitoring[orgId] = {
@@ -628,12 +488,7 @@ export class DataSourceManager {
         return monitoring
     }
 
-    /**
-     * Sleep utility for retry delays
-     */
-    private sleep(ms: number): Promise<void> {
-        return new Promise((resolve) => setTimeout(resolve, ms))
-    }
+
 }
 
 // Singleton instance

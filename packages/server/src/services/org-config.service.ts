@@ -39,12 +39,12 @@ export class OrganizationConfigService {
                     contextPath: process.env.CONTEXT_PATH || '/kodivian'
                 },
                 platformDB: {
-                    host: process.env.DATABASE_HOST || 'localhost',
-                    port: parseInt(process.env.DATABASE_PORT || '5432'),
-                    username: process.env.DATABASE_USER || 'postgres',
-                    password: process.env.DATABASE_PASSWORD || '',
-                    database: process.env.DATABASE_NAME || 'kodivian',
-                    maxPoolSize: 10,
+                    host: process.env.MAIN_DB_HOST || process.env.DATABASE_HOST || 'localhost',
+                    port: parseInt(process.env.MAIN_DB_PORT || process.env.DATABASE_PORT || '5432'),
+                    username: process.env.MAIN_DB_USER || process.env.DATABASE_USER || 'postgres',
+                    password: process.env.MAIN_DB_PASSWORD || process.env.DATABASE_PASSWORD || '',
+                    database: process.env.MAIN_DB_DATABASE || process.env.DATABASE_NAME || 'kodivian',
+                    maxPoolSize: parseInt(process.env.DB_POOL_SIZE || '10'),
                     minPoolSize: 2,
                     dbType: 'POSTGRES'
                 },

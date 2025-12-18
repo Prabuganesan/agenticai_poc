@@ -162,9 +162,9 @@ const deleteChatflow = async (req: AuthenticatedRequest, chatflowId: string): Pr
             const errorMessage = getErrorMessage(e)
             // If folder doesn't exist, it's not a critical error - just log as info
             if (errorMessage?.includes('ENOENT') || errorMessage?.includes('not found') || errorMessage?.includes('does not exist')) {
-                logInfo(`[server]: File storage folder not found for chatflow ${chatflowId} (no uploads to delete)`).catch(() => {})
+                logInfo(`[server]: File storage folder not found for chatflow ${chatflowId} (no uploads to delete)`).catch(() => { })
             } else {
-                logError(`[server]: Error deleting file storage for chatflow ${chatflowId}: ${errorMessage}`).catch(() => {})
+                logError(`[server]: Error deleting file storage for chatflow ${chatflowId}: ${errorMessage}`).catch(() => { })
             }
         }
         return dbResponse
@@ -359,8 +359,8 @@ const saveChatflow = async (req: AuthenticatedRequest, newChatFlow: ChatFlow, us
         // First check if a chatflow with this GUID already exists
         const existingByGuid = newChatFlow.guid
             ? await dataSource.getRepository(ChatFlow).findOneBy({
-                  guid: newChatFlow.guid
-              })
+                guid: newChatFlow.guid
+            })
             : null
 
         // If GUID exists, this is a re-save of existing chatflow - allow it
@@ -544,11 +544,11 @@ const getSinglePublicChatbotConfig = async (chatflowId: string, baseURL?: string
         const finalBaseURL = baseURL
             ? `${baseURL}${contextPath}`
             : (() => {
-                  const httpProtocol = process.env.HTTP_PROTOCOL || 'http'
-                  const host = process.env.HOST || 'localhost'
-                  const port = process.env.SERVER_PORT || '3030'
-                  return `${httpProtocol}://${host}:${port}${contextPath}`
-              })()
+                const httpProtocol = process.env.HTTP_PROTOCOL || 'http'
+                const host = process.env.HOST || 'localhost'
+                const port = process.env.SERVER_PORT || '3000'
+                return `${httpProtocol}://${host}:${port}${contextPath}`
+            })()
         const defaultTheme = {
             button: {
                 backgroundColor: '#ffffff',
@@ -686,15 +686,15 @@ const getSinglePublicChatbotConfig = async (chatflowId: string, baseURL?: string
                 // Merge default theme with existing config theme (if any)
                 const mergedTheme = parsedConfig.theme
                     ? {
-                          ...defaultTheme,
-                          ...parsedConfig.theme,
-                          button: { ...defaultTheme.button, ...parsedConfig.theme.button },
-                          chatWindow: {
-                              ...defaultTheme.chatWindow,
-                              ...parsedConfig.theme.chatWindow,
-                              footer: { ...defaultTheme.chatWindow.footer, ...parsedConfig.theme.chatWindow?.footer }
-                          }
-                      }
+                        ...defaultTheme,
+                        ...parsedConfig.theme,
+                        button: { ...defaultTheme.button, ...parsedConfig.theme.button },
+                        chatWindow: {
+                            ...defaultTheme.chatWindow,
+                            ...parsedConfig.theme.chatWindow,
+                            footer: { ...defaultTheme.chatWindow.footer, ...parsedConfig.theme.chatWindow?.footer }
+                        }
+                    }
                     : defaultTheme
                 return { ...parsedConfig, theme: mergedTheme, uploads: uploadsConfig, flowData: dbResponse.flowData, isTTSEnabled }
             } catch (e) {
@@ -734,11 +734,11 @@ const getEmbedTheme = async (chatflowId: string, baseURL?: string, orgId?: strin
         const finalBaseURL = baseURL
             ? `${baseURL}${contextPath}`
             : (() => {
-                  const httpProtocol = process.env.HTTP_PROTOCOL || 'http'
-                  const host = process.env.HOST || 'localhost'
-                  const port = process.env.SERVER_PORT || '3030'
-                  return `${httpProtocol}://${host}:${port}${contextPath}`
-              })()
+                const httpProtocol = process.env.HTTP_PROTOCOL || 'http'
+                const host = process.env.HOST || 'localhost'
+                const port = process.env.SERVER_PORT || '3000'
+                return `${httpProtocol}://${host}:${port}${contextPath}`
+            })()
         // Default theme configuration
         const defaultTheme = {
             button: {
@@ -878,7 +878,7 @@ const getEmbedTheme = async (chatflowId: string, baseURL?: string, orgId?: strin
                 }
             } catch (e) {
                 // If parsing fails, return default theme
-                logWarn(`Error parsing chatbotConfig for theme: ${getErrorMessage(e)}`).catch(() => {})
+                logWarn(`Error parsing chatbotConfig for theme: ${getErrorMessage(e)}`).catch(() => { })
             }
         }
         // Return default theme only (no sensitive data)

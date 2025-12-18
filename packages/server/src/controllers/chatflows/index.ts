@@ -290,7 +290,7 @@ const getSinglePublicChatbotConfig = async (req: Request, res: Response, next: N
             )
         }
         const httpProtocol = req.get('x-forwarded-proto') || req.protocol
-        const host = req.get('host') || `${process.env.HOST || 'localhost'}:${process.env.SERVER_PORT || '3030'}`
+        const host = req.get('host') || `${process.env.HOST || 'localhost'}:${process.env.SERVER_PORT || '3000'}`
         const baseURL = `${httpProtocol}://${host}`
         const authReq = req as AuthenticatedRequest
         const orgId = authReq.orgId
@@ -334,7 +334,7 @@ const getEmbedTheme = async (req: Request, res: Response, next: NextFunction) =>
             )
         }
         const httpProtocol = req.get('x-forwarded-proto') || req.protocol
-        const host = req.get('host') || `${process.env.HOST || 'localhost'}:${process.env.SERVER_PORT || '3030'}`
+        const host = req.get('host') || `${process.env.HOST || 'localhost'}:${process.env.SERVER_PORT || '3000'}`
         const baseURL = `${httpProtocol}://${host}`
         const theme = await chatflowsService.getEmbedTheme(req.params.id, baseURL)
         return res.json(theme)

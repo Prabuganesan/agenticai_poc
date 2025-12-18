@@ -25,7 +25,7 @@ export default class Worker extends BaseCommand {
     public metricsProvider: IMetricsProvider | null = null
 
     async run(): Promise<void> {
-        logInfo('Starting Autonomous Worker...').catch(() => {})
+        logInfo('Starting Kodivian Worker...').catch(() => { })
 
         // Register worker instance globally so getInstance() can access it
         setWorkerInstance(this)
@@ -39,7 +39,7 @@ export default class Worker extends BaseCommand {
 
         // Initialize per-org queues
         await queueManager.initializeOrgQueues(orgConfigService)
-        logInfo('✅ [Worker]: Per-org queues initialized').catch(() => {})
+        logInfo('✅ [Worker]: Per-org queues initialized').catch(() => { })
 
         // Setup all queues for all organizations
         queueManager.setupAllQueues({
@@ -49,11 +49,11 @@ export default class Worker extends BaseCommand {
             usageCacheManager,
             orgConfigService
         })
-        logInfo('✅ [Worker]: All queues setup successfully').catch(() => {})
+        logInfo('✅ [Worker]: All queues setup successfully').catch(() => { })
 
         // Get all orgIds
         const orgIds = queueManager.getAllOrgIds()
-        logInfo(`[Worker] Creating workers for ${orgIds.length} organizations: [${orgIds.join(', ')}]`).catch(() => {})
+        logInfo(`[Worker] Creating workers for ${orgIds.length} organizations: [${orgIds.join(', ')}]`).catch(() => { })
 
         // Create workers for each organization
         for (const orgId of orgIds) {
@@ -62,7 +62,7 @@ export default class Worker extends BaseCommand {
             const predictionWorker = predictionQueue.createWorker()
             const predictionWorkerKey = `${orgId}-prediction`
             this.workers.set(predictionWorkerKey, predictionWorker)
-            logInfo(`[Worker] Prediction Worker ${predictionWorker.id} created for orgId ${orgId}`).catch(() => {})
+            logInfo(`[Worker] Prediction Worker ${predictionWorker.id} created for orgId ${orgId}`).catch(() => { })
 
             const predictionQueueName = predictionQueue.getQueueName()
             const connection = queueManager.getOrgConnection(orgId)
@@ -77,10 +77,10 @@ export default class Worker extends BaseCommand {
             const upsertionWorker = upsertionQueue.createWorker()
             const upsertionWorkerKey = `${orgId}-upsert`
             this.workers.set(upsertionWorkerKey, upsertionWorker)
-            logInfo(`[Worker] Upsertion Worker ${upsertionWorker.id} created for orgId ${orgId}`).catch(() => {})
+            logInfo(`[Worker] Upsertion Worker ${upsertionWorker.id} created for orgId ${orgId}`).catch(() => { })
         }
 
-        logInfo(`[Worker] Successfully created ${this.workers.size} workers across ${orgIds.length} organizations`).catch(() => {})
+        logInfo(`[Worker] Successfully created ${this.workers.size} workers across ${orgIds.length} organizations`).catch(() => { })
 
         // Keep the process running
         process.stdin.resume()
@@ -108,7 +108,7 @@ export default class Worker extends BaseCommand {
 
             if (this.metricsProvider) {
                 await this.metricsProvider.initializeCounters()
-                logInfo(`📊 [Worker]: Metrics Provider [${this.metricsProvider.getName()}] has been initialized!`).catch(() => {})
+                logInfo(`📊 [Worker]: Metrics Provider [${this.metricsProvider.getName()}] has been initialized!`).catch(() => { })
 
                 // Setup metrics endpoint
                 if (this.metricsProvider instanceof Prometheus) {
@@ -123,7 +123,7 @@ export default class Worker extends BaseCommand {
                             const currentMetrics = await register.metrics()
                             res.send(currentMetrics).end()
                         } catch (error: any) {
-                            logError(`[Worker] Error serving metrics: ${error.message}`).catch(() => {})
+                            logError(`[Worker] Error serving metrics: ${error.message}`).catch(() => { })
                             res.status(500).send(`Error generating metrics: ${error.message}`).end()
                         }
                     })
@@ -137,7 +137,7 @@ export default class Worker extends BaseCommand {
                                 const currentMetrics = await register.metrics()
                                 res.send(currentMetrics).end()
                             } catch (error: any) {
-                                logError(`[Worker] Error serving metrics: ${error.message}`).catch(() => {})
+                                logError(`[Worker] Error serving metrics: ${error.message}`).catch(() => { })
                                 res.status(500).send(`Error generating metrics: ${error.message}`).end()
                             }
                         })
@@ -148,13 +148,13 @@ export default class Worker extends BaseCommand {
                     const host = process.env.WORKER_METRICS_HOST || '0.0.0.0'
 
                     this.metricsServer = this.metricsApp.listen(parseInt(metricsPort), host, () => {
-                        logInfo(`📊 [Worker]: Metrics endpoint available at http://${host}:${metricsPort}${metricsPath}`).catch(() => {})
+                        logInfo(`📊 [Worker]: Metrics endpoint available at http://${host}:${metricsPort}${metricsPath}`).catch(() => { })
                     })
                 }
             } else {
                 logError(
                     "❌ [Worker]: Metrics collection is enabled, but failed to initialize provider (valid values are 'prometheus' or 'open_telemetry')."
-                ).catch(() => {})
+                ).catch(() => { })
             }
         }
     }
@@ -164,13 +164,13 @@ export default class Worker extends BaseCommand {
         const orgConfigService = new OrganizationConfigService()
         await orgConfigService.initialize()
         await orgConfigService.loadAllOrganizations()
-        logInfo('✅ [Worker]: Organization configs loaded').catch(() => {})
+        logInfo('✅ [Worker]: Organization configs loaded').catch(() => { })
 
         // Initialize per-org DataSources
         const { getDataSourceManager } = await import('../DataSourceManager')
         const dataSourceManager = getDataSourceManager()
         await dataSourceManager.initializeAllOrgDataSources(orgConfigService)
-        logInfo('✅ [Worker]: Per-org DataSources initialized').catch(() => {})
+        logInfo('✅ [Worker]: Per-org DataSources initialized').catch(() => { })
 
         // Initialize abortcontroller pool
         const abortControllerPool = new AbortControllerPool()
@@ -190,7 +190,7 @@ export default class Worker extends BaseCommand {
     }
 
     async catch(error: Error) {
-        if (error.stack) logError(error.stack).catch(() => {})
+        if (error.stack) logError(error.stack).catch(() => { })
         await new Promise((resolve) => {
             setTimeout(resolve, 1000)
         })
@@ -199,7 +199,7 @@ export default class Worker extends BaseCommand {
 
     async stopProcess() {
         try {
-            logInfo(`[Worker] Shutting down ${this.workers.size} workers...`).catch(() => {})
+            logInfo(`[Worker] Shutting down ${this.workers.size} workers...`).catch(() => { })
             const closePromises: Promise<void>[] = []
 
             // Close all workers with timeout
@@ -209,14 +209,14 @@ export default class Worker extends BaseCommand {
                         worker
                             .close()
                             .then(() => {
-                                logInfo(`[Worker] Worker ${workerKey} (${worker.id}) closed`).catch(() => {})
+                                logInfo(`[Worker] Worker ${workerKey} (${worker.id}) closed`).catch(() => { })
                             })
                             .catch((error: Error) => {
-                                logError(`[Worker] Error closing worker ${workerKey}:`, error).catch(() => {})
+                                logError(`[Worker] Error closing worker ${workerKey}:`, error).catch(() => { })
                             }),
                         new Promise<void>((resolve) => {
                             setTimeout(() => {
-                                logWarn(`[Worker] Worker ${workerKey} close timeout after 5s, forcing shutdown`).catch(() => {})
+                                logWarn(`[Worker] Worker ${workerKey} close timeout after 5s, forcing shutdown`).catch(() => { })
                                 resolve()
                             }, 5000)
                         })
@@ -227,20 +227,20 @@ export default class Worker extends BaseCommand {
             // Wait for all workers to close (with timeout)
             await Promise.allSettled(closePromises)
             this.workers.clear()
-            logInfo('[Worker] All workers shut down successfully').catch(() => {})
+            logInfo('[Worker] All workers shut down successfully').catch(() => { })
 
             // Close metrics server if running (with timeout)
             if (this.metricsServer) {
                 await Promise.race([
                     new Promise<void>((resolve) => {
                         this.metricsServer!.close(() => {
-                            logInfo('[Worker] Metrics server closed').catch(() => {})
+                            logInfo('[Worker] Metrics server closed').catch(() => { })
                             resolve()
                         })
                     }),
                     new Promise<void>((resolve) => {
                         setTimeout(() => {
-                            logWarn('[Worker] Metrics server close timeout after 2s, forcing shutdown').catch(() => {})
+                            logWarn('[Worker] Metrics server close timeout after 2s, forcing shutdown').catch(() => { })
                             resolve()
                         }, 2000)
                     })
@@ -256,14 +256,14 @@ export default class Worker extends BaseCommand {
                         dataSourceManager.closeAll(),
                         new Promise<void>((resolve) => {
                             setTimeout(() => {
-                                logWarn('[Worker] Database close timeout after 3s, forcing shutdown').catch(() => {})
+                                logWarn('[Worker] Database close timeout after 3s, forcing shutdown').catch(() => { })
                                 resolve()
                             }, 3000)
                         })
                     ])
                 }
             } catch (dbError) {
-                logError('[Worker] Error closing database connections:', dbError).catch(() => {})
+                logError('[Worker] Error closing database connections:', dbError).catch(() => { })
             }
 
             // Flush all pending logs before exit
@@ -273,7 +273,7 @@ export default class Worker extends BaseCommand {
                     flushAllLogs(),
                     new Promise<void>((resolve) => {
                         setTimeout(() => {
-                            logWarn('[Worker] Log flush timeout after 2s, forcing exit').catch(() => {})
+                            logWarn('[Worker] Log flush timeout after 2s, forcing exit').catch(() => { })
                             resolve()
                         }, 2000)
                     })
@@ -282,7 +282,7 @@ export default class Worker extends BaseCommand {
                 // Silently fail - logging should not block shutdown
             }
         } catch (error) {
-            logError('There was an error shutting down Autonomous Worker...', error).catch(() => {})
+            logError('There was an error shutting down Kodivian Worker...', error).catch(() => { })
             await this.failExit()
         }
 

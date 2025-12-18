@@ -98,8 +98,8 @@ function APIKeyRow(props) {
                     {props.showApiKeys.includes(props.apiKey.apiKey)
                         ? props.apiKey.apiKey
                         : `${props.apiKey.apiKey.substring(0, 2)}${'•'.repeat(18)}${props.apiKey.apiKey.substring(
-                              props.apiKey.apiKey.length - 5
-                          )}`}
+                            props.apiKey.apiKey.length - 5
+                        )}`}
                     <IconButton title='Copy' color='success' onClick={props.onCopyClick}>
                         <IconCopy />
                     </IconButton>
@@ -340,9 +340,8 @@ const APIKey = () => {
                 }
             } catch (error) {
                 enqueueSnackbar({
-                    message: `Failed to delete API key: ${
-                        typeof error.response.data === 'object' ? error.response.data.message : error.response.data
-                    }`,
+                    message: `Failed to delete API key: ${typeof error.response.data === 'object' ? error.response.data.message : error.response.data
+                        }`,
                     options: {
                         key: new Date().getTime() + Math.random(),
                         variant: 'error',
@@ -393,7 +392,7 @@ const APIKey = () => {
                             search={true}
                             searchPlaceholder='Search API Keys'
                             title='API Keys'
-                            description='Autonomous API & SDK authentication keys'
+                            description='Kodivian API & SDK authentication keys'
                         >
                             <PermissionButton
                                 permissionId={'apikeys:import'}

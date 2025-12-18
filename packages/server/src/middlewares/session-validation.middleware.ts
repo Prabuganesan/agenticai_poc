@@ -25,8 +25,8 @@ export function createSessionValidationMiddleware(
 ) {
     return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
         try {
-            // Only check for autonomous server token (AUTOID) - exact logic from autonomous server
-            const autonomousToken = req.cookies?.AUTOID
+            // Only check for autonomous server token (KODIID) - exact logic from autonomous server
+            const autonomousToken = req.cookies?.KODIID
 
             if (!autonomousToken) {
                 return res.status(401).json({ error: 'Session Expired' })
@@ -38,7 +38,7 @@ export function createSessionValidationMiddleware(
             logError(
                 `Session authentication error (url: ${req.url}): ${error instanceof Error ? error.message : String(error)}`,
                 error
-            ).catch(() => {})
+            ).catch(() => { })
             return res.status(401).json({ error: 'Session Expired' })
         }
     }
@@ -64,7 +64,7 @@ export function createSessionValidationMiddleware(
         const session = await autonomousSessionService.validateAutonomousSession(token, orgId)
 
         if (!session) {
-            logWarn(`Autonomous server session not found or expired (token: ${token.substring(0, 30)}...)`).catch(() => {})
+            logWarn(`Kodivian server session not found or expired (token: ${token.substring(0, 30)}...)`).catch(() => { })
 
             // Log security event - session validation failed
             try {
@@ -77,7 +77,7 @@ export function createSessionValidationMiddleware(
                     endpoint: req.path,
                     method: req.method,
                     reason: 'Session not found or expired'
-                }).catch(() => {})
+                }).catch(() => { })
             } catch (logError) {
                 // Silently fail - logging should not break authentication
             }
@@ -99,10 +99,10 @@ export function createSessionValidationMiddleware(
                 const cookieOptions = getCookieOptions(ttl)
 
                 // Refresh the cookie with updated expiration
-                res.cookie('AUTOID', token, cookieOptions)
+                res.cookie('KODIID', token, cookieOptions)
             } else {
                 // Extension returned false - log warning
-                logWarn(`Session extension returned false (orgId: ${orgId}, userId: ${session.userId})`).catch(() => {})
+                logWarn(`Session extension returned false (orgId: ${orgId}, userId: ${session.userId})`).catch(() => { })
             }
         } catch (extensionError) {
             // Log error but don't fail the request - session is still valid for this request
@@ -111,11 +111,10 @@ export function createSessionValidationMiddleware(
                     ? { error: extensionError.message, stack: extensionError.stack }
                     : { error: String(extensionError) }
             logError(
-                `Failed to extend session TTL (orgId: ${orgId}, userId: ${session.userId}, token: ${token.substring(0, 30)}...): ${
-                    extensionError instanceof Error ? extensionError.message : String(extensionError)
+                `Failed to extend session TTL (orgId: ${orgId}, userId: ${session.userId}, token: ${token.substring(0, 30)}...): ${extensionError instanceof Error ? extensionError.message : String(extensionError)
                 }`,
                 errorContext
-            ).catch(() => {})
+            ).catch(() => { })
         }
 
         // Attach to request (exact structure from autonomous server)
@@ -132,7 +131,7 @@ export function createSessionValidationMiddleware(
         // Validate orgId in request body matches session orgId (if provided)
         if (req.body && req.body.orgId && req.body.orgId !== orgId) {
             logWarn(`orgId mismatch in request (sessionOrgId: ${orgId}, bodyOrgId: ${req.body.orgId}, userId: ${session.userId})`).catch(
-                () => {}
+                () => { }
             )
 
             // Log security event - orgId mismatch
@@ -146,7 +145,7 @@ export function createSessionValidationMiddleware(
                     userAgent: req.headers['user-agent'] || 'unknown',
                     endpoint: req.path,
                     method: req.method
-                }).catch(() => {})
+                }).catch(() => { })
             } catch (logError) {
                 // Silently fail - logging should not break authentication
             }
@@ -158,7 +157,7 @@ export function createSessionValidationMiddleware(
         // Validate orgId in query parameters matches session orgId (if provided)
         if (req.query && req.query.orgId && req.query.orgId !== orgId) {
             logWarn(`orgId mismatch in query (sessionOrgId: ${orgId}, queryOrgId: ${req.query.orgId}, userId: ${session.userId})`).catch(
-                () => {}
+                () => { }
             )
 
             // Log security event - orgId mismatch
@@ -172,7 +171,7 @@ export function createSessionValidationMiddleware(
                     userAgent: req.headers['user-agent'] || 'unknown',
                     endpoint: req.path,
                     method: req.method
-                }).catch(() => {})
+                }).catch(() => { })
             } catch (logError) {
                 // Silently fail - logging should not break authentication
             }
@@ -191,7 +190,7 @@ export function createSessionValidationMiddleware(
                 userAgent: req.headers['user-agent'] || 'unknown',
                 endpoint: req.path,
                 method: req.method
-            }).catch(() => {})
+            }).catch(() => { })
         } catch (logError) {
             // Silently fail - logging should not break authentication
         }

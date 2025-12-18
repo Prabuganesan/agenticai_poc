@@ -11,7 +11,7 @@
    * 
    * NO explicit saving is done in this file - backend handles everything.
    */
-  
+
   // --- 1 CONFIG HANDLING ---
   const currentScript = document.currentScript;
   const defaultConfig = {
@@ -32,7 +32,7 @@
     orgId: null,
     sessionId: null
   };
-  
+
   // Store current sessionId to reuse across calls (maintains conversation)
   let currentSessionId = null;
 
@@ -50,13 +50,13 @@
           secureConfig.userId = secureData.userId || null;
           secureConfig.orgId = secureData.orgId || null;
           secureConfig.sessionId = secureData.sessionId || null;
-          
+
           // Merge into config (sensitive data stays in closure)
           config.baseUrl = secureConfig.baseUrl;
           config.userId = secureConfig.userId;
           config.orgId = secureConfig.orgId;
           config.sessionId = secureConfig.sessionId;
-          
+
           return true;
         }
       } catch (err) {
@@ -68,12 +68,12 @@
 
   // Try immediately
   tryInitializeSecureConfig();
-  
+
   // Listen for custom event from Angular when config is ready
   window.addEventListener('ariConfigReady', () => {
     tryInitializeSecureConfig();
   });
-  
+
   // Fallback: Check again after a delay (for frameworks that load late)
   setTimeout(() => {
     if (!secureConfig.baseUrl && window.initializeAriConfig && typeof window.initializeAriConfig === 'function') {
@@ -89,7 +89,7 @@
     config.position = window.ariConfig.position || config.position;
     config.theme = window.ariConfig.theme || config.theme;
     config.size = window.ariConfig.size || config.size;
-    
+
     // Only use sensitive data if secure initialization wasn't used
     if (!secureConfig.baseUrl && window.ariConfig.baseUrl) {
       console.warn("⚠️ Using window.ariConfig for sensitive data is not recommended. Use initializeAriConfig() function instead.");
@@ -97,7 +97,7 @@
       secureConfig.userId = window.ariConfig.userId;
       secureConfig.orgId = window.ariConfig.orgId;
       secureConfig.sessionId = window.ariConfig.sessionId;
-      
+
       config.baseUrl = secureConfig.baseUrl;
       config.userId = secureConfig.userId;
       config.orgId = secureConfig.orgId;
@@ -1285,7 +1285,7 @@
     chevron: '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     search: '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="7" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M10 10l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
     star: '<svg class="normal-star" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 1.3L9.65 5.5C9.75 5.8 10.05 6 10.35 6H14L11 8.2C10.75 8.35 10.65 8.65 10.75 8.95L11.9 13L8.4 10.7C8.15 10.55 7.85 10.55 7.6 10.7L4.1 13L5.25 8.95C5.35 8.65 5.25 8.35 5 8.2L2 6H5.65C5.95 6 6.25 5.8 6.35 5.5L8 1.3Z" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linejoin="round" stroke-linecap="round"></path></svg>',
-    selectedStar : '<svg class="filled-star" style="color: #F59E0B;" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 1.3C8.2 1.3 8.4 1.4 8.5 1.6L10.4 5.2C10.5 5.4 10.7 5.5 10.9 5.5H14.8C15.2 5.5 15.3 6 15 6.2L11.7 8.9C11.5 9.1 11.4 9.4 11.5 9.6L12.7 13.5C12.8 13.9 12.4 14.2 12 14L8.4 11.9C8.2 11.8 7.8 11.8 7.6 11.9L4 14C3.6 14.2 3.2 13.9 3.3 13.5L4.5 9.6C4.6 9.4 4.5 9.1 4.3 8.9L1 6.2C0.7 6 0.8 5.5 1.2 5.5H5.1C5.3 5.5 5.5 5.4 5.6 5.2L7.5 1.6C7.6 1.4 7.8 1.3 8 1.3Z" fill="currentColor"></path></svg>',
+    selectedStar: '<svg class="filled-star" style="color: #F59E0B;" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 1.3C8.2 1.3 8.4 1.4 8.5 1.6L10.4 5.2C10.5 5.4 10.7 5.5 10.9 5.5H14.8C15.2 5.5 15.3 6 15 6.2L11.7 8.9C11.5 9.1 11.4 9.4 11.5 9.6L12.7 13.5C12.8 13.9 12.4 14.2 12 14L8.4 11.9C8.2 11.8 7.8 11.8 7.6 11.9L4 14C3.6 14.2 3.2 13.9 3.3 13.5L4.5 9.6C4.6 9.4 4.5 9.1 4.3 8.9L1 6.2C0.7 6 0.8 5.5 1.2 5.5H5.1C5.3 5.5 5.5 5.4 5.6 5.2L7.5 1.6C7.6 1.4 7.8 1.3 8 1.3Z" fill="currentColor"></path></svg>',
     minimize: '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 8V14H4V10H0V8H6ZM10 0V4H14V6H8V0H10Z" fill="black"></path></svg>',
     maximize: '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 14V8H2V12H6V14H0ZM12 6V2H8V0H14V6H12Z" fill="black"/></svg>',
     send: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -1297,7 +1297,7 @@
   // --- 4 ELEMENTS ---
   const backdrop = document.createElement("div");
   backdrop.className = "chatbot-backdrop";
-  if(document.body.querySelector(".chatbot-backdrop")==null){
+  if (document.body.querySelector(".chatbot-backdrop") == null) {
     document.body.appendChild(backdrop);
   }
 
@@ -1305,7 +1305,7 @@
   function getAssetPath(relativePath) {
     // Remove leading slash if present
     let cleanPath = relativePath.startsWith('/') ? relativePath.substring(1) : relativePath;
-    
+
     // Use relative path (./) to work with any context path
     // This ensures assets load correctly regardless of base href or context path
     // Relative paths resolve from the current page location
@@ -1314,40 +1314,36 @@
 
   const toggleBtn = document.createElement("div");
   toggleBtn.className = "chatbot-toggle";
-  toggleBtn.innerHTML = `<video autoplay loop muted playsinline width="90" height="90">
-  <source src="${getAssetPath('assets/img/ari/Ari-animated-logo.webm')}" type="video/webm">
-  Your browser does not support the video tag.
-</video>
-`;
-if(document.body.querySelector(".chatbot-toggle")==null){
-  document.body.appendChild(toggleBtn);
-  
-  // Initialize video after it's added to DOM
-  setTimeout(() => {
-    const video = toggleBtn.querySelector('video');
-    if (video) {
-      videoElem = video; // Update global reference
-      
-      // Ensure video plays (autoplay might be blocked)
-      video.addEventListener('loadeddata', () => {
-        safePlayVideo(video).catch(() => {
-          // Autoplay might be blocked - that's okay, video will play on user interaction
+  toggleBtn.innerHTML = `<img src="${getAssetPath('assets/img/ari/kodivian-logo.png')}" alt="Kodivian" width="50" height="30" style="object-fit: contain;">`;
+  if (document.body.querySelector(".chatbot-toggle") == null) {
+    document.body.appendChild(toggleBtn);
+
+    // Initialize video after it's added to DOM
+    setTimeout(() => {
+      const video = toggleBtn.querySelector('video');
+      if (video) {
+        videoElem = video; // Update global reference
+
+        // Ensure video plays (autoplay might be blocked)
+        video.addEventListener('loadeddata', () => {
+          safePlayVideo(video).catch(() => {
+            // Autoplay might be blocked - that's okay, video will play on user interaction
+          });
         });
-      });
-      
-      // Try to play immediately if already loaded
-      if (video.readyState >= 2) { // HAVE_CURRENT_DATA
-        safePlayVideo(video).catch(() => {});
+
+        // Try to play immediately if already loaded
+        if (video.readyState >= 2) { // HAVE_CURRENT_DATA
+          safePlayVideo(video).catch(() => { });
+        }
+
+        // Handle video errors gracefully
+        video.addEventListener('error', () => {
+          // Hide video on error, show fallback
+          video.style.display = 'none';
+        });
       }
-      
-      // Handle video errors gracefully
-      video.addEventListener('error', () => {
-        // Hide video on error, show fallback
-        video.style.display = 'none';
-      });
-    }
-  }, 100);
-}
+    }, 100);
+  }
 
   const wrapper = document.createElement("div");
   wrapper.className = "chatbot-container";
@@ -1368,9 +1364,9 @@ if(document.body.querySelector(".chatbot-toggle")==null){
         <div class="sidebar-header">
           <div class="sidebar-header-left">
           <div class="sidebar-avatar">
-              <img src="${getAssetPath('assets/img/ari/Ari-logo.png')}" alt="Ari"> 
+              <img src="${getAssetPath('assets/img/ari/kodivian-logo.png')}" alt="Kodivian"> 
           </div>
-          <div class="sidebar-name">Ari</div>
+          <div class="sidebar-name">Kodivian</div>
           </div>
           <button class="chatbot-header-btn sidebar-close-btn" title="Close Sidebar">
             ${icons.close}
@@ -1410,9 +1406,9 @@ if(document.body.querySelector(".chatbot-toggle")==null){
                   ${icons.menu}
                 </div>
                 <div class="menu-toggle-avatar">
-                  <img src="${getAssetPath('assets/img/ari/Ari-logo.png')}" alt="Ari">
+                  <img src="${getAssetPath('assets/img/ari/kodivian-logo.png')}" alt="Kodivian">
                 </div>
-                <span class="menu-toggle-name">Ari</span>
+                <span class="menu-toggle-name">Kodivian</span>
               </div>
             </button>
           </div>
@@ -1490,23 +1486,23 @@ if(document.body.querySelector(".chatbot-toggle")==null){
     // Wait for config to be ready (with timeout)
     let attempts = 0;
     const maxAttempts = 20; // Wait up to 10 seconds (20 * 500ms)
-    
+
     while (!isConfigReady() && attempts < maxAttempts) {
       await new Promise(resolve => setTimeout(resolve, 500));
       attempts++;
     }
-    
+
     if (!isConfigReady()) {
       console.error('ARI: Config not ready after waiting. Cannot load chat history.');
       showError('Configuration not available. Please refresh the page.', true);
       return;
     }
-    
+
     try {
       // Only load history list from backend (sidebar) - do NOT auto-load latest chat
       // This ensures user sees a fresh new chat when first opening
       await displayChatHistory();
-      
+
       // Reset to new chat state
       currentSessionId = null;
       currentMessages = [];
@@ -1515,7 +1511,7 @@ if(document.body.querySelector(".chatbot-toggle")==null){
       console.error('ARI: Error initializing chat history:', err);
     }
   }
-  
+
   // Initialize chat history when config is ready
   let historyInitialized = false;
   function tryInitializeHistory() {
@@ -1525,14 +1521,14 @@ if(document.body.querySelector(".chatbot-toggle")==null){
       initializeChatHistory();
     }
   }
-  
+
   // Try immediately after DOM is ready
   setTimeout(() => {
     tryInitializeHistory();
     // Initialize search functionality
     initializeSearch();
   }, 500);
-  
+
   // Also listen for config ready event
   window.addEventListener('ariConfigReady', () => {
     if (tryInitializeSecureConfig()) {
@@ -1541,40 +1537,40 @@ if(document.body.querySelector(".chatbot-toggle")==null){
     // Initialize search functionality
     initializeSearch();
   });
-  
+
   // Initialize search input functionality
   let searchInitialized = false;
   function initializeSearch() {
     // Prevent duplicate initialization
     if (searchInitialized) return;
-    
+
     const searchInput = wrapper.querySelector('.search-bar input');
     if (!searchInput) {
       // Retry if search input not found yet
       setTimeout(() => initializeSearch(), 200);
       return;
     }
-    
+
     // Mark as initialized to prevent duplicate listeners
     searchInitialized = true;
-    
+
     let searchTimeout = null;
-    
+
     // Add input event listener for search
     searchInput.addEventListener('input', (e) => {
       const query = e.target.value.trim();
-      
+
       // Clear previous timeout
       if (searchTimeout) {
         clearTimeout(searchTimeout);
       }
-      
+
       // Debounce search - wait 300ms after user stops typing
       searchTimeout = setTimeout(() => {
         displayChatHistory(query);
       }, 300);
     });
-    
+
     // Add Enter key support for immediate search
     searchInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
@@ -1592,7 +1588,7 @@ if(document.body.querySelector(".chatbot-toggle")==null){
       }
     });
   }
-  
+
   // Poll for config and initialize when ready
   let historyCheckInterval = setInterval(() => {
     if (isConfigReady() && !historyInitialized) {
@@ -1600,7 +1596,7 @@ if(document.body.querySelector(".chatbot-toggle")==null){
       tryInitializeHistory();
     }
   }, 500);
-  
+
   // Stop polling after 15 seconds
   setTimeout(() => {
     clearInterval(historyCheckInterval);
@@ -1615,12 +1611,12 @@ if(document.body.querySelector(".chatbot-toggle")==null){
   function toggleMinimize() {
     isMinimized = !isMinimized;
     wrapper.classList.toggle("minimized", isMinimized);
-    
+
     // If expanding, mark that user has expanded it
     if (!isMinimized) {
       hasBeenExpanded = true;
     }
-    
+
     // Reposition dialog based on button location
     positionDialogNearButton();
   }
@@ -1634,7 +1630,7 @@ if(document.body.querySelector(".chatbot-toggle")==null){
     e.stopPropagation();
     toggleMinimize();
   });
-  
+
   // --- SIDEBAR TOGGLE ---
   // Close button in sidebar
   sidebarCloseBtn.addEventListener("click", (e) => {
@@ -1658,24 +1654,24 @@ if(document.body.querySelector(".chatbot-toggle")==null){
       }
     });
   }
-  
+
   // --- 6 OPEN / CLOSE ---
   function openChatbox() {
     isOpen = true;
     wrapper.style.display = "flex";
     backdrop.style.display = "block";
-    
+
     // Ensure search is initialized when chatbox opens
     if (!searchInitialized) {
       initializeSearch();
     }
-    
+
     // On first open, start minimized and ensure fresh new chat is shown
     if (isFirstOpen) {
       isFirstOpen = false;
       isMinimized = true;
       wrapper.classList.add("minimized");
-      
+
       // Ensure we show a fresh new chat (not an old one that might have been auto-loaded)
       // Only if there are no current messages, show welcome message
       if (currentMessages.length === 0) {
@@ -1683,7 +1679,7 @@ if(document.body.querySelector(".chatbot-toggle")==null){
         messages.innerHTML = '';
         currentSessionId = null;
         currentMessages = [];
-        
+
         // Recreate welcome message HTML
         messages.innerHTML = `
           <div class="chat-message-initial" style="margin: auto 0px;/* align-items: center; *//* justify-content: center; */">
@@ -1701,7 +1697,7 @@ if(document.body.querySelector(".chatbot-toggle")==null){
             </div>
           </div>
         `;
-        
+
         // Re-query input elements after recreating HTML
         input = wrapper.querySelector(".chat-input textarea") || wrapper.querySelector(".chat-input input");
         sendBtn = wrapper.querySelector(".chat-input-btn");
@@ -1709,13 +1705,13 @@ if(document.body.querySelector(".chatbot-toggle")==null){
           sendBtn.addEventListener("click", sendMessage);
         }
         // Textarea will auto-resize via the input event listener
-        
+
         // Hide after-input container
         const afterInputContainer = wrapper.querySelector(".chat-afterinput-container");
         if (afterInputContainer) {
           afterInputContainer.style.display = "none";
         }
-        
+
         // Remove active class from all history items
         const recentItems = wrapper.querySelectorAll(".recent-item");
         recentItems.forEach(item => item.classList.remove("active"));
@@ -1728,7 +1724,7 @@ if(document.body.querySelector(".chatbot-toggle")==null){
       // If user hasn't expanded yet, keep current state (minimized)
       // This handles the case if user closes and reopens before expanding
     }
-    
+
     // Position dialog based on toggle button location
     positionDialogNearButton();
   }
@@ -1739,12 +1735,12 @@ if(document.body.querySelector(".chatbot-toggle")==null){
     const btnCenterY = btnRect.top + btnRect.height / 2;
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
-    
+
     // Get dialog dimensions based on state
     const dialogWidth = isMinimized ? 500 : 900;
     const dialogHeight = isMinimized ? 80 : 700;
     const offset = 20; // Gap between button and dialog
-    
+
     // Determine horizontal position
     let left, right, transformX;
     if (btnCenterX > viewportWidth / 2) {
@@ -1766,12 +1762,12 @@ if(document.body.querySelector(".chatbot-toggle")==null){
         left = 20;
       }
     }
-    
+
     // Determine vertical position - center vertically relative to button, but keep within viewport
     let top, bottom, transformY;
     const dialogTop = btnCenterY - dialogHeight / 2;
     const dialogBottom = btnCenterY + dialogHeight / 2;
-    
+
     if (dialogTop < 20) {
       // Dialog would go above viewport
       top = 20;
@@ -1788,7 +1784,7 @@ if(document.body.querySelector(".chatbot-toggle")==null){
       bottom = "auto";
       transformY = "-50%";
     }
-    
+
     // Apply positioning
     wrapper.style.left = typeof left === "number" ? left + "px" : left;
     wrapper.style.right = typeof right === "number" ? right + "px" : right;
@@ -1817,7 +1813,7 @@ if(document.body.querySelector(".chatbot-toggle")==null){
     window._ariCurrentSidebarEntry = null; // Clear sidebar entry reference
     // Re-enable inputs when starting new chat (in case previous query was still processing)
     setInputsEnabled(true);
-    
+
     messages.innerHTML = `
       <div class="chat-message-initial" style="margin: auto 0px;/* align-items: center; *//* justify-content: center; */">
             <div class="welcome-message">
@@ -1893,8 +1889,8 @@ if(document.body.querySelector(".chatbot-toggle")==null){
       iconImg.style.borderRadius = '1rem';
       iconImg.style.objectFit = 'cover';
     } else {
-      iconImg.src = getAssetPath('assets/img/ari/Ari-logo.png');
-      iconImg.alt = 'ARI';
+      iconImg.src = getAssetPath('assets/img/ari/kodivian-logo.png');
+      iconImg.alt = 'Kodivian';
       iconImg.className = 'message-icon bot-icon';
       iconImg.style.width = '30px';
       iconImg.style.height = '30px';
@@ -1912,17 +1908,17 @@ if(document.body.querySelector(".chatbot-toggle")==null){
     removeWelcomeMessage();
     const msgDiv = document.createElement("div");
     msgDiv.className = `message ${from}`;
-    
+
     // Create icon element
     const iconImg = createMessageIcon(from);
-    
+
     const msgContent = document.createElement("div");
     msgContent.className = "message-content";
-    
+
     if (htmlContent) {
       msgContent.innerHTML = sanitizeHTML(htmlContent);
     } else {
-      if(isStepAppend){
+      if (isStepAppend) {
         let i = 0;
         let interval = setInterval(() => {
           if (i < text.length) {
@@ -1930,16 +1926,16 @@ if(document.body.querySelector(".chatbot-toggle")==null){
             i++;
           } else {
             clearInterval(interval);
-              changeVideoSource("assets/img/ari/Ari-animated-logo.webm");
+            changeVideoSource("assets/img/ari/kodivian-logo.png");
           }
         }, 60);
       }
-      else{
-        
-       msgContent.textContent = text;
+      else {
+
+        msgContent.textContent = text;
       }
     }
-    
+
     // For user messages: content first, then icon on right
     // For bot messages: icon first, then content on left
     if (from === 'user') {
@@ -1949,10 +1945,10 @@ if(document.body.querySelector(".chatbot-toggle")==null){
       msgDiv.appendChild(iconImg);
       msgDiv.appendChild(msgContent);
     }
-    
+
     messages.appendChild(msgDiv);
     messages.scrollTop = messages.scrollHeight;
-    
+
     // Add message to current conversation (for UI display only - backend handles persistence)
     const message = {
       type: from === 'user' ? 'user' : 'bot',
@@ -1976,16 +1972,16 @@ if(document.body.querySelector(".chatbot-toggle")==null){
     if (!tableData || !tableData.headers || !tableData.rows) {
       return '';
     }
-    
+
     let html = '<table class="message-table">';
-    
+
     // Header
     html += '<thead><tr>';
     tableData.headers.forEach(header => {
       html += `<th>${escapeHTML(header)}</th>`;
     });
     html += '</tr></thead>';
-    
+
     // Body
     html += '<tbody>';
     tableData.rows.forEach(row => {
@@ -2001,16 +1997,16 @@ if(document.body.querySelector(".chatbot-toggle")==null){
       html += '</tr>';
     });
     html += '</tbody></table>';
-    
+
     return html;
   }
 
   function renderJSON(jsonData) {
     try {
-      const jsonString = typeof jsonData === 'string' 
-        ? jsonData 
+      const jsonString = typeof jsonData === 'string'
+        ? jsonData
         : JSON.stringify(jsonData, null, 2);
-      
+
       return `<pre class="json-response"><code>${escapeHTML(jsonString)}</code></pre>`;
     } catch (err) {
       return `<div class="error-text">Invalid JSON data</div>`;
@@ -2018,26 +2014,26 @@ if(document.body.querySelector(".chatbot-toggle")==null){
   }
 
   function renderHTML(htmlData) {
-    const html = typeof htmlData === 'string' 
-      ? htmlData 
+    const html = typeof htmlData === 'string'
+      ? htmlData
       : htmlData?.content || String(htmlData || '');
-    
+
     return `<div class="html-response">${sanitizeHTML(html)}</div>`;
   }
 
   function renderText(textData) {
-    const text = typeof textData === 'string' 
-      ? textData 
+    const text = typeof textData === 'string'
+      ? textData
       : textData?.content || String(textData || '');
-    
+
     return `<div class="text-response">${escapeHTML(text).replace(/\n/g, '<br>')}</div>`;
   }
 
   function renderError(errorData) {
-    const error = typeof errorData === 'string' 
-      ? errorData 
+    const error = typeof errorData === 'string'
+      ? errorData
       : errorData?.message || errorData?.error || String(errorData || '');
-    
+
     return `<div class="error-response">
       <div class="error-icon">⚠️</div>
       <div class="error-message">${escapeHTML(error)}</div>
@@ -2046,11 +2042,11 @@ if(document.body.querySelector(".chatbot-toggle")==null){
 
   function renderSchema(schemaData) {
     const schema = schemaData?.fields ? schemaData : schemaData?.content || schemaData;
-    
+
     if (!schema || !schema.fields || !Array.isArray(schema.fields)) {
       return '';
     }
-    
+
     let html = '<div class="schema-response">';
     html += '<div class="schema-table-container">';
     html += '<table class="schema-table">';
@@ -2061,14 +2057,14 @@ if(document.body.querySelector(".chatbot-toggle")==null){
     html += '<th>Description</th>';
     html += '</tr></thead>';
     html += '<tbody>';
-    
+
     schema.fields.forEach((field, index) => {
       const rowClass = index % 2 === 0 ? 'even-row' : 'odd-row';
       html += `<tr class="${rowClass}">`;
-      
+
       // Field Name
       html += `<td class="field-name"><strong>${escapeHTML(field.name || '')}</strong></td>`;
-      
+
       // Type - format nicely (e.g., "string / uuid" or "string (long)")
       let typeDisplay = field.type || '';
       // Handle type variations like "string / uuid" or add qualifiers
@@ -2078,17 +2074,17 @@ if(document.body.querySelector(".chatbot-toggle")==null){
       const typeLower = typeDisplay.toLowerCase();
       const typeClass = `type-badge type-${typeLower.split(' ')[0]}`;
       html += `<td class="field-type"><span class="${typeClass}">${escapeHTML(typeDisplay)}</span></td>`;
-      
+
       // Required - show "yes" or "optional" (matching ChatGPT format)
       const isRequired = field.required !== undefined ? field.required : (
-        field.constraints && field.constraints.some(c => 
-          c.toLowerCase().includes('required') || 
+        field.constraints && field.constraints.some(c =>
+          c.toLowerCase().includes('required') ||
           c.toLowerCase().includes('not null') ||
           c.toLowerCase().includes('not-null')
         )
       );
       html += `<td class="field-required">${isRequired ? '<span class="required-text">yes</span>' : '<span class="optional-text">optional</span>'}</td>`;
-      
+
       // Description - use field.description if available, otherwise generate from field name/type
       let description = field.description || '';
       if (!description && field.name) {
@@ -2111,10 +2107,10 @@ if(document.body.querySelector(".chatbot-toggle")==null){
         }
       }
       html += `<td class="field-description">${escapeHTML(description)}</td>`;
-      
+
       html += '</tr>';
     });
-    
+
     html += '</tbody></table>';
     html += '</div>';
     html += '</div>';
@@ -2126,19 +2122,19 @@ if(document.body.querySelector(".chatbot-toggle")==null){
     if (!envelope || !envelope.type) {
       return '';
     }
-    
+
     const content = envelope.content;
-    
+
     switch (envelope.type) {
       case 'table':
         return renderTable(content);
-      
+
       case 'json':
         return renderJSON(content);
-      
+
       case 'html':
         return renderHTML(content);
-      
+
       case 'text':
       case 'greeting':
       case 'markdown':
@@ -2147,13 +2143,13 @@ if(document.body.querySelector(".chatbot-toggle")==null){
         // If content is a string, use it directly; if it's an object, try to extract text
         const textContent = typeof content === 'string' ? content : (content?.text || content?.content || JSON.stringify(content));
         return renderText(textContent);
-      
+
       case 'error':
         return renderError(content);
-      
+
       case 'schema':
         return renderSchema(content);
-      
+
       default:
         // For unknown types, just render as text instead of showing metadata UI
         // This prevents the "Unknown response type" warning from appearing
@@ -2170,10 +2166,10 @@ if(document.body.querySelector(".chatbot-toggle")==null){
     if (!response) {
       return "⚠️ No response received from the server.";
     }
-    
+
     let html = '';
     let hasSchema = false;
-    
+
     // Priority 1: Check for schema in universalResponse (type === 'schema')
     if (response.universalResponse) {
       // If universalResponse is schema type, render it as table
@@ -2201,7 +2197,7 @@ if(document.body.querySelector(".chatbot-toggle")==null){
         }
       }
     }
-    
+
     // Priority 2: Check for schema at root level (for object creation responses)
     if (!hasSchema && response.schema && response.schema.fields && Array.isArray(response.schema.fields) && response.schema.fields.length > 0) {
       const schemaHtml = renderSchema(response.schema);
@@ -2210,7 +2206,7 @@ if(document.body.querySelector(".chatbot-toggle")==null){
         hasSchema = true;
       }
     }
-    
+
     // Priority 3: Check for schema in nested locations (result.schema, data.schema, etc.)
     if (!hasSchema) {
       const nestedSchema = response.result?.schema || response.data?.schema || response.content?.schema;
@@ -2222,34 +2218,34 @@ if(document.body.querySelector(".chatbot-toggle")==null){
         }
       }
     }
-    
+
     // Only show text response if we don't have a schema (schema takes priority)
     // For object creation, we want to show the table, not the markdown text
     if (!hasSchema && response.response && !response.universalResponse) {
-      const responseText = typeof response.response === 'string' 
-        ? response.response 
+      const responseText = typeof response.response === 'string'
+        ? response.response
         : JSON.stringify(response.response);
       if (responseText && responseText.trim()) {
         html += `<div class="response-text">${escapeHTML(responseText)}</div>`;
       }
     }
-    
+
     // If we have html content, return it
     if (html && html.trim()) {
       return html;
     }
-    
+
     // Fallback: try to extract any text content from response
     if (typeof response === 'string') {
       return response;
     }
-    
+
     // Try to find any text in the response object
     const fallbackText = response.text || response.content || response.message || response.data;
     if (fallbackText && typeof fallbackText === 'string' && fallbackText.trim()) {
       return `<div class="response-text">${escapeHTML(fallbackText)}</div>`;
     }
-    
+
     return "⚠️ No response received from the server.";
   }
 
@@ -2260,59 +2256,59 @@ if(document.body.querySelector(".chatbot-toggle")==null){
       if (attempt > 0) {
         await new Promise(resolve => setTimeout(resolve, intervalMs));
       }
-      
+
       try {
         const res = await fetch(`${baseUrl}/orchestration/query/status`, {
-        method: "POST",
-        headers: {
+          method: "POST",
+          headers: {
             "Content-Type": "application/json"
-        },
+          },
           credentials: 'include',
-        body: JSON.stringify({
+          body: JSON.stringify({
             queryId: queryId,
             context: {
               userId: String(userId),
               orgId: Number(orgId),
               sessionId: sessionId
             }
-        })
-      });
-        
+          })
+        });
+
         if (!res.ok) {
           console.warn(`⚠️ ARI: Polling attempt ${attempt + 1} failed: ${res.status}`);
           continue;
         }
-        
+
         const statusData = await res.json();
         const status = statusData?.status;
-        
+
         if (status === 'completed' && statusData?.result) {
           return statusData.result;
         }
-        
+
         if (status === 'failed' || status === 'not_found') {
           console.error(`❌ ARI: Query failed or not found: ${status}`);
           return null;
         }
-        
+
         // Continue polling if queued or processing - update UI to show status
         if (status === 'queued' || status === 'processing') {
           // Update thinking message to show current status
-          const statusMessage = status === 'queued' 
-            ? '⏳ Request queued, waiting to be processed...' 
+          const statusMessage = status === 'queued'
+            ? '⏳ Request queued, waiting to be processed...'
             : '🔄 Processing your request...';
           updateThinkingMessage(statusMessage);
           // Keep inputs disabled during queued/processing
           setInputsEnabled(false);
           continue;
         }
-        
+
       } catch (err) {
         console.warn(`⚠️ ARI: Polling error on attempt ${attempt + 1}:`, err);
         // Continue polling on error
       }
     }
-    
+
     console.warn(`⚠️ ARI: Polling timeout after ${maxAttempts} attempts`);
     return null;
   }
@@ -2323,15 +2319,15 @@ if(document.body.querySelector(".chatbot-toggle")==null){
     const baseUrl = secureConfig.baseUrl || config.baseUrl || '';
     const userId = secureConfig.userId || config.userId || '';
     const orgId = secureConfig.orgId !== null ? secureConfig.orgId : (config.orgId !== null ? config.orgId : null);
-    
+
     // Reuse existing sessionId if available, otherwise generate new one
     // This maintains conversation continuity across calls
     if (!currentSessionId) {
       currentSessionId = secureConfig.sessionId || config.sessionId || generateSessionId();
     }
-    
+
     const sessionId = currentSessionId;
-    
+
     if (!baseUrl || !userId || orgId === null) {
       const errorMsg = `⚠️ Configuration missing. baseUrl: ${baseUrl ? 'set' : 'MISSING'}, userId: ${userId ? 'set' : 'MISSING'}, orgId: ${orgId !== null ? 'set' : 'MISSING'}`;
       console.error("ARI Configuration Error:", errorMsg);
@@ -2348,7 +2344,7 @@ if(document.body.querySelector(".chatbot-toggle")==null){
         // No history - start fresh
       }
     };
-    
+
     // Include headerId in request if we have one (backend will reuse existing header)
     if (currentHeaderId) {
       requestBody.headerId = currentHeaderId;
@@ -2370,21 +2366,21 @@ if(document.body.querySelector(".chatbot-toggle")==null){
       }
 
       const data = await res.json();
-      
+
       // Handle nested response structure
       const response = data?.data || data?.result || data;
       const queryId = data?.queryId || response?.queryId;
-      
+
       // Extract headerId from response (for CouchDB chat header tracking)
       // Backend automatically creates header on first message and saves all messages
       const headerId = data?.headerId || response?.headerId || response?.metadata?.headerId || data?.metadata?.headerId;
       if (headerId) {
         currentHeaderId = headerId;
-        
+
         // Update sidebar entry with headerId if this is the first message
         updateSidebarEntryWithHeaderId(headerId);
       }
-      
+
       // Check if queued - start polling
       const isQueued = (
         data?.status === 'queued' ||
@@ -2395,49 +2391,49 @@ if(document.body.querySelector(".chatbot-toggle")==null){
         response?.metadata?.executionStatus === 'pending' ||
         data?.status === 'queued'
       );
-      
+
       if (isQueued && queryId) {
         // Update thinking message to show queue status
         updateThinkingMessage("⏳ Request queued, processing...");
         // Keep inputs disabled during queued/processing
         setInputsEnabled(false);
-        
+
         // Start polling for the result
         const polledResult = await pollQueryStatus(queryId, baseUrl, userId, orgId, sessionId);
-        
+
         if (polledResult) {
           // Extract headerId from polled result as well
           const polledHeaderId = polledResult?.headerId || polledResult?.metadata?.headerId;
           if (polledHeaderId) {
             currentHeaderId = polledHeaderId;
-            
+
             // Update sidebar entry with headerId if this is the first message
             updateSidebarEntryWithHeaderId(polledHeaderId);
           }
-          
+
           // Parse and render the polled result
           const parsedResponse = parseOrchestrationResponse(polledResult);
           if (parsedResponse && parsedResponse.trim() && !parsedResponse.includes("No response received")) {
             return parsedResponse;
           } else {
             // If parsing failed, try to get response text from various possible locations
-            const fallbackResponse = polledResult?.response 
-              || polledResult?.universalResponse?.content 
+            const fallbackResponse = polledResult?.response
+              || polledResult?.universalResponse?.content
               || polledResult?.data?.response
               || polledResult?.result?.response
               || (typeof polledResult === 'string' ? polledResult : null);
-            
+
             if (fallbackResponse && typeof fallbackResponse === 'string' && fallbackResponse.trim()) {
               return `<div class="response-text">${escapeHTML(fallbackResponse)}</div>`;
             }
-            
+
             return "⚠️ Response received but could not be parsed. Please try again.";
           }
         } else {
           return "⏳ Your request is still being processed. Please wait...";
         }
       }
-      
+
       // If response is immediate (not queued), parse and render
       if (response) {
         const parsedResponse = parseOrchestrationResponse(response);
@@ -2445,38 +2441,38 @@ if(document.body.querySelector(".chatbot-toggle")==null){
           return parsedResponse;
         } else {
           // If parsing failed, try to get response text from various possible locations
-          const fallbackResponse = response?.response 
-            || response?.universalResponse?.content 
+          const fallbackResponse = response?.response
+            || response?.universalResponse?.content
             || response?.data?.response
             || response?.result?.response
             || (typeof response === 'string' ? response : null);
-          
+
           if (fallbackResponse && typeof fallbackResponse === 'string' && fallbackResponse.trim()) {
             return `<div class="response-text">${escapeHTML(fallbackResponse)}</div>`;
           }
         }
       }
-      
+
       // Fallback - check if we have any data at all
       if (data) {
         // Try to extract any response text from the data structure
-        const fallbackResponse = data?.response 
-          || data?.result?.response 
+        const fallbackResponse = data?.response
+          || data?.result?.response
           || data?.data?.response
           || data?.result?.data?.response
           || (typeof data === 'string' ? data : null);
-        
+
         if (fallbackResponse && typeof fallbackResponse === 'string' && fallbackResponse.trim()) {
           return `<div class="response-text">${escapeHTML(fallbackResponse)}</div>`;
         }
       }
-      
+
       console.error('ARI: No response content found in:', { data, response });
       return "⚠️ No response received from the server.";
-      
+
     } catch (err) {
       console.error('Orchestration API Error:', err);
-      
+
       // User-friendly error messages
       if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
         return "⚠️ Unable to connect to the server. Please check your internet connection and try again.";
@@ -2490,13 +2486,13 @@ if(document.body.querySelector(".chatbot-toggle")==null){
       if (err.message.includes('500')) {
         return "⚠️ Server error occurred. Please try again later.";
       }
-      
+
       return `⚠️ An error occurred: ${err.message || 'Unknown error'}. Please try again.`;
     }
   }
   // Current conversation messages (for UI display only - backend handles all persistence)
   let currentMessages = [];
-  
+
   // Current chat headerId (CouchDB _id) - tracks the conversation header
   // First message creates header, subsequent messages use same headerId
   let currentHeaderId = null;
@@ -2504,7 +2500,7 @@ if(document.body.querySelector(".chatbot-toggle")==null){
   // Helper function to format time (relative or absolute)
   function formatTime(timestamp) {
     if (!timestamp) return 'Just now';
-    
+
     const now = new Date();
     const time = new Date(timestamp);
     const diffMs = now - time;
@@ -2512,7 +2508,7 @@ if(document.body.querySelector(".chatbot-toggle")==null){
     const diffMins = Math.floor(diffSecs / 60);
     const diffHours = Math.floor(diffMins / 60);
     const diffDays = Math.floor(diffHours / 24);
-    
+
     if (diffSecs < 60) {
       return 'Just now';
     } else if (diffMins < 60) {
@@ -2559,7 +2555,7 @@ if(document.body.querySelector(".chatbot-toggle")==null){
   function showError(message, isRetryable = false) {
     const recentsList = wrapper.querySelector(".recents-list");
     if (!recentsList) return;
-    
+
     const errorHtml = `<div class="history-error">
       <div class="error-icon">⚠️</div>
       <div class="error-text">${escapeHTML(message)}</div>
@@ -2573,18 +2569,18 @@ if(document.body.querySelector(".chatbot-toggle")==null){
     const baseUrl = secureConfig.baseUrl || config.baseUrl || '';
     const userId = secureConfig.userId || config.userId || '';
     const orgId = secureConfig.orgId !== null ? secureConfig.orgId : (config.orgId !== null ? config.orgId : null);
-    
+
     // Get sessionId from secure config or config
     if (!currentSessionId) {
       currentSessionId = secureConfig.sessionId || config.sessionId || generateSessionId();
     }
     const sessionId = currentSessionId;
-    
+
     if (!baseUrl || !userId || orgId === null) {
       // Don't show error here - let initializeChatHistory handle it
       throw new Error('Configuration missing');
     }
-    
+
     try {
       const response = await fetch(`${baseUrl}/orchestration/history`, {
         method: 'POST',
@@ -2598,7 +2594,7 @@ if(document.body.querySelector(".chatbot-toggle")==null){
           limit: 50
         })
       });
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         let errorMessage = `Failed to load chat history (${response.status})`;
@@ -2610,7 +2606,7 @@ if(document.body.querySelector(".chatbot-toggle")==null){
         showError(errorMessage, true);
         throw new Error(errorMessage);
       }
-      
+
       const data = await response.json();
       if (data.success && data.data) {
         return data.data.map(chat => ({
@@ -2659,25 +2655,25 @@ if(document.body.querySelector(".chatbot-toggle")==null){
 
   // Store full history for client-side filtering (fallback)
   let fullHistoryCache = [];
-  
+
   // Load and display chat history list (sidebar) - from backend only, show error on failure
   async function displayChatHistory(searchQuery = '') {
     const recentsList = wrapper.querySelector(".recents-list");
     if (!recentsList) return;
-    
+
     try {
       let history = [];
-      
+
       // If search query provided, use client-side filtering for partial matching
       if (searchQuery && searchQuery.trim()) {
         const query = searchQuery.trim().toLowerCase();
-        
+
         // First, ensure we have full history cached
         if (fullHistoryCache.length === 0) {
           const backendHistory = await loadChatHistoryFromBackend();
           fullHistoryCache = backendHistory || [];
         }
-        
+
         // Apply client-side filtering for partial matching (includes letter matching)
         // This allows "creat" to match "create", "creation", "creating", etc.
         history = fullHistoryCache.filter(chat => {
@@ -2685,7 +2681,7 @@ if(document.body.querySelector(".chatbot-toggle")==null){
           // Check if title contains the search query (partial/substring matching)
           return title.includes(query);
         });
-        
+
         // Also try backend search to get additional results (exact word matches)
         // Then merge and deduplicate
         try {
@@ -2694,19 +2690,19 @@ if(document.body.querySelector(".chatbot-toggle")==null){
             // Merge backend results with client-side filtered results
             // Use a Set to deduplicate by headerId
             const resultMap = new Map();
-            
+
             // Add client-side filtered results first
             history.forEach(chat => {
               const key = chat.headerId || chat.id || chat.sessionId;
               if (key) resultMap.set(key, chat);
             });
-            
+
             // Add backend search results (may have exact matches client-side missed)
             searchResults.forEach(chat => {
               const key = chat.headerId || chat.id || chat.sessionId;
               if (key) resultMap.set(key, chat);
             });
-            
+
             // Convert back to array
             history = Array.from(resultMap.values());
           }
@@ -2720,10 +2716,10 @@ if(document.body.querySelector(".chatbot-toggle")==null){
         // Cache full history for client-side filtering
         fullHistoryCache = history;
       }
-      
+
       recentsList.innerHTML = '';
       if (history.length === 0) {
-        const noResultsMessage = searchQuery 
+        const noResultsMessage = searchQuery
           ? `<div class="no-history">No chats found matching "${escapeHTML(searchQuery)}"</div>`
           : '<div class="no-history">No chat history found</div>';
         recentsList.innerHTML = noResultsMessage;
@@ -2739,24 +2735,24 @@ if(document.body.querySelector(".chatbot-toggle")==null){
       console.error('ARI: Failed to display chat history:', err);
     }
   }
-  
+
   // Search chat history from backend API
   async function searchChatHistoryFromBackend(query) {
     const baseUrl = secureConfig.baseUrl || config.baseUrl || '';
     const userId = secureConfig.userId || config.userId || '';
     const orgId = secureConfig.orgId !== null ? secureConfig.orgId : (config.orgId !== null ? config.orgId : null);
-    
+
     // Get sessionId from secure config or config
     if (!currentSessionId) {
       currentSessionId = secureConfig.sessionId || config.sessionId || generateSessionId();
     }
     const sessionId = currentSessionId;
-    
+
     if (!baseUrl || !userId || orgId === null) {
       showError('Configuration missing. Cannot search chat history.', false);
       throw new Error('Configuration missing');
     }
-    
+
     try {
       const response = await fetch(`${baseUrl}/orchestration/history/search`, {
         method: 'POST',
@@ -2771,7 +2767,7 @@ if(document.body.querySelector(".chatbot-toggle")==null){
           limit: 50 // Get more results for search
         })
       });
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         let errorMessage = `Failed to search chat history (${response.status})`;
@@ -2783,7 +2779,7 @@ if(document.body.querySelector(".chatbot-toggle")==null){
         showError(errorMessage, true);
         throw new Error(errorMessage);
       }
-      
+
       const data = await response.json();
       if (data.success && data.data) {
         return data.data.map(chat => ({
@@ -2819,12 +2815,12 @@ if(document.body.querySelector(".chatbot-toggle")==null){
         if (e.target.closest('.recent-item-delete')) {
           return;
         }
-        
+
         // Remove active class from all items
         recentItems.forEach(i => i.classList.remove("active"));
         // Add active class to clicked item
         item.classList.add("active");
-        
+
         // Load full chat messages from storage (same as orchestration chat)
         // Use headerId if available (preferred), fallback to sessionId
         const headerId = item.getAttribute('data-header-id');
@@ -2836,14 +2832,14 @@ if(document.body.querySelector(".chatbot-toggle")==null){
         }
       });
     });
-    
+
     // Attach delete button listeners
     const deleteButtons = wrapper.querySelectorAll(".recent-item-delete");
     deleteButtons.forEach(button => {
       // Remove any existing listeners to prevent duplicates
       const newButton = button.cloneNode(true);
       button.parentNode.replaceChild(newButton, button);
-      
+
       newButton.addEventListener("click", (e) => {
         e.stopPropagation(); // Prevent triggering item click
         const sessionId = newButton.getAttribute('data-session-id');
@@ -2852,35 +2848,35 @@ if(document.body.querySelector(".chatbot-toggle")==null){
       });
     });
   }
-  
+
   // Delete chat from backend and UI - matches orchestration chat implementation
   async function deleteChat(sessionId, headerId, buttonElement) {
     // Show confirmation dialog (same as orchestration chat)
     if (!confirm('Are you sure you want to delete this chat?')) {
       return;
     }
-    
+
     const baseUrl = secureConfig.baseUrl || config.baseUrl || '';
     const userId = secureConfig.userId || config.userId || '';
     const orgId = secureConfig.orgId !== null ? secureConfig.orgId : (config.orgId !== null ? config.orgId : null);
-    
+
     if (!baseUrl || !userId || orgId === null) {
       alert('Configuration missing. Cannot delete chat.');
       return;
     }
-    
+
     // Ensure we have sessionId (required by backend API)
     if (!sessionId) {
       console.warn('ARI: No sessionId available for deletion. Cannot delete chat.');
       alert('Cannot delete chat: session ID not found.');
       return;
     }
-    
+
     try {
       // Disable button during deletion
       buttonElement.disabled = true;
       buttonElement.style.opacity = '0.5';
-      
+
       // Use exact same request format as orchestration chat service
       // Request body: { sessionId, userId, orgId }
       const request = {
@@ -2888,14 +2884,14 @@ if(document.body.querySelector(".chatbot-toggle")==null){
         userId: String(userId),
         orgId: Number(orgId)
       };
-      
+
       const response = await fetch(`${baseUrl}/orchestration/history/delete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify(request)
       });
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         let errorMessage = `Failed to delete chat (${response.status})`;
@@ -2909,39 +2905,39 @@ if(document.body.querySelector(".chatbot-toggle")==null){
         alert(errorMessage);
         throw new Error(errorMessage);
       }
-      
+
       const data = await response.json();
       if (data.success) {
         // Remove from UI
         const itemElement = buttonElement.closest('.recent-item');
         const recentsList = wrapper.querySelector(".recents-list");
-        
+
         if (itemElement) {
           itemElement.remove();
         }
-        
+
         // Check if list is now empty and show "No chat history found" message
         if (recentsList && recentsList.children.length === 0) {
           recentsList.innerHTML = '<div class="no-history">No chat history found</div>';
         }
-        
+
         // Remove from cache
         fullHistoryCache = fullHistoryCache.filter(chat => {
           return chat.sessionId !== sessionId && chat.headerId !== headerId && chat.id !== headerId;
         });
-        
+
         // If this was the currently open chat, clear it and show welcome message
         const deletedHeaderId = headerId || (itemElement ? itemElement.getAttribute('data-header-id') : null);
         const deletedSessionId = sessionId || (itemElement ? itemElement.getAttribute('data-session-id') : null);
-        
-        if ((deletedHeaderId && currentHeaderId === deletedHeaderId) || 
-            (deletedSessionId && currentSessionId === deletedSessionId)) {
+
+        if ((deletedHeaderId && currentHeaderId === deletedHeaderId) ||
+          (deletedSessionId && currentSessionId === deletedSessionId)) {
           // Clear current chat
           currentSessionId = null;
           currentHeaderId = null;
           currentMessages = [];
           messages.innerHTML = '';
-          
+
           // Show welcome message
           const afterInputContainer = wrapper.querySelector(".chat-afterinput-container");
           const initialInputContainer = wrapper.querySelector(".chat-message-initial");
@@ -2968,7 +2964,7 @@ if(document.body.querySelector(".chatbot-toggle")==null){
                 </div>
               </div>
             `;
-            
+
             // Re-query input elements
             input = wrapper.querySelector(".chat-input textarea") || wrapper.querySelector(".chat-input input");
             sendBtn = wrapper.querySelector(".chat-input-btn");
@@ -2976,7 +2972,7 @@ if(document.body.querySelector(".chatbot-toggle")==null){
               sendBtn.addEventListener("click", sendMessage);
             }
           }
-          
+
           // Remove active class from all items
           const recentItems = wrapper.querySelectorAll(".recent-item");
           recentItems.forEach(item => item.classList.remove("active"));
@@ -2999,12 +2995,12 @@ if(document.body.querySelector(".chatbot-toggle")==null){
     const baseUrl = secureConfig.baseUrl || config.baseUrl || '';
     const userId = secureConfig.userId || config.userId || '';
     const orgId = secureConfig.orgId !== null ? secureConfig.orgId : (config.orgId !== null ? config.orgId : null);
-    
+
     if (!baseUrl || !userId || orgId === null) {
       showChatError('Configuration missing. Cannot load chat session.');
       throw new Error('Configuration missing');
     }
-    
+
     try {
       const response = await fetch(`${baseUrl}/orchestration/chat/by-header`, {
         method: 'POST',
@@ -3016,7 +3012,7 @@ if(document.body.querySelector(".chatbot-toggle")==null){
           orgId: Number(orgId)
         })
       });
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         let errorMessage = `Failed to load chat session (${response.status})`;
@@ -3030,19 +3026,19 @@ if(document.body.querySelector(".chatbot-toggle")==null){
         showChatError(errorMessage);
         throw new Error(errorMessage);
       }
-      
+
       const data = await response.json();
-      
+
       if (!data.success) {
         showChatError(data.chat === null ? 'Chat session not found.' : 'Failed to load chat session.');
         return null;
       }
-      
+
       if (!data.chat) {
         showChatError('Chat session not found.');
         return null;
       }
-      
+
       if (!data.chat.messages || data.chat.messages.length === 0) {
         showChatError('No messages found for this chat session.');
         return {
@@ -3051,16 +3047,16 @@ if(document.body.querySelector(".chatbot-toggle")==null){
           headerId: data.chat.headerId || headerId
         };
       }
-      
+
       // Convert orchestration messages to ARI format
       const convertedMessages = data.chat.messages.map(msg => {
         // Extract schema from metadata if it exists (backend stores it in metadata.schema)
         const schema = msg.schema || msg.metadata?.schema;
         const responseType = msg.responseType || msg.metadata?.responseType;
-        
+
         // Reconstruct universalResponse from available data
         let universalResponse = msg.universalResponse;
-        
+
         // If no universalResponse but we have schema, create it
         if (!universalResponse && schema && schema.fields) {
           universalResponse = {
@@ -3068,7 +3064,7 @@ if(document.body.querySelector(".chatbot-toggle")==null){
             content: schema
           };
         }
-        
+
         // If no universalResponse but we have responseType, create appropriate universalResponse
         if (!universalResponse && responseType && msg.type === 'assistant') {
           // For greeting responses, create a greeting universalResponse
@@ -3086,20 +3082,20 @@ if(document.body.querySelector(".chatbot-toggle")==null){
             };
           }
         }
-        
+
         // Build response object with all available data for proper parsing
         const responseObj = {
           universalResponse: universalResponse || null,
           response: msg.content || msg.text || '',
           schema: schema || null
         };
-        
+
         // Parse response to get HTML content (includes schema table rendering)
         // Only parse for assistant messages (bot responses)
-        const htmlContent = (msg.type === 'assistant' && (universalResponse || schema)) 
-          ? parseOrchestrationResponse(responseObj) 
+        const htmlContent = (msg.type === 'assistant' && (universalResponse || schema))
+          ? parseOrchestrationResponse(responseObj)
           : null;
-        
+
         return {
           type: msg.type === 'user' ? 'user' : 'bot',
           content: msg.content || msg.text || '',
@@ -3108,7 +3104,7 @@ if(document.body.querySelector(".chatbot-toggle")==null){
           timestamp: msg.createdon || Date.now()
         };
       });
-      
+
       return {
         messages: convertedMessages,
         sessionId: data.chat.sessionId,
@@ -3131,12 +3127,12 @@ if(document.body.querySelector(".chatbot-toggle")==null){
     const baseUrl = secureConfig.baseUrl || config.baseUrl || '';
     const userId = secureConfig.userId || config.userId || '';
     const orgId = secureConfig.orgId !== null ? secureConfig.orgId : (config.orgId !== null ? config.orgId : null);
-    
+
     if (!baseUrl || !userId || orgId === null) {
       showChatError('Configuration missing. Cannot load chat session.');
       throw new Error('Configuration missing');
     }
-    
+
     try {
       const response = await fetch(`${baseUrl}/orchestration/history/session`, {
         method: 'POST',
@@ -3148,7 +3144,7 @@ if(document.body.querySelector(".chatbot-toggle")==null){
           orgId: Number(orgId)
         })
       });
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         let errorMessage = `Failed to load chat session (${response.status})`;
@@ -3162,7 +3158,7 @@ if(document.body.querySelector(".chatbot-toggle")==null){
         showChatError(errorMessage);
         throw new Error(errorMessage);
       }
-      
+
       const data = await response.json();
       if (data && data.messages) {
         // Convert orchestration messages to ARI format
@@ -3176,19 +3172,19 @@ if(document.body.querySelector(".chatbot-toggle")==null){
               content: msg.schema
             };
           }
-          
+
           // Build response object with all available data for proper parsing
           const responseObj = {
             universalResponse: universalResponse || null,
             response: msg.content || msg.text || '',
             schema: msg.schema || null
           };
-          
+
           // Parse response to get HTML content (includes schema table rendering)
-          const htmlContent = (universalResponse || msg.schema) 
-            ? parseOrchestrationResponse(responseObj) 
+          const htmlContent = (universalResponse || msg.schema)
+            ? parseOrchestrationResponse(responseObj)
             : null;
-          
+
           return {
             type: msg.type === 'user' ? 'user' : 'bot',
             content: msg.content || msg.text || '',
@@ -3217,21 +3213,21 @@ if(document.body.querySelector(".chatbot-toggle")==null){
       showChatError('Invalid chat session ID.');
       return;
     }
-    
+
     try {
       // Load from backend (CouchDB) only - no fallback
       const result = await loadChatByHeaderIdFromBackend(headerId);
-      
+
       if (!result) {
         showChatError('Chat session not found.');
         return;
       }
-      
+
       if (!result.messages || result.messages.length === 0) {
         showChatError('No messages found for this chat session.');
         return;
       }
-    
+
       // Set current sessionId and headerId from response
       if (result.sessionId) {
         currentSessionId = result.sessionId;
@@ -3239,13 +3235,13 @@ if(document.body.querySelector(".chatbot-toggle")==null){
       if (result.headerId || headerId) {
         currentHeaderId = result.headerId || headerId;
       }
-    
+
       // Clear current messages
       currentMessages = [];
-      
+
       // Clear UI
       messages.innerHTML = '';
-      
+
       // Remove welcome message and show input bar (since we have messages)
       removeWelcomeMessage();
       const afterInputContainer = wrapper.querySelector(".chat-afterinput-container");
@@ -3256,17 +3252,17 @@ if(document.body.querySelector(".chatbot-toggle")==null){
       if (initialInputContainer) {
         initialInputContainer.style.display = "none"; // Hide initial welcome message container
       }
-      
+
       // Ensure inputs are enabled when loading a chat
       setInputsEnabled(true);
-      
+
       // Restore messages (without triggering save)
       result.messages.forEach(msg => {
         const msgDiv = document.createElement("div");
         msgDiv.className = `message ${msg.type === 'user' ? 'user' : 'bot'}`;
         const msgContent = document.createElement("div");
         msgContent.className = "message-content";
-        
+
         // Use htmlContent if available, otherwise use plain text content
         if (msg.htmlContent) {
           msgContent.innerHTML = sanitizeHTML(msg.htmlContent);
@@ -3277,10 +3273,10 @@ if(document.body.querySelector(".chatbot-toggle")==null){
           // Fallback: show a placeholder if content is missing
           msgContent.textContent = '[No content]';
         }
-        
+
         // Create and add icon
         const iconImg = createMessageIcon(msg.type === 'user' ? 'user' : 'bot');
-        
+
         // For user messages: content first, then icon on right
         // For bot messages: icon first, then content on left
         if (msg.type === 'user') {
@@ -3290,13 +3286,13 @@ if(document.body.querySelector(".chatbot-toggle")==null){
           msgDiv.appendChild(iconImg);
           msgDiv.appendChild(msgContent);
         }
-        
+
         messages.appendChild(msgDiv);
-        
+
         // Add to current messages array (don't save, we're loading from storage)
         currentMessages.push(msg);
       });
-      
+
       // Scroll to bottom
       messages.scrollTop = messages.scrollHeight;
     } catch (err) {
@@ -3310,21 +3306,21 @@ if(document.body.querySelector(".chatbot-toggle")==null){
     try {
       // Load from backend (CouchDB) only - no fallback
       const savedMessages = await loadChatSessionFromBackend(sessionId);
-      
+
       if (!savedMessages || savedMessages.length === 0) {
         showChatError('No messages found for this chat session.');
         return;
       }
-    
+
       // Set current sessionId
       currentSessionId = sessionId;
-    
+
       // Clear current messages
       currentMessages = [];
-      
+
       // Clear UI
       messages.innerHTML = '';
-      
+
       // Remove welcome message and show input bar (since we have messages)
       removeWelcomeMessage();
       const afterInputContainer = wrapper.querySelector(".chat-afterinput-container");
@@ -3335,26 +3331,26 @@ if(document.body.querySelector(".chatbot-toggle")==null){
       if (initialInputContainer) {
         initialInputContainer.style.display = "none"; // Hide initial welcome message container
       }
-      
+
       // Ensure inputs are enabled when loading a chat
       setInputsEnabled(true);
-      
+
       // Restore messages (without triggering save)
       savedMessages.forEach(msg => {
         const msgDiv = document.createElement("div");
         msgDiv.className = `message ${msg.type === 'user' ? 'user' : 'bot'}`;
         const msgContent = document.createElement("div");
         msgContent.className = "message-content";
-        
+
         if (msg.htmlContent) {
           msgContent.innerHTML = sanitizeHTML(msg.htmlContent);
         } else {
           msgContent.textContent = msg.content || msg.text || '';
         }
-        
+
         // Create and add icon
         const iconImg = createMessageIcon(msg.type === 'user' ? 'user' : 'bot');
-        
+
         // For user messages: content first, then icon on right
         // For bot messages: icon first, then content on left
         if (msg.type === 'user') {
@@ -3364,13 +3360,13 @@ if(document.body.querySelector(".chatbot-toggle")==null){
           msgDiv.appendChild(iconImg);
           msgDiv.appendChild(msgContent);
         }
-        
+
         messages.appendChild(msgDiv);
-        
+
         // Add to current messages array (don't save, we're loading from storage)
         currentMessages.push(msg);
       });
-      
+
       // Scroll to bottom
       messages.scrollTop = messages.scrollHeight;
     } catch (err) {
@@ -3381,14 +3377,14 @@ if(document.body.querySelector(".chatbot-toggle")==null){
 
   // Update sidebar UI when first message is sent (UI only - backend handles persistence)
   // This adds the chat to the sidebar for immediate visual feedback
-  async function addtoTracking(entertxt){
+  async function addtoTracking(entertxt) {
     // Only update UI if this is the first message in the conversation
     if (currentMessages.length === 0 && entertxt.length) {
       // Use currentSessionId if available, otherwise generate new one
       if (!currentSessionId) {
         currentSessionId = generateSessionId();
       }
-      
+
       // Create chat object for sidebar UI (backend will create actual header and return headerId)
       const chat = {
         sessionId: currentSessionId,
@@ -3396,13 +3392,13 @@ if(document.body.querySelector(".chatbot-toggle")==null){
         title: entertxt,
         timestamp: Date.now()
       };
-      
+
       // Store reference to this sidebar entry so we can update it with headerId later
       window._ariCurrentSidebarEntry = {
         sessionId: currentSessionId,
         element: null // Will be set after rendering
       };
-      
+
       // Render the new item in sidebar (UI only - backend handles persistence)
       const trackHtml = renderChatHistoryItem(chat);
       const recentsList = wrapper.querySelector(".recents-list");
@@ -3412,46 +3408,46 @@ if(document.body.querySelector(".chatbot-toggle")==null){
         if (noHistoryMsg) {
           noHistoryMsg.remove();
         }
-        
+
         // Prepend new chat to the list
         recentsList.innerHTML = trackHtml + recentsList.innerHTML;
-        
+
         // Find the newly added element and store reference
         const newItem = recentsList.querySelector(`[data-session-id="${escapeHTML(currentSessionId)}"]`);
         if (newItem && window._ariCurrentSidebarEntry) {
           window._ariCurrentSidebarEntry.element = newItem;
         }
-        
+
         // Re-attach event listeners
         attachRecentItemListeners();
       }
     }
     // Backend automatically saves all messages - no explicit save needed
   }
-  
+
   // Update sidebar entry with headerId after receiving it from backend
   function updateSidebarEntryWithHeaderId(headerId) {
     if (!window._ariCurrentSidebarEntry || !window._ariCurrentSidebarEntry.element) {
       return; // No sidebar entry to update
     }
-    
+
     const element = window._ariCurrentSidebarEntry.element;
     const sessionId = window._ariCurrentSidebarEntry.sessionId;
-    
+
     // Update data-header-id attribute
     element.setAttribute('data-header-id', headerId);
-    
+
     // Clear the reference after updating
     window._ariCurrentSidebarEntry = null;
   }
-  
+
   // Track if a query is currently being processed
   let isQueryInProgress = false;
 
   // Enable/disable input fields during query processing
   function setInputsEnabled(enabled) {
     isQueryInProgress = !enabled;
-    
+
     // Get all input elements
     const inputs = [
       wrapper.querySelector(".chat-input textarea"),
@@ -3461,28 +3457,28 @@ if(document.body.querySelector(".chatbot-toggle")==null){
       wrapper.querySelector(".chat-afterinput-container textarea"),
       wrapper.querySelector(".chat-afterinput-container input")
     ].filter(Boolean); // Remove nulls
-    
+
     // Get all send buttons
     const sendButtons = [
       wrapper.querySelector(".chat-input .send-btn"),
       wrapper.querySelector(".minimized-prompt-input .send-btn"),
       wrapper.querySelector(".chat-afterinput-container .send-btn")
     ].filter(Boolean); // Remove nulls
-    
+
     // Enable/disable inputs
     inputs.forEach(input => {
       input.disabled = !enabled;
       input.style.opacity = enabled ? '1' : '0.6';
       input.style.cursor = enabled ? 'text' : 'not-allowed';
     });
-    
+
     // Enable/disable send buttons
     sendButtons.forEach(btn => {
       btn.disabled = !enabled;
       btn.style.opacity = enabled ? '1' : '0.6';
       btn.style.cursor = enabled ? 'pointer' : 'not-allowed';
     });
-    
+
     // Note: "New Chat" button is intentionally NOT disabled - user can always start a new chat
   }
 
@@ -3492,7 +3488,7 @@ if(document.body.querySelector(".chatbot-toggle")==null){
     if (!thinkingElement) {
       return; // No thinking element to update
     }
-    
+
     const thinkingContent = thinkingElement.querySelector('.message-content');
     if (thinkingContent) {
       thinkingContent.innerHTML = `<div class="text-response">${escapeHTML(message)}</div>`;
@@ -3509,7 +3505,7 @@ if(document.body.querySelector(".chatbot-toggle")==null){
         // Create dummy object to prevent errors
         videoElem = {
           pause: () => Promise.resolve(),
-          load: () => {},
+          load: () => { },
           play: () => Promise.resolve()
         };
       }
@@ -3542,7 +3538,7 @@ if(document.body.querySelector(".chatbot-toggle")==null){
       const fullPath = sourcePath.startsWith('/') ? getAssetPath(sourcePath.substring(1)) : getAssetPath(sourcePath);
       source.src = fullPath;
       if (videoElem && typeof videoElem.load === 'function') {
-    videoElem.load();
+        videoElem.load();
         // Wait a bit before playing to avoid AbortError
         setTimeout(() => {
           safePlayVideo(videoElem);
@@ -3555,12 +3551,12 @@ if(document.body.querySelector(".chatbot-toggle")==null){
     if (isQueryInProgress) {
       return;
     }
-    
+
     // Re-query inputs to ensure we have the latest references
     input = wrapper.querySelector(".chat-input textarea") || wrapper.querySelector(".chat-input input");
     const currentMinimizedInput = wrapper.querySelector(".minimized-prompt-input textarea") || wrapper.querySelector(".minimized-prompt-input input");
     const currentAfterInput = wrapper.querySelector(".chat-afterinput-container textarea") || wrapper.querySelector(".chat-afterinput-container input");
-    
+
     // Determine which input was used and get text FIRST (before any side effects)
     let text = "";
     if (eventOrTarget && eventOrTarget.matches && (eventOrTarget.matches(".minimized-prompt-input input") || eventOrTarget.matches(".minimized-prompt-input textarea"))) {
@@ -3572,55 +3568,55 @@ if(document.body.querySelector(".chatbot-toggle")==null){
     } else if (input) {
       text = input.value.trim();
     }
-    
+
     // Fallback to afterinput if main input is empty
-    if(text === "" && currentAfterInput && currentAfterInput.value.trim() !== ""){
+    if (text === "" && currentAfterInput && currentAfterInput.value.trim() !== "") {
       text = currentAfterInput.value.trim();
     }
-    
+
     // Validate text BEFORE any side effects (video changes, input disabling, etc.)
     if (!text) {
       return;
     }
-    
+
     // Now proceed with side effects only if we have valid text
     if (videoElem && typeof videoElem.pause === 'function') {
       try {
         const pauseResult = videoElem.pause();
         if (pauseResult && typeof pauseResult.catch === 'function') {
-          pauseResult.catch(() => {}); // Ignore pause errors
+          pauseResult.catch(() => { }); // Ignore pause errors
         }
       } catch (e) {
         // Ignore pause errors
       }
     }
-    changeVideoSource("assets/img/ari/Ari-loading.webm");
-    
+    changeVideoSource("assets/img/ari/kodivian-logo.png");
+
     // Disable inputs immediately when sending
     setInputsEnabled(false);
-    
+
     wrapper.querySelector(".chat-afterinput-container").style.display = "block"; // Show after input on first message
     // If minimized, expand first
     if (isMinimized) {
       toggleMinimize();
     }
-    
+
     // Only track/create chat entry for the first message in a conversation
     // This should happen BEFORE adding the message to currentMessages
     addtoTracking(text);
-    
+
     // Sync input values (if inputs exist)
     if (input) input.value = text;
     if (currentMinimizedInput) currentMinimizedInput.value = text;
     if (currentAfterInput) currentAfterInput.value = text;
-    
+
     addMessage("user", text, false);
-    
+
     // Clear all inputs
     if (input) input.value = "";
     if (currentMinimizedInput) currentMinimizedInput.value = "";
     if (currentAfterInput) currentAfterInput.value = "";
-    
+
     // Create thinking message element (will be updated during processing)
     const thinking = document.createElement("div");
     thinking.className = "message bot";
@@ -3631,33 +3627,33 @@ if(document.body.querySelector(".chatbot-toggle")==null){
     thinking.appendChild(thinkingContent);
     messages.appendChild(thinking);
     messages.scrollTop = messages.scrollHeight;
-    
+
     // Store reference to thinking element for updates
     window._ariThinkingElement = thinking;
-    
+
     try {
       const reply = await askOrchestration(text);
-      
+
       // Clear thinking element reference
       window._ariThinkingElement = null;
       if (videoElem && typeof videoElem.pause === 'function') {
         try {
           const pauseResult = videoElem.pause();
           if (pauseResult && typeof pauseResult.catch === 'function') {
-            pauseResult.catch(() => {}); // Ignore pause errors
+            pauseResult.catch(() => { }); // Ignore pause errors
           }
         } catch (e) {
           // Ignore pause errors
         }
       }
       changeVideoSource("assets/img/ari/Ari-response.webm");
-    thinking.remove();
+      thinking.remove();
       // Check if reply is HTML (contains HTML tags)
       const isHTML = reply && (reply.includes('<') && reply.includes('>'));
       if (isHTML) {
         addMessage("bot", "", false, reply);
       } else {
-    addMessage("bot", reply, true);
+        addMessage("bot", reply, true);
       }
     } catch (error) {
       // Re-enable inputs on error
@@ -3683,7 +3679,7 @@ if(document.body.querySelector(".chatbot-toggle")==null){
   minimizedInput.addEventListener("input", () => {
     input.value = minimizedInput.value;
   });
-  
+
   sendBtn.addEventListener("click", sendMessage);
   aftersendBtn.addEventListener("click", sendMessage);
   minimizedSendBtn.addEventListener("click", sendMessage);
@@ -3696,19 +3692,19 @@ if(document.body.querySelector(".chatbot-toggle")==null){
   function handleTextareaKeydown(e) {
     const isTextarea = e.target.tagName === 'TEXTAREA';
     const isInput = e.target.tagName === 'INPUT';
-    
+
     if (!isTextarea && !isInput) return;
-    
+
     // Check if it's one of our chat inputs
     const isChatInput = e.target.matches(".chat-input textarea") ||
-                       e.target.matches(".chat-input input") ||
-                       e.target.matches(".minimized-prompt-input textarea") ||
-       e.target.matches(".minimized-prompt-input input") ||
-                       e.target.matches(".chat-afterinput-container textarea") ||
-                       e.target.matches(".chat-afterinput-container input");
-    
+      e.target.matches(".chat-input input") ||
+      e.target.matches(".minimized-prompt-input textarea") ||
+      e.target.matches(".minimized-prompt-input input") ||
+      e.target.matches(".chat-afterinput-container textarea") ||
+      e.target.matches(".chat-afterinput-container input");
+
     if (!isChatInput) return;
-    
+
     if (e.key === "Enter") {
       if (e.shiftKey) {
         // Shift+Enter: Allow default behavior (new line)
@@ -3716,18 +3712,18 @@ if(document.body.querySelector(".chatbot-toggle")==null){
       } else {
         // Enter alone: Send message
         e.preventDefault();
-      sendMessage(e.target);
+        sendMessage(e.target);
       }
     }
   }
-  
+
   // Auto-resize textarea - expand to max height (200px), then scroll
   function autoResizeTextarea(textarea) {
     if (!textarea || textarea.tagName !== 'TEXTAREA') return;
     const maxHeight = 200; // Max height in pixels
     textarea.style.height = 'auto'; // Reset height to get accurate scrollHeight
     const newHeight = textarea.scrollHeight;
-    
+
     if (newHeight <= maxHeight) {
       // Content fits within max height - expand to fit content
       textarea.style.height = newHeight + 'px';
@@ -3738,21 +3734,21 @@ if(document.body.querySelector(".chatbot-toggle")==null){
       textarea.style.overflowY = 'auto'; // Enable scrolling
     }
   }
-  
+
   document.addEventListener("keydown", handleTextareaKeydown);
-  
+
   // Auto-resize textareas on input
   document.addEventListener("input", (e) => {
     if (e.target.tagName === 'TEXTAREA') {
       const isChatInput = e.target.matches(".chat-input textarea") ||
-                         e.target.matches(".minimized-prompt-input textarea") ||
-                         e.target.matches(".chat-afterinput-container textarea");
+        e.target.matches(".minimized-prompt-input textarea") ||
+        e.target.matches(".chat-afterinput-container textarea");
       if (isChatInput) {
         autoResizeTextarea(e.target);
       }
     }
   });
-  
+
 
   // --- 11 DRAGGABLE BUTTON ---
   let isDragging = false, offsetX, offsetY;

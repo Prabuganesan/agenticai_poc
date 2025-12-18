@@ -45,7 +45,7 @@ import {
     IconMenu2,
     IconThumbUp
 } from '@tabler/icons-react'
-import ariPNG from '@/assets/images/Ari-logo.png'
+import kodivianPNG from '@/assets/images/kodivian-logo.png'
 import userPNG from '@/assets/images/account.png'
 import multiagent_supervisorPNG from '@/assets/images/multiagent_supervisor.png'
 import multiagent_workerPNG from '@/assets/images/multiagent_worker.png'
@@ -3062,8 +3062,8 @@ const ChatMessage = ({ open, chatflowid, isAgentCanvas, isDialog, previews, setP
                                         <>
                                             <Box
                                                 component="img"
-                                                src={ariPNG}
-                                                alt="ARI"
+                                                src={kodivianPNG}
+                                                alt="Kodivian"
                                                 sx={{
                                                     width: '50px',
                                                     height: '30px',
@@ -3079,7 +3079,7 @@ const ChatMessage = ({ open, chatflowid, isAgentCanvas, isDialog, previews, setP
                                                     fontSize: '0.875rem'
                                                 }}
                                             >
-                                                ARI
+                                                Kodivian
                                             </Typography>
                                         </>
                                     )}
@@ -3514,7 +3514,7 @@ const ChatMessage = ({ open, chatflowid, isAgentCanvas, isDialog, previews, setP
                                                 </>
                                             ) : (
                                                 <>
-                                                    <img src={ariPNG} alt='ARI' width='30' height='30' className='boticon' />
+                                                    <img src={kodivianPNG} alt='Kodivian' width='30' height='30' className='boticon' />
                                                     <div
                                                         style={{
                                                             display: 'flex',

@@ -143,9 +143,9 @@ const getDocumentStores = async (req: Request, res: Response, next: NextFunction
         let orgId = (req as any).orgId || req.user?.orgId || (req.query?.orgId as string) || (req.headers['x-org-id'] as string)
 
         // Fallback: Try to extract orgId from session token if available
-        if (!orgId && req.cookies?.AUTOID) {
+        if (!orgId && req.cookies?.KODIID) {
             try {
-                const token = req.cookies.AUTOID
+                const token = req.cookies.KODIID
                 const parts = token.split('$$')
                 const autoPart = parts[parts.length - 1] // "Auto{orgId}"
                 if (autoPart && autoPart.startsWith('Auto')) {

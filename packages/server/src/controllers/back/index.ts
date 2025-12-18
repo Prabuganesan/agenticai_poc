@@ -13,7 +13,7 @@ const previous = async (req: any, res: Response, next: NextFunction) => {
     }
 
     const orgId = req.orgId
-    const existingToken = req.cookies?.AUTOID
+    const existingToken = req.cookies?.KODIID
 
     try {
 

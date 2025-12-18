@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { Box } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import autonomousLogo from '@/assets/images/Ari-loading.webm'
+import kodivianLogo from '@/assets/images/kodivian-logo.png'
 import { headerHeight } from '@/store/constant'
 import { useError } from '@/store/context/ErrorContext'
 import useApi from '@/hooks/useApi'
@@ -51,12 +51,9 @@ const Home = () => {
             }}
         >
             <Box
-                component="video"
-                src={autonomousLogo}
-                autoPlay
-                loop
-                muted
-                playsInline
+                component="img"
+                src={kodivianLogo}
+                alt="Kodivian"
                 sx={{
                     maxWidth: 'min(400px, 50vw)',
                     maxHeight: 'min(400px, 60vh)',

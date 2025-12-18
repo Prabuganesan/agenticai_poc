@@ -1,4 +1,4 @@
-import autonomousLogo from '@/assets/images/Ari-logo.png'
+import kodivianLogo from '@/assets/images/kodivian-logo.png'
 
 // ==============================|| LOGO ||============================== //
 
@@ -8,8 +8,8 @@ const Logo = () => {
         <div style={{ alignItems: 'center', display: 'flex', flexDirection: 'row', marginLeft: '10px' }}>
             <img
                 style={{ objectFit: 'contain', maxHeight: '70px', maxWidth: '90px' }}
-                src={autonomousLogo}
-                alt='Autonomous'
+                src={kodivianLogo}
+                alt='Kodivian'
             />
         </div>
     )

@@ -46,7 +46,7 @@ export const defaultThemeConfig = {
         size: 48,
         dragAndDrop: true,
         iconColor: 'white',
-        customIconSrc: `${baseURL}/Ari-logo.png`,
+        customIconSrc: `${baseURL}/kodivian-logo.png`,
         autoWindowOpen: {
             autoOpen: true,
             openDelay: 2,
@@ -86,8 +86,8 @@ export const defaultThemeConfig = {
     chatWindow: {
         showTitle: true,
         showAgentMessages: true,
-        title: 'Autonomous Bot',
-        titleAvatarSrc: `${baseURL}/Ari-logo.png`,
+        title: 'Kodivian Bot',
+        titleAvatarSrc: `${baseURL}/kodivian-logo.png`,
         welcomeMessage: 'Hello! This is custom welcome message',
         errorMessage: 'This is a custom error message',
         backgroundColor: '#ffffff',
@@ -134,7 +134,7 @@ export const defaultThemeConfig = {
         },
         footer: {
             textColor: '#303235',
-            text: 'Autonomous SAB',
+            text: 'Kodivian',
             company: '',
             companyLink: ''
         }
@@ -255,10 +255,10 @@ const App = () => {
                 /* Observers Config */
             }}
             theme={{${customStringify(defaultThemeConfig)
-                .substring(1)
-                .split('\n')
-                .map((line) => ' '.repeat(4) + line)
-                .join('\n')}
+            .substring(1)
+            .split('\n')
+            .map((line) => ' '.repeat(4) + line)
+            .join('\n')}
         />
     )
 }`
@@ -344,7 +344,7 @@ const EmbedChat = ({ chatflowid }) => {
                     {value === 1 && (
                         <>
                             <span>
-                                Paste this iframe code anywhere in your HTML file. The chatbot will display with the full UI including chat history sidebar and ARI
+                                Paste this iframe code anywhere in your HTML file. The chatbot will display with the full UI including chat history sidebar and Kodivian
                                 branding.
                             </span>
                             <div style={{ height: 10 }}></div>

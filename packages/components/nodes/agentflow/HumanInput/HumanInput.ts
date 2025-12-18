@@ -118,9 +118,6 @@ class HumanInput_Agentflow implements INode {
             for (const nodeName in componentNodes) {
                 const componentNode = componentNodes[nodeName]
                 if (componentNode.category === 'Chat Models') {
-                    if (componentNode.tags?.includes('LlamaIndex')) {
-                        continue
-                    }
                     returnOptions.push({
                         label: componentNode.label,
                         name: nodeName,
@@ -221,7 +218,7 @@ class HumanInput_Agentflow implements INode {
                     const newNodeInstance = new nodeModule.nodeClass()
                     const newNodeData = {
                         ...nodeData,
-                        credential: modelConfig['FLOWISE_CREDENTIAL_ID'],
+                        credential: modelConfig['AUTONOMOUS_CREDENTIAL_ID'],
                         inputs: {
                             ...nodeData.inputs,
                             ...modelConfig
@@ -241,11 +238,8 @@ class HumanInput_Agentflow implements INode {
                     if (isStreamable) {
                         const sseStreamer: IServerSideEventStreamer = options.sseStreamer as IServerSideEventStreamer
                         for await (const chunk of await llmNodeInstance.stream(messages)) {
-                            const content = typeof chunk === 'string' ? chunk : chunk.content.toString()
-                            sseStreamer.streamTokenEvent(chatId, content)
-
-                            const messageChunk = typeof chunk === 'string' ? new AIMessageChunk(chunk) : chunk
-                            response = response.concat(messageChunk)
+                            sseStreamer.streamTokenEvent(chatId, chunk.content.toString())
+                            response = response.concat(chunk)
                         }
                         humanInputDescription = response.content as string
                     } else {

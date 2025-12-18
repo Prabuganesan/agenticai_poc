@@ -1,8 +1,3 @@
-import Auth0SSO from '../enterprise/sso/Auth0SSO'
-import AzureSSO from '../enterprise/sso/AzureSSO'
-import GithubSSO from '../enterprise/sso/GithubSSO'
-import GoogleSSO from '../enterprise/sso/GoogleSSO'
-
 export const WHITELIST_URLS = [
     '/api/v1/verify/apikey/',
     '/api/v1/chatflows/apikey/',
@@ -17,7 +12,6 @@ export const WHITELIST_URLS = [
     '/api/v1/chatflows-uploads',
     '/api/v1/openai-assistants-file/download',
     '/api/v1/feedback',
-    '/api/v1/leads',
     '/api/v1/get-upload-file',
     '/api/v1/ip',
     '/api/v1/ping',
@@ -31,30 +25,13 @@ export const WHITELIST_URLS = [
     '/api/v1/settings',
     '/api/v1/account/logout',
     '/api/v1/account/verify',
-    '/api/v1/account/register',
     '/api/v1/account/resend-verification',
-    '/api/v1/account/forgot-password',
-    '/api/v1/account/reset-password',
-    '/api/v1/account/basic-auth',
     '/api/v1/loginmethod',
-    '/api/v1/pricing',
-    '/api/v1/user/test',
     '/api/v1/oauth2-credential/callback',
     '/api/v1/oauth2-credential/refresh',
     '/api/v1/text-to-speech/generate',
     '/api/v1/text-to-speech/abort',
-    AzureSSO.LOGIN_URI,
-    AzureSSO.LOGOUT_URI,
-    AzureSSO.CALLBACK_URI,
-    GoogleSSO.LOGIN_URI,
-    GoogleSSO.LOGOUT_URI,
-    GoogleSSO.CALLBACK_URI,
-    Auth0SSO.LOGIN_URI,
-    Auth0SSO.LOGOUT_URI,
-    Auth0SSO.CALLBACK_URI,
-    GithubSSO.LOGIN_URI,
-    GithubSSO.LOGOUT_URI,
-    GithubSSO.CALLBACK_URI
+    '/api/v1/sessionhandler' // Session handler endpoint - allow without authentication
 ]
 
 export const enum GeneralErrorMessage {
@@ -110,7 +87,10 @@ export const LICENSE_QUOTAS = {
     PREDICTIONS_LIMIT: 'quota:predictions',
     // Static
     FLOWS_LIMIT: 'quota:flows',
-    USERS_LIMIT: 'quota:users',
-    STORAGE_LIMIT: 'quota:storage',
-    ADDITIONAL_SEATS_LIMIT: 'quota:additionalSeats'
+    STORAGE_LIMIT: 'quota:storage'
 } as const
+
+// Get server port from environment variable
+export const getServerPort = (): number => {
+    return parseInt(process.env.SERVER_PORT || '', 10) || 3030
+}

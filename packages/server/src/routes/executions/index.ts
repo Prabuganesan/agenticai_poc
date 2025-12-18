@@ -1,17 +1,17 @@
 import express from 'express'
 import executionController from '../../controllers/executions'
-import { checkAnyPermission } from '../../enterprise/rbac/PermissionCheck'
+// Permission checks removed for autonomous server - handled externally
 const router = express.Router()
 
 // READ
-router.get('/', checkAnyPermission('executions:view'), executionController.getAllExecutions)
-router.get(['/', '/:id'], checkAnyPermission('executions:view'), executionController.getExecutionById)
+router.get('/', executionController.getAllExecutions)
+router.get(['/', '/:id'], executionController.getExecutionById)
 
 // PUT
 router.put(['/', '/:id'], executionController.updateExecution)
 
 // DELETE - single execution or multiple executions
-router.delete('/:id', checkAnyPermission('executions:delete'), executionController.deleteExecutions)
-router.delete('/', checkAnyPermission('executions:delete'), executionController.deleteExecutions)
+router.delete('/:id', executionController.deleteExecutions)
+router.delete('/', executionController.deleteExecutions)
 
 export default router

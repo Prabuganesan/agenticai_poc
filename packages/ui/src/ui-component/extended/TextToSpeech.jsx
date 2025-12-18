@@ -33,6 +33,7 @@ import openAISVG from '@/assets/images/openai.svg'
 import elevenLabsSVG from '@/assets/images/elevenlabs.svg'
 
 // store
+import { baseURL } from '@/store/constant'
 import useNotifier from '@/utils/useNotifier'
 
 // API
@@ -244,14 +245,14 @@ const TextToSpeech = ({ dialogProps }) => {
         try {
             const providerConfig = textToSpeech?.[selectedProvider] || {}
             const body = {
-                text: 'Today is a wonderful day to build something with Flowise!',
+                text: 'Today is a wonderful day to build something with Autonomous!',
                 provider: selectedProvider,
                 credentialId: providerConfig.credentialId,
                 voice: providerConfig.voice,
                 model: providerConfig.model
             }
 
-            const response = await fetch('/api/v1/text-to-speech/generate', {
+            const response = await fetch(`${baseURL}/api/v1/text-to-speech/generate`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -610,7 +611,7 @@ const TextToSpeech = ({ dialogProps }) => {
                         </Typography>
 
                         <Typography variant='body2' color='textSecondary' sx={{ mb: 2 }}>
-                            Test text: &quot;Today is a wonderful day to build something with Flowise!&quot;
+                            Test text: &quot;Today is a wonderful day to build something with Autonomous!&quot;
                         </Typography>
 
                         <AudioWaveform

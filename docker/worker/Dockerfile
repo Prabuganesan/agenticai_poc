@@ -1,4 +1,4 @@
-FROM node:20-alpine
+FROM node:22.21.1-alpine
 
 RUN apk add --update libc6-compat python3 make g++
 # needed for pdfjs-dist
@@ -45,5 +45,5 @@ ENV WORKER_PORT=5566
 # Expose port (can be overridden by env var)
 EXPOSE ${WORKER_PORT}
 
-# Start healthcheck in background and flowise worker in foreground
+# Start healthcheck in background and autonomous worker in foreground
 CMD ["/bin/sh", "-c", "node /app/healthcheck/healthcheck.js & sleep 5 && pnpm run start-worker"]

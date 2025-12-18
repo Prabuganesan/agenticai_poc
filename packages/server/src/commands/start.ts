@@ -1,17 +1,17 @@
 import * as Server from '../index'
-import * as DataSource from '../DataSource'
-import logger from '../utils/logger'
+import { logInfo, logError } from '../utils/logger/system-helper'
 import { BaseCommand } from './base'
 
 export default class Start extends BaseCommand {
     async run(): Promise<void> {
-        logger.info('Starting Flowise...')
-        await DataSource.init()
+        logInfo('Starting Autonomous...').catch(() => {})
+        // DataSource.init() removed - per-org databases are initialized in Server.start() via DataSourceManager
         await Server.start()
     }
 
     async catch(error: Error) {
-        if (error.stack) logger.error(error.stack)
+        if (error.stack) logError(error.stack).catch(() => {})
+        console.error('❌ [server]: Fatal error during startup:', error)
         await new Promise((resolve) => {
             setTimeout(resolve, 1000)
         })
@@ -20,11 +20,11 @@ export default class Start extends BaseCommand {
 
     async stopProcess() {
         try {
-            logger.info(`Shutting down Flowise...`)
+            logInfo(`Shutting down Autonomous...`).catch(() => {})
             const serverApp = Server.getInstance()
             if (serverApp) await serverApp.stopApp()
         } catch (error) {
-            logger.error('There was an error shutting down Flowise...', error)
+            logError('There was an error shutting down Autonomous...', error).catch(() => {})
             await this.failExit()
         }
 

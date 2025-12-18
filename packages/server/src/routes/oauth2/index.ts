@@ -1,7 +1,7 @@
 /**
  * OAuth2 Authorization Code Flow Implementation
  *
- * This module implements a complete OAuth2 authorization code flow for Flowise credentials.
+ * This module implements a complete OAuth2 authorization code flow for Autonomous credentials.
  * It supports Microsoft Graph and other OAuth2 providers.
  *
  * CREDENTIAL DATA STRUCTURE:
@@ -62,7 +62,7 @@ import { Request, Response, NextFunction } from 'express'
 import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
 import { Credential } from '../../database/entities/Credential'
 import { decryptCredentialData, encryptCredentialData } from '../../utils'
-import { InternalFlowiseError } from '../../errors/internalFlowiseError'
+import { InternalAutonomousError } from '../../errors/internalAutonomousError'
 import { StatusCodes } from 'http-status-codes'
 import { generateSuccessPage, generateErrorPage } from './templates'
 
@@ -74,17 +74,36 @@ router.post('/authorize/:credentialId', async (req: Request, res: Response, next
         const { credentialId } = req.params
 
         const appServer = getRunningExpressApp()
-        const credentialRepository = appServer.AppDataSource.getRepository(Credential)
+        const { getDataSource } = await import('../../DataSource')
 
-        // Find credential by ID
-        const credential = await credentialRepository.findOneBy({
-            id: credentialId
+        // Require orgId upfront - no cross-org search
+        // Get orgId from request object (set by session validation middleware) - single source
+        // For OAuth2 routes, orgId may come from query params if not authenticated yet
+        const authReq = req as any
+        let orgId: string | undefined = authReq.orgId || (req.query.orgId as string)
+        if (!orgId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Organization ID is required'
+            })
+        }
+
+        const dataSource = getDataSource(parseInt(orgId))
+        const credential = await dataSource.getRepository(Credential).findOneBy({
+            guid: credentialId
         })
 
         if (!credential) {
             return res.status(404).json({
                 success: false,
                 message: 'Credential not found'
+            })
+        }
+
+        if (!orgId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Organization ID not found for credential'
             })
         }
 
@@ -115,14 +134,25 @@ router.post('/authorize/:credentialId', async (req: Request, res: Response, next
             })
         }
 
-        const defaultRedirectUri = `${req.protocol}://${req.get('host')}/api/v1/oauth2-credential/callback`
+        // Include context path in redirect URI
+        const contextPath = process.env.CONTEXT_PATH || '/autonomous'
+        const cleanContextPath = contextPath === '/' ? '' : contextPath
+        const defaultRedirectUri = `${req.protocol}://${req.get('host')}${cleanContextPath}/api/v1/oauth2-credential/callback`
         const finalRedirectUri = redirect_uri || defaultRedirectUri
+
+        // Encode both credentialId and orgId in state parameter
+        // State parameter is the proper OAuth pattern for passing custom data through auth flow
+        const stateData = {
+            credentialId,
+            orgId
+        }
+        const encodedState = Buffer.from(JSON.stringify(stateData)).toString('base64')
 
         const authParams = new URLSearchParams({
             client_id: clientId,
             response_type,
             response_mode,
-            state: credentialId, // Use credential ID as state parameter
+            state: encodedState, // Encoded state with credentialId and orgId
             redirect_uri: finalRedirectUri
         })
 
@@ -145,7 +175,7 @@ router.post('/authorize/:credentialId', async (req: Request, res: Response, next
         })
     } catch (error) {
         next(
-            new InternalFlowiseError(
+            new InternalAutonomousError(
                 StatusCodes.INTERNAL_SERVER_ERROR,
                 `OAuth2 authorization error: ${error instanceof Error ? error.message : 'Unknown error'}`
             )
@@ -177,11 +207,35 @@ router.get('/callback', async (req: Request, res: Response) => {
         }
 
         const appServer = getRunningExpressApp()
-        const credentialRepository = appServer.AppDataSource.getRepository(Credential)
+        const { getDataSource } = await import('../../DataSource')
 
-        // Find credential by state (assuming state contains the credential ID)
-        const credential = await credentialRepository.findOneBy({
-            id: state as string
+        // Decode state parameter to extract credentialId and orgId
+        // State parameter contains base64-encoded JSON with both values
+        let credentialId: string
+        let orgId: string
+
+        try {
+            const decodedState = Buffer.from(state as string, 'base64').toString('utf-8')
+            const stateData = JSON.parse(decodedState)
+            credentialId = stateData.credentialId
+            orgId = stateData.orgId
+
+            if (!credentialId || !orgId) {
+                throw new Error('Invalid state data')
+            }
+        } catch (error) {
+            const errorHtml = generateErrorPage(
+                'Invalid state parameter',
+                'The authorization state is invalid or corrupted',
+                'Please try the authorization process again.'
+            )
+            res.setHeader('Content-Type', 'text/html')
+            return res.status(400).send(errorHtml)
+        }
+
+        const dataSource = getDataSource(parseInt(orgId))
+        const credential = await dataSource.getRepository(Credential).findOneBy({
+            guid: credentialId
         })
 
         if (!credential) {
@@ -222,7 +276,10 @@ router.get('/callback', async (req: Request, res: Response) => {
             return res.status(400).send(errorHtml)
         }
 
-        const defaultRedirectUri = `${req.protocol}://${req.get('host')}/api/v1/oauth2-credential/callback`
+        // Include context path in redirect URI
+        const contextPath = process.env.CONTEXT_PATH || '/autonomous'
+        const cleanContextPath = contextPath === '/' ? '' : contextPath
+        const defaultRedirectUri = `${req.protocol}://${req.get('host')}${cleanContextPath}/api/v1/oauth2-credential/callback`
         const finalRedirectUri = redirect_uri || defaultRedirectUri
 
         const tokenRequestData: any = {
@@ -267,14 +324,24 @@ router.get('/callback', async (req: Request, res: Response) => {
         // Encrypt the updated credential data
         const encryptedData = await encryptCredentialData(updatedCredentialData)
 
-        // Update the credential in the database
-        await credentialRepository.update(credential.id, {
-            encryptedData,
-            updatedDate: new Date()
-        })
+        // Update the credential in the database using org-specific DataSource
+        if (!orgId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Organization ID not found for credential'
+            })
+        }
+        const orgDataSource = getDataSource(parseInt(orgId))
+        await orgDataSource.getRepository(Credential).update(
+            { guid: credential.guid },
+            {
+                encryptedData,
+                last_modified_on: Date.now()
+            }
+        )
 
         // Return HTML that closes the popup window on success
-        const successHtml = generateSuccessPage(credential.id)
+        const successHtml = generateSuccessPage(credential.guid)
 
         res.setHeader('Content-Type', 'text/html')
         res.send(successHtml)
@@ -309,16 +376,36 @@ router.post('/refresh/:credentialId', async (req: Request, res: Response, next: 
         const { credentialId } = req.params
 
         const appServer = getRunningExpressApp()
-        const credentialRepository = appServer.AppDataSource.getRepository(Credential)
+        const { getDataSource } = await import('../../DataSource')
 
-        const credential = await credentialRepository.findOneBy({
-            id: credentialId
+        // Require orgId upfront - no cross-org search
+        // Get orgId from request object (set by session validation middleware) - single source
+        // For OAuth2 routes, orgId may come from query params if not authenticated yet
+        const authReq = req as any
+        let orgId: string | undefined = authReq.orgId || (req.query.orgId as string)
+        if (!orgId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Organization ID is required'
+            })
+        }
+
+        const dataSource = getDataSource(parseInt(orgId))
+        const credential = await dataSource.getRepository(Credential).findOneBy({
+            guid: credentialId
         })
 
         if (!credential) {
             return res.status(404).json({
                 success: false,
                 message: 'Credential not found'
+            })
+        }
+
+        if (!orgId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Organization ID not found for credential'
             })
         }
 
@@ -383,17 +470,27 @@ router.post('/refresh/:credentialId', async (req: Request, res: Response, next: 
         // Encrypt the updated credential data
         const encryptedData = await encryptCredentialData(updatedCredentialData)
 
-        // Update the credential in the database
-        await credentialRepository.update(credential.id, {
-            encryptedData,
-            updatedDate: new Date()
-        })
+        // Update the credential in the database using org-specific DataSource
+        if (!orgId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Organization ID not found for credential'
+            })
+        }
+        const orgDataSource = getDataSource(parseInt(orgId))
+        await orgDataSource.getRepository(Credential).update(
+            { guid: credential.guid },
+            {
+                encryptedData,
+                last_modified_on: Date.now()
+            }
+        )
 
         // Return success response
         res.json({
             success: true,
             message: 'OAuth2 token refreshed successfully',
-            credentialId: credential.id,
+            credentialId: credential.guid,
             tokenInfo: {
                 ...tokenData,
                 has_new_refresh_token: !!tokenData.refresh_token,
@@ -411,7 +508,7 @@ router.post('/refresh/:credentialId', async (req: Request, res: Response, next: 
         }
 
         next(
-            new InternalFlowiseError(
+            new InternalAutonomousError(
                 StatusCodes.INTERNAL_SERVER_ERROR,
                 `OAuth2 token refresh error: ${error instanceof Error ? error.message : 'Unknown error'}`
             )

@@ -8,47 +8,24 @@ import { cloneDeep, omit, get } from 'lodash'
 import TurndownService from 'turndown'
 import { DataSource, Equal } from 'typeorm'
 import { ICommonObject, IDatabaseEntity, IFileUpload, IMessage, INodeData, IVariable, MessageContentImageUrl } from './Interface'
-import { BaseChatModel } from '@langchain/core/language_models/chat_models'
 import { AES, enc } from 'crypto-js'
 import { AIMessage, HumanMessage, BaseMessage } from '@langchain/core/messages'
 import { Document } from '@langchain/core/documents'
 import { getFileFromStorage } from './storageUtils'
-import { GetSecretValueCommand, SecretsManagerClient, SecretsManagerClientConfig } from '@aws-sdk/client-secrets-manager'
-import { customGet } from '../nodes/sequentialagents/commonUtils'
 import { TextSplitter } from 'langchain/text_splitter'
 import { DocumentLoader } from 'langchain/document_loaders/base'
 import { NodeVM } from '@flowiseai/nodevm'
+import { getServerURL } from './constants'
 import { Sandbox } from '@e2b/code-interpreter'
 import { secureFetch, checkDenyList, secureAxiosRequest } from './httpSecurity'
 import JSON5 from 'json5'
 
 export const numberOrExpressionRegex = '^(\\d+\\.?\\d*|{{.*}})$' //return true if string consists only numbers OR expression {{}}
 export const notEmptyRegex = '(.|\\s)*\\S(.|\\s)*' //return true if string is not empty or blank
-export const FLOWISE_CHATID = 'flowise_chatId'
-
-let secretsManagerClient: SecretsManagerClient | null = null
-const USE_AWS_SECRETS_MANAGER = process.env.SECRETKEY_STORAGE_TYPE === 'aws'
-if (USE_AWS_SECRETS_MANAGER) {
-    const region = process.env.SECRETKEY_AWS_REGION || 'us-east-1' // Default region if not provided
-    const accessKeyId = process.env.SECRETKEY_AWS_ACCESS_KEY
-    const secretAccessKey = process.env.SECRETKEY_AWS_SECRET_KEY
-
-    const secretManagerConfig: SecretsManagerClientConfig = {
-        region: region
-    }
-
-    if (accessKeyId && secretAccessKey) {
-        secretManagerConfig.credentials = {
-            accessKeyId,
-            secretAccessKey
-        }
-    }
-
-    secretsManagerClient = new SecretsManagerClient(secretManagerConfig)
-}
+export const AUTONOMOUS_CHATID = 'autonomous_chatId'
 
 /*
- * List of dependencies allowed to be import in @flowiseai/nodevm
+ * List of dependencies allowed to be import in @autonomousai/nodevm
  */
 export const availableDependencies = [
     '@aws-sdk/client-bedrock-runtime',
@@ -90,7 +67,6 @@ export const availableDependencies = [
     'chromadb',
     'cohere-ai',
     'd3-dsv',
-    'faiss-node',
     'form-data',
     'google-auth-library',
     'graphql',
@@ -527,14 +503,16 @@ const getEncryptionKeyFilePath = (): string => {
         path.join(__dirname, '..', '..', '..', '..', 'server', 'encryption.key'),
         path.join(__dirname, '..', '..', '..', '..', '..', 'encryption.key'),
         path.join(__dirname, '..', '..', '..', '..', '..', 'server', 'encryption.key'),
-        path.join(getUserHome(), '.flowise', 'encryption.key')
+        // Use getAutonomousDataPath() for centralized path (defined below)
+        path.join(getAutonomousDataPath(), 'encryption.key')
     ]
     for (const checkPath of checkPaths) {
         if (fs.existsSync(checkPath)) {
             return checkPath
         }
     }
-    return ''
+    // Return default path even if file doesn't exist yet (will be created automatically)
+    return path.join(getAutonomousDataPath(), 'encryption.key')
 }
 
 export const getEncryptionKeyPath = (): string => {
@@ -545,23 +523,63 @@ export const getEncryptionKeyPath = (): string => {
  * Returns the encryption key
  * @returns {Promise<string>}
  */
+/**
+ * Get encryption key from file
+ * For cluster environments, use AUTONOMOUS_DATA_PATH to point to shared volume
+ * All instances will read from the same file location
+ */
 const getEncryptionKey = async (): Promise<string> => {
-    if (process.env.FLOWISE_SECRETKEY_OVERWRITE !== undefined && process.env.FLOWISE_SECRETKEY_OVERWRITE !== '') {
-        return process.env.FLOWISE_SECRETKEY_OVERWRITE
+    const encryptionKeyPath = getEncryptionKeyPath()
+    if (process.env.DEBUG === 'true') console.info(`[getEncryptionKey] Path: ${encryptionKeyPath}`)
+    if (!encryptionKeyPath) {
+        throw new Error('Encryption key path is empty')
     }
-    try {
-        if (USE_AWS_SECRETS_MANAGER && secretsManagerClient) {
-            const secretId = process.env.SECRETKEY_AWS_NAME || 'FlowiseEncryptionKey'
-            const command = new GetSecretValueCommand({ SecretId: secretId })
-            const response = await secretsManagerClient.send(command)
 
-            if (response.SecretString) {
-                return response.SecretString
+    // Try to read existing key file
+    try {
+        const key = await fs.promises.readFile(encryptionKeyPath, 'utf8')
+        if (key && key.trim().length > 0) {
+            return key.trim()
+        }
+    } catch (readError: any) {
+        // File doesn't exist or is empty - will create below
+        if (readError.code !== 'ENOENT') {
+            console.warn(`Failed to read encryption key file: ${readError.message}`)
+        }
+    }
+
+    // File doesn't exist - generate and save
+    // In cluster environments, multiple instances may try to create simultaneously
+    // First instance creates it, others will read it on retry
+    const crypto = await import('crypto')
+    const encryptKey = crypto.randomBytes(24).toString('base64')
+    const dataPath = getAutonomousDataPath()
+
+    // Ensure directory exists
+    if (!fs.existsSync(dataPath)) {
+        fs.mkdirSync(dataPath, { recursive: true })
+    }
+
+    try {
+        // Use 'wx' flag to create file exclusively (fails if file already exists)
+        // This prevents race conditions in cluster environments
+        await fs.promises.writeFile(encryptionKeyPath, encryptKey, { flag: 'wx' })
+        return encryptKey
+    } catch (writeError: any) {
+        // File was created by another instance (cluster scenario)
+        if (writeError.code === 'EEXIST') {
+            // Retry reading - another instance created it
+            try {
+                const existingKey = await fs.promises.readFile(encryptionKeyPath, 'utf8')
+                if (existingKey && existingKey.trim().length > 0) {
+                    return existingKey.trim()
+                }
+            } catch (retryError) {
+                throw new Error(`Encryption key file exists but cannot be read: ${retryError}`)
             }
         }
-        return await fs.promises.readFile(getEncryptionKeyPath(), 'utf8')
-    } catch (error) {
-        throw new Error(error)
+        // Other write errors
+        throw new Error(`Failed to create encryption key file: ${writeError.message}`)
     }
 }
 
@@ -575,39 +593,39 @@ const getEncryptionKey = async (): Promise<string> => {
 const decryptCredentialData = async (encryptedData: string): Promise<ICommonObject> => {
     let decryptedDataStr: string
 
-    if (USE_AWS_SECRETS_MANAGER && secretsManagerClient) {
-        try {
-            if (encryptedData.startsWith('FlowiseCredential_')) {
-                const command = new GetSecretValueCommand({ SecretId: encryptedData })
-                const response = await secretsManagerClient.send(command)
-
-                if (response.SecretString) {
-                    const secretObj = JSON.parse(response.SecretString)
-                    decryptedDataStr = JSON.stringify(secretObj)
-                } else {
-                    throw new Error('Failed to retrieve secret value.')
-                }
-            } else {
-                const encryptKey = await getEncryptionKey()
-                const decryptedData = AES.decrypt(encryptedData, encryptKey)
-                decryptedDataStr = decryptedData.toString(enc.Utf8)
-            }
-        } catch (error) {
-            console.error(error)
-            throw new Error('Failed to decrypt credential data.')
-        }
-    } else {
-        // Fallback to existing code
-        const encryptKey = await getEncryptionKey()
+    const encryptKey = await getEncryptionKey()
+    if (!encryptKey) {
+        throw new Error('Encryption key is empty or not found')
+    }
+    try {
         const decryptedData = AES.decrypt(encryptedData, encryptKey)
         decryptedDataStr = decryptedData.toString(enc.Utf8)
+
+        // If decryption produces empty string, it might be wrong encryption key
+        if (!decryptedDataStr || decryptedDataStr.trim() === '') {
+            throw new Error('Decryption produced empty result - encryption key may be incorrect')
+        }
+    } catch (decryptError: any) {
+        if (process.env.DEBUG === 'true') console.error(`[decryptCredentialData] Encrypted Data: ${encryptedData}`)
+        if (process.env.DEBUG === 'true') console.error(`[decryptCredentialData] Key (first 5 chars): ${encryptKey.substring(0, 5)}`)
+        // If decryption fails, check if it's a wrong key
+        if (
+            decryptError?.message?.includes('Malformed UTF-8') ||
+            decryptError?.message?.includes('Unsupported state') ||
+            decryptError?.message?.includes('bad decrypt')
+        ) {
+            throw new Error('Failed to decrypt credential - encryption key may be incorrect or credential was encrypted with different key')
+        }
+        throw decryptError
     }
 
-    if (!decryptedDataStr) return {}
+    if (!decryptedDataStr) {
+        return {}
+    }
     try {
-        return JSON.parse(decryptedDataStr)
+        const parsed = JSON.parse(decryptedDataStr)
+        return parsed
     } catch (e) {
-        console.error(e)
         throw new Error('Credentials could not be decrypted.')
     }
 }
@@ -624,21 +642,60 @@ export const getCredentialData = async (selectedCredentialId: string, options: I
 
     try {
         if (!selectedCredentialId) {
+            console.warn('[getCredentialData] No credential ID provided')
             return {}
         }
 
-        const credential = await appDataSource.getRepository(databaseEntities['Credential']).findOneBy({
-            id: selectedCredentialId
-        })
+        // Check if selectedCredentialId is a GUID (15 characters) or numeric ID
+        // GUIDs are always 15 characters, alphanumeric
+        // Numeric IDs are always numeric strings
+        const isNumeric = /^\d+$/.test(selectedCredentialId)
+        const isGuid = !isNumeric && selectedCredentialId.length === 15 && /^[A-Za-z0-9]+$/.test(selectedCredentialId)
 
-        if (!credential) return {}
+        let credential
+        if (isGuid) {
+            credential = await appDataSource.getRepository(databaseEntities['Credential']).findOneBy({
+                guid: selectedCredentialId
+            })
+        } else if (isNumeric) {
+            credential = await appDataSource.getRepository(databaseEntities['Credential']).findOneBy({
+                id: parseInt(selectedCredentialId, 10)
+            })
+        } else {
+            // Try GUID first (most common case), then fall back to numeric
+            credential = await appDataSource.getRepository(databaseEntities['Credential']).findOneBy({
+                guid: selectedCredentialId
+            })
+            if (!credential && /^\d+$/.test(selectedCredentialId)) {
+                credential = await appDataSource.getRepository(databaseEntities['Credential']).findOneBy({
+                    id: parseInt(selectedCredentialId, 10)
+                })
+            }
+        }
+
+        if (!credential) {
+            console.warn(`[getCredentialData] Credential not found. ID: ${selectedCredentialId}, isGuid: ${isGuid}`)
+            return {}
+        }
 
         // Decrypt credentialData
-        const decryptedCredentialData = await decryptCredentialData(credential.encryptedData)
-
-        return decryptedCredentialData
-    } catch (e) {
-        throw new Error(e)
+        try {
+            const decryptedCredentialData = await decryptCredentialData(credential.encryptedData)
+            if (!decryptedCredentialData || Object.keys(decryptedCredentialData).length === 0) {
+                console.warn(`[getCredentialData] Decrypted credential data is empty for credential: ${selectedCredentialId}`)
+            }
+            return decryptedCredentialData
+        } catch (decryptError: any) {
+            // If decryption fails, return empty object instead of throwing
+            // This allows the flow to continue and show a more user-friendly error
+            console.error(`[getCredentialData] Failed to decrypt credential ${selectedCredentialId}:`, decryptError.message)
+            return {}
+        }
+    } catch (e: any) {
+        // If credential lookup fails, return empty object instead of throwing
+        // This allows the flow to continue and show a more user-friendly error
+        console.error(`[getCredentialData] Error looking up credential ${selectedCredentialId}:`, e.message)
+        return {}
     }
 }
 
@@ -659,13 +716,13 @@ export const getCredentialParam = (paramName: string, credentialData: ICommonObj
 
 // reference https://www.freeformatter.com/json-escape.html
 const jsonEscapeCharacters = [
-    { escape: '"', value: 'FLOWISE_DOUBLE_QUOTE' },
-    { escape: '\n', value: 'FLOWISE_NEWLINE' },
-    { escape: '\b', value: 'FLOWISE_BACKSPACE' },
-    { escape: '\f', value: 'FLOWISE_FORM_FEED' },
-    { escape: '\r', value: 'FLOWISE_CARRIAGE_RETURN' },
-    { escape: '\t', value: 'FLOWISE_TAB' },
-    { escape: '\\', value: 'FLOWISE_BACKSLASH' }
+    { escape: '"', value: 'AUTONOMOUS_DOUBLE_QUOTE' },
+    { escape: '\n', value: 'AUTONOMOUS_NEWLINE' },
+    { escape: '\b', value: 'AUTONOMOUS_BACKSPACE' },
+    { escape: '\f', value: 'AUTONOMOUS_FORM_FEED' },
+    { escape: '\r', value: 'AUTONOMOUS_CARRIAGE_RETURN' },
+    { escape: '\t', value: 'AUTONOMOUS_TAB' },
+    { escape: '\\', value: 'AUTONOMOUS_BACKSLASH' }
 ]
 
 function handleEscapesJSONParse(input: string, reverse: Boolean): string {
@@ -706,6 +763,93 @@ export const getUserHome = (): string => {
         return process.cwd()
     }
     return process.env[variableName] as string
+}
+
+/**
+ * Returns the base autonomous server data directory path
+ * Uses AUTONOMOUS_DATA_PATH if set, otherwise defaults to server folder/.autonomous
+ * This matches the logic in server/src/utils/index.ts getAutonomousDataPath()
+ */
+export const getAutonomousDataPath = (): string => {
+    if (process.env.AUTONOMOUS_DATA_PATH) {
+        return path.join(process.env.AUTONOMOUS_DATA_PATH, '.autonomous')
+    }
+    // Default to .autonomous inside the server package directory
+    // When running from server, process.cwd() might be packages/server/bin, so we need to handle that
+    const cwd = process.cwd()
+
+    // Helper function to check if a directory is the server package root
+    const isServerRoot = (dir: string): boolean => {
+        const packageJsonPath = path.join(dir, 'package.json')
+        if (!fs.existsSync(packageJsonPath)) {
+            return false
+        }
+        try {
+            const packageJsonContent = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
+            return packageJsonContent.name === 'autonomous' && !!packageJsonContent.oclif
+        } catch {
+            return false
+        }
+    }
+
+    // Check if current directory is the server package
+    if (isServerRoot(cwd)) {
+        return path.join(cwd, '.autonomous')
+    }
+
+    // Check if we're in a bin subdirectory (common when running from bin/run)
+    if (path.basename(cwd) === 'bin') {
+        const parentDir = path.dirname(cwd)
+        if (isServerRoot(parentDir)) {
+            return path.join(parentDir, '.autonomous')
+        }
+    }
+
+    // Try to find server directory by checking common locations
+    const possibleServerRoots = [
+        path.resolve(cwd, '..'), // Go up one level from cwd (in case we're in bin)
+        path.resolve(cwd, 'packages', 'server'), // From workspace root
+        path.resolve(cwd, '..', 'packages', 'server'), // From bin, go up then to packages/server
+        // If we're in node_modules, try to find server
+        (() => {
+            let current = __dirname
+            // Find node_modules/autonomous-components
+            while (current && current !== path.dirname(current)) {
+                if (current.includes('node_modules' + path.sep + 'autonomous-components')) {
+                    // Go up from node_modules to find server
+                    const parts = current.split('node_modules' + path.sep + 'autonomous-components')
+                    if (parts[0]) {
+                        const nodeModulesDir = path.join(parts[0], 'node_modules')
+                        const potentialServer = path.dirname(nodeModulesDir)
+                        if (isServerRoot(potentialServer)) {
+                            return potentialServer
+                        }
+                    }
+                }
+                current = path.dirname(current)
+            }
+            return null
+        })()
+    ].filter((p): p is string => p !== null && p !== undefined && p !== cwd && fs.existsSync(p) && isServerRoot(p))
+
+    // Use the first valid server root found
+    if (possibleServerRoots.length > 0) {
+        return path.join(possibleServerRoots[0], '.autonomous')
+    }
+
+    // Fallback: try to find server by going up from cwd until we find a package.json with oclif
+    let searchDir = cwd
+    for (let i = 0; i < 5; i++) {
+        if (isServerRoot(searchDir)) {
+            return path.join(searchDir, '.autonomous')
+        }
+        const parent = path.dirname(searchDir)
+        if (parent === searchDir) break // Reached filesystem root
+        searchDir = parent
+    }
+
+    // Last resort: use current working directory
+    return path.join(cwd, '.autonomous')
 }
 
 /**
@@ -1182,7 +1326,9 @@ export const resolveFlowObjValue = (obj: any, sourceObj: any): any => {
         }
         return resolved
     } else if (typeof obj === 'string' && obj.startsWith('$flow')) {
-        return customGet(sourceObj, obj)
+        // Extract path from $flow.path format
+        const path = obj.replace(/^\$flow\./, '').replace(/\[(\d+)\]/g, '.$1')
+        return get(sourceObj, path)
     } else {
         return obj
     }
@@ -1312,7 +1458,7 @@ export const refreshOAuth2Token = async (
 
                 // Call the refresh API endpoint
                 const refreshResponse = await fetch(
-                    `${options.baseURL || 'http://localhost:3000'}/api/v1/oauth2-credential/refresh/${credentialId}`,
+                    `${options.baseURL || getServerURL()}/api/v1/oauth2-credential/refresh/${credentialId}`,
                     {
                         method: 'POST',
                         headers: {
@@ -1419,6 +1565,38 @@ const parseOutput = (output: any): any => {
     return output
 }
 
+function validateJavaScriptCode(code: string): void {
+    const dangerousPatterns = [
+        /require\s*\(\s*['"]fs['"]/,
+        /require\s*\(\s*['"]path['"]/,
+        /require\s*\(\s*['"]child_process['"]/,
+        /require\s*\(\s*['"]os['"]/,
+        /process\.(exit|kill|cwd|chdir|env)/,
+        /eval\s*\(/,
+        /new\s+Function\s*\(/,
+        /Function\s*\(/,
+        /global\./,
+        /globalThis\./,
+        /require\s*\(\s*[^'"]/,
+        /import\s*\(/,
+        /exec\s*\(/,
+        /spawn\s*\(/,
+        /execSync\s*\(/,
+        /spawnSync\s*\(/
+    ]
+
+    for (const pattern of dangerousPatterns) {
+        if (pattern.test(code)) {
+            throw new Error('Code contains potentially dangerous patterns and cannot be executed')
+        }
+    }
+
+    const maxCodeLength = parseInt(process.env.MAX_CUSTOM_CODE_LENGTH || '100000', 10)
+    if (code.length > maxCodeLength) {
+        throw new Error(`Code exceeds maximum allowed length of ${maxCodeLength} characters`)
+    }
+}
+
 /**
  * Execute JavaScript code using either Sandbox or NodeVM
  * @param {string} code - The JavaScript code to execute
@@ -1437,6 +1615,9 @@ export const executeJavaScriptCode = async (
         nodeVMOptions?: ICommonObject
     } = {}
 ): Promise<any> => {
+    // Validate code before execution
+    validateJavaScriptCode(code)
+
     const { timeout = 300000, useSandbox = true, streamOutput, libraries = [], nodeVMOptions = {} } = options
     const shouldUseSandbox = useSandbox && process.env.E2B_APIKEY
     let timeoutMs = timeout
@@ -1569,6 +1750,12 @@ export const executeJavaScriptCode = async (
         const externalDeps = process.env.TOOL_FUNCTION_EXTERNAL_DEP ? process.env.TOOL_FUNCTION_EXTERNAL_DEP.split(',') : []
         let deps = process.env.ALLOW_BUILTIN_DEP === 'true' ? availableDependencies.concat(externalDeps) : externalDeps
         deps.push(...defaultAllowExternalDependencies)
+
+        // Add libraries from options to allowed dependencies
+        if (libraries && libraries.length > 0) {
+            deps.push(...libraries)
+        }
+
         deps = [...new Set(deps)]
 
         // Create secure wrappers for HTTP libraries
@@ -1949,8 +2136,9 @@ export async function parseWithTypeConversion<T extends z.ZodTypeAny>(schema: T,
  * @param {any[]} structuredOutput - Array of structured output schema definitions
  * @returns {BaseChatModel} - The configured LLM instance
  */
-export const configureStructuredOutput = (llmNodeInstance: BaseChatModel, structuredOutput: any[]): BaseChatModel => {
+export const configureStructuredOutput = (llmNodeInstance: any, structuredOutput: any[]): any => {
     try {
+        const { BaseChatModel } = require('@langchain/core/language_models/chat_models')
         const zodObj: ICommonObject = {}
         for (const sch of structuredOutput) {
             if (sch.type === 'string') {

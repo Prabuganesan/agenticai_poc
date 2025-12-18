@@ -11,12 +11,14 @@ export default (apiFunc) => {
         setLoading(true)
         try {
             const result = await apiFunc(...args)
-            setData(result.data)
+            setData(result?.data ?? null)
             setError(null)
             setApiError(null)
+            return result // Return the axios response so it can be used directly
         } catch (err) {
             handleError(err || 'Unexpected Error!')
             setApiError(err || 'Unexpected Error!')
+            throw err // Re-throw error so caller can handle it
         } finally {
             setLoading(false)
         }

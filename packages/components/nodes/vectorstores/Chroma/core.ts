@@ -1,13 +1,5 @@
 import * as uuid from 'uuid'
-import type {
-    ChromaClient as ChromaClientT,
-    ChromaClientArgs,
-    Collection,
-    CollectionConfiguration,
-    CollectionMetadata,
-    Metadata,
-    Where
-} from 'chromadb'
+import type { ChromaClient as ChromaClientT, Collection, CollectionMetadata, Metadata, Where } from 'chromadb'
 
 import type { EmbeddingsInterface } from '@langchain/core/embeddings'
 import { VectorStore } from '@langchain/core/vectorstores'
@@ -18,9 +10,15 @@ type SharedChromaLibArgs = {
     collectionName?: string
     filter?: object
     collectionMetadata?: CollectionMetadata
-    collectionConfiguration?: CollectionConfiguration
     chromaCloudAPIKey?: string
-    clientParams?: Omit<ChromaClientArgs, 'path'>
+    clientParams?: {
+        host?: string
+        port?: number
+        ssl?: boolean
+        tenant?: string
+        database?: string
+        headers?: Record<string, string>
+    }
 }
 
 export type ChromaLibArgs =
@@ -48,7 +46,14 @@ export class Chroma extends VectorStore {
 
     numDimensions?: number
 
-    clientParams?: Omit<ChromaClientArgs, 'path'>
+    clientParams?: {
+        host?: string
+        port?: number
+        ssl?: boolean
+        tenant?: string
+        database?: string
+        headers?: Record<string, string>
+    }
 
     url: string
 
@@ -68,7 +73,11 @@ export class Chroma extends VectorStore {
         if ('index' in args) {
             this.index = args.index
         } else if ('url' in args) {
-            this.url = args.url || 'http://localhost:8000'
+            // Use env var CHROMA_DEFAULT_URL if available, otherwise require url to be provided
+            this.url = args.url || process.env.CHROMA_DEFAULT_URL || ''
+            if (!this.url) {
+                throw new Error('Chroma URL is required. Please provide a URL in the node configuration or set CHROMA_DEFAULT_URL environment variable.')
+            }
         }
 
         if (args.chromaCloudAPIKey) {
@@ -110,7 +119,6 @@ export class Chroma extends VectorStore {
             try {
                 this.collection = await this.index.getOrCreateCollection({
                     name: this.collectionName,
-                    embeddingFunction: null,
                     ...(this.collectionMetadata && { metadata: this.collectionMetadata })
                 })
             } catch (err) {

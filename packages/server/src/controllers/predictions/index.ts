@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from 'express'
 import { RateLimiterManager } from '../../utils/rateLimit'
 import chatflowsService from '../../services/chatflows'
-import logger from '../../utils/logger'
+import { logInfo, logWarn } from '../../utils/logger/system-helper'
 import predictionsServices from '../../services/predictions'
-import { InternalFlowiseError } from '../../errors/internalFlowiseError'
+import { InternalAutonomousError } from '../../errors/internalAutonomousError'
 import { StatusCodes } from 'http-status-codes'
 import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
 import { v4 as uuidv4 } from 'uuid'
@@ -14,26 +14,42 @@ import { MODE } from '../../Interface'
 const createPrediction = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalFlowiseError(
+            throw new InternalAutonomousError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: predictionsController.createPrediction - id not provided!`
             )
         }
         if (!req.body) {
-            throw new InternalFlowiseError(
+            throw new InternalAutonomousError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: predictionsController.createPrediction - body not provided!`
             )
         }
-        const workspaceId = req.user?.activeWorkspaceId
+        // Require orgId upfront - no cross-org search
+        const authReq = req as any
+        // For internal tool requests (e.g., ExecuteFlow), check x-org-id header
+        // Otherwise, use orgId from session (set by middleware)
+        let orgId: string | undefined = authReq.orgId || (req.headers['x-org-id'] as string | undefined)
+        if (!orgId) {
+            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+        }
+        // Set orgId on request so utilBuildChatflow can access it
+        authReq.orgId = orgId
 
-        const chatflow = await chatflowsService.getChatflowById(req.params.id, workspaceId)
+        // For tool requests, also check x-user-id header (for user-based isolation)
+        // If not provided, userId will be undefined and messages will use system user (0)
+        const userId = authReq.userId || (req.headers['x-user-id'] as string | undefined)
+        if (userId) {
+            authReq.userId = userId
+        }
+
+        const chatflow = await chatflowsService.getChatflowById(req.params.id, orgId)
         if (!chatflow) {
-            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Chatflow ${req.params.id} not found`)
+            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Chatflow ${req.params.id} not found`)
         }
         let isDomainAllowed = true
         let unauthorizedOriginError = 'This site is not allowed to access this chatbot'
-        logger.info(`[server]: Request originated from ${req.headers.origin || 'UNKNOWN ORIGIN'}`)
+        logInfo(`[server]: Request originated from ${req.headers.origin || 'UNKNOWN ORIGIN'}`).catch(() => {})
         if (chatflow.chatbotConfig) {
             const parsedConfig = JSON.parse(chatflow.chatbotConfig)
             // check whether the first one is not empty. if it is empty that means the user set a value and then removed it.
@@ -54,7 +70,7 @@ const createPrediction = async (req: Request, res: Response, next: NextFunction)
             }
         }
         if (isDomainAllowed) {
-            const streamable = await chatflowsService.checkIfChatflowIsValidForStreaming(req.params.id)
+            const streamable = await chatflowsService.checkIfChatflowIsValidForStreaming(req.params.id, orgId)
             const isStreamingRequested = req.body.streaming === 'true' || req.body.streaming === true
             if (streamable?.isStreaming && isStreamingRequested) {
                 const sseStreamer = getRunningExpressApp().sseStreamer
@@ -73,7 +89,20 @@ const createPrediction = async (req: Request, res: Response, next: NextFunction)
                     res.flushHeaders()
 
                     if (process.env.MODE === MODE.QUEUE) {
-                        getRunningExpressApp().redisSubscriber.subscribe(chatId)
+                        if (chatId && typeof chatId === 'string') {
+                            if (orgId !== undefined && orgId !== null) {
+                                const orgIdNum = typeof orgId === 'number' ? orgId : parseInt(String(orgId), 10)
+                                if (!isNaN(orgIdNum)) {
+                                    getRunningExpressApp().redisSubscriber.subscribe(chatId, orgIdNum)
+                                } else {
+                                    logWarn(`[predictions] Invalid orgId: ${orgId}, skipping Redis subscription`).catch(() => {})
+                                }
+                            } else {
+                                logWarn(`[predictions] orgId is undefined, skipping Redis subscription`).catch(() => {})
+                            }
+                        } else {
+                            logWarn(`[predictions] Invalid chatId: ${chatId}, skipping Redis subscription`).catch(() => {})
+                        }
                     }
 
                     const apiResponse = await predictionsServices.buildChatflow(req)
@@ -95,7 +124,7 @@ const createPrediction = async (req: Request, res: Response, next: NextFunction)
             if (isStreamingRequested) {
                 return res.status(StatusCodes.FORBIDDEN).send(unauthorizedOriginError)
             }
-            throw new InternalFlowiseError(StatusCodes.FORBIDDEN, unauthorizedOriginError)
+            throw new InternalAutonomousError(StatusCodes.FORBIDDEN, unauthorizedOriginError)
         }
     } catch (error) {
         next(error)

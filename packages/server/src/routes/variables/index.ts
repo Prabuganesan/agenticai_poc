@@ -1,19 +1,19 @@
 import express from 'express'
 import variablesController from '../../controllers/variables'
-import { checkAnyPermission, checkPermission } from '../../enterprise/rbac/PermissionCheck'
+// Permission checks removed for autonomous server - handled externally
 
 const router = express.Router()
 
 // CREATE
-router.post('/', checkPermission('variables:create'), variablesController.createVariable)
+router.post('/', variablesController.createVariable as express.RequestHandler)
 
 // READ
-router.get('/', checkPermission('variables:view'), variablesController.getAllVariables)
+router.get('/', variablesController.getAllVariables as express.RequestHandler)
 
 // UPDATE
-router.put(['/', '/:id'], checkAnyPermission('variables:create,variables:update'), variablesController.updateVariable)
+router.put(['/', '/:id'], variablesController.updateVariable as express.RequestHandler)
 
 // DELETE
-router.delete(['/', '/:id'], checkPermission('variables:delete'), variablesController.deleteVariable)
+router.delete(['/', '/:id'], variablesController.deleteVariable as express.RequestHandler)
 
 export default router

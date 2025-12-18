@@ -1,70 +1,72 @@
 /* eslint-disable */
-import { Entity, Column, CreateDateColumn, PrimaryGeneratedColumn, Index, JoinColumn, OneToOne } from 'typeorm'
+import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm'
 import { IChatMessage, MessageType } from '../../Interface'
-import { Execution } from './Execution'
+import { getTextColumnType } from '../utils/column-types'
 
-@Entity()
+@Entity('auto_chat_message')
 export class ChatMessage implements IChatMessage {
-    @PrimaryGeneratedColumn('uuid')
-    id: string
+    @PrimaryGeneratedColumn({ type: 'numeric', name: 'id' })
+    id: number
 
-    @Column()
+    @Column({ type: 'varchar', length: 15, name: 'guid' })
+    guid: string
+
+    @Column({ name: 'role' })
     role: MessageType
 
     @Index()
-    @Column({ type: 'uuid' })
+    @Column({ type: 'varchar', name: 'chatflowid' })
     chatflowid: string
 
-    @Column({ nullable: true, type: 'uuid' })
+    @Index()
+    @Column({ nullable: true, type: 'varchar', name: 'executionid' })
     executionId?: string
 
-    @OneToOne(() => Execution)
-    @JoinColumn({ name: 'executionId' })
-    execution: Execution
-
-    @Column({ type: 'text' })
+    @Column({ type: getTextColumnType(), name: 'content' })
     content: string
 
-    @Column({ nullable: true, type: 'text' })
+    @Column({ nullable: true, type: getTextColumnType(), name: 'sourcedocuments' })
     sourceDocuments?: string
 
-    @Column({ nullable: true, type: 'text' })
+    @Column({ nullable: true, type: getTextColumnType(), name: 'usedtools' })
     usedTools?: string
 
-    @Column({ nullable: true, type: 'text' })
+    @Column({ nullable: true, type: getTextColumnType(), name: 'fileannotations' })
     fileAnnotations?: string
 
-    @Column({ nullable: true, type: 'text' })
-    agentReasoning?: string
-
-    @Column({ nullable: true, type: 'text' })
+    @Column({ nullable: true, type: getTextColumnType(), name: 'fileuploads' })
     fileUploads?: string
 
-    @Column({ nullable: true, type: 'text' })
+    @Column({ nullable: true, type: getTextColumnType(), name: 'agentreasoning' })
+    agentReasoning?: string
+
+    @Column({ nullable: true, type: getTextColumnType(), name: 'artifacts' })
     artifacts?: string
 
-    @Column({ nullable: true, type: 'text' })
+    @Column({ nullable: true, type: getTextColumnType(), name: 'action' })
     action?: string | null
 
-    @Column()
+    @Column({ name: 'chattype' })
     chatType: string
 
-    @Column({ type: 'varchar' })
+    @Index()
+    @Column({ type: 'varchar', name: 'chatid' })
     chatId: string
 
-    @Column({ nullable: true })
+    @Column({ nullable: true, name: 'memorytype' })
     memoryType?: string
 
-    @Column({ type: 'varchar', nullable: true })
+    @Index()
+    @Column({ type: 'varchar', nullable: true, name: 'sessionid' })
     sessionId?: string
 
-    @Column({ type: 'timestamp' })
-    @CreateDateColumn()
-    createdDate: Date
+    @Index()
+    @Column({ type: 'numeric', name: 'created_by' })
+    created_by: number
 
-    @Column({ nullable: true, type: 'text' })
-    leadEmail?: string
+    @Column({ type: 'numeric', precision: 25, scale: 0, name: 'created_on' })
+    created_on: number
 
-    @Column({ nullable: true, type: 'text' })
+    @Column({ nullable: true, type: getTextColumnType(), name: 'followupprompts' })
     followUpPrompts?: string
 }

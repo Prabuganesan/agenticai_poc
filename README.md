@@ -1,25 +1,12 @@
 <!-- markdownlint-disable MD030 -->
 
-<p align="center">
-<img src="https://github.com/FlowiseAI/Flowise/blob/main/images/flowise_white.svg#gh-light-mode-only">
-<img src="https://github.com/FlowiseAI/Flowise/blob/main/images/flowise_dark.svg#gh-dark-mode-only">
-</p>
+# Autonomous
 
-<div align="center">
+**Build AI Agents, Visually**
 
-[![Release Notes](https://img.shields.io/github/release/FlowiseAI/Flowise)](https://github.com/FlowiseAI/Flowise/releases)
-[![Discord](https://img.shields.io/discord/1087698854775881778?label=Discord&logo=discord)](https://discord.gg/jbaHfsRVBW)
-[![Twitter Follow](https://img.shields.io/twitter/follow/FlowiseAI?style=social)](https://twitter.com/FlowiseAI)
-[![GitHub star chart](https://img.shields.io/github/stars/FlowiseAI/Flowise?style=social)](https://star-history.com/#FlowiseAI/Flowise)
-[![GitHub fork](https://img.shields.io/github/forks/FlowiseAI/Flowise?style=social)](https://github.com/FlowiseAI/Flowise/fork)
+Autonomous is an enterprise-grade AI orchestration platform, customized for SmartAppBuilder clients. It provides a visual interface for building AI agents and LLM orchestration workflows.
 
-English | [繁體中文](./i18n/README-TW.md) | [简体中文](./i18n/README-ZH.md) | [日本語](./i18n/README-JA.md) | [한국어](./i18n/README-KR.md)
-
-</div>
-
-<h3>Build AI Agents, Visually</h3>
-<a href="https://github.com/FlowiseAI/Flowise">
-<img width="100%" src="https://github.com/FlowiseAI/Flowise/blob/main/images/flowise_agentflow.gif?raw=true"></a>
+**Version**: 3.0.10 | **Node.js**: 22.21.1+ | **Last Updated**: December 2024
 
 ## 📚 Table of Contents
 
@@ -29,36 +16,46 @@ English | [繁體中文](./i18n/README-TW.md) | [简体中文](./i18n/README-ZH.
 -   [🌱 Env Variables](#-env-variables)
 -   [📖 Documentation](#-documentation)
 -   [🌐 Self Host](#-self-host)
--   [☁️ Flowise Cloud](#️-flowise-cloud)
 -   [🙋 Support](#-support)
--   [🙌 Contributing](#-contributing)
 -   [📄 License](#-license)
 
 ## ⚡Quick Start
 
-Download and Install [NodeJS](https://nodejs.org/en/download) >= 18.15.0
+Download and Install [NodeJS](https://nodejs.org/en/download) >= 22.21.1
 
-1. Install Flowise
+1. Clone the repository:
     ```bash
-    npm install -g flowise
-    ```
-2. Start Flowise
-
-    ```bash
-    npx flowise start
+    git clone <repository-url>
+    cd <repository-folder>
     ```
 
-3. Open [http://localhost:3000](http://localhost:3000)
+2. Install dependencies:
+    ```bash
+    npm i -g pnpm
+    pnpm install
+    ```
+
+3. Build the project:
+    ```bash
+    pnpm build
+    ```
+
+4. Start the server:
+    ```bash
+    pnpm start
+    ```
+
+5. Open [http://localhost:3030](http://localhost:3030)
 
 ## 🐳 Docker
 
 ### Docker Compose
 
-1. Clone the Flowise project
+1. Clone the Autonomous project
 2. Go to `docker` folder at the root of the project
 3. Copy `.env.example` file, paste it into the same location, and rename to `.env` file
 4. `docker compose up -d`
-5. Open [http://localhost:3000](http://localhost:3000)
+5. Open [http://localhost:3030](http://localhost:3030)
 6. You can bring the containers down by `docker compose stop`
 
 ### Docker Image
@@ -66,24 +63,24 @@ Download and Install [NodeJS](https://nodejs.org/en/download) >= 18.15.0
 1. Build the image locally:
 
     ```bash
-    docker build --no-cache -t flowise .
+    docker build --no-cache -t autonomous .
     ```
 
 2. Run image:
 
     ```bash
-    docker run -d --name flowise -p 3000:3000 flowise
+    docker run -d --name autonomous -p 3030:3030 autonomous
     ```
 
 3. Stop image:
 
     ```bash
-    docker stop flowise
+    docker stop autonomous
     ```
 
 ## 👨‍💻 Developers
 
-Flowise has 3 different modules in a single mono repository.
+Autonomous has 3 different modules in a single mono repository.
 
 -   `server`: Node backend to serve API logics
 -   `ui`: React frontend
@@ -102,13 +99,13 @@ Flowise has 3 different modules in a single mono repository.
 1.  Clone the repository:
 
     ```bash
-    git clone https://github.com/FlowiseAI/Flowise.git
+    git clone <repository-url>
     ```
 
 2.  Go into repository folder:
 
     ```bash
-    cd Flowise
+    cd <repository-folder>
     ```
 
 3.  Install all dependencies of all modules:
@@ -168,73 +165,49 @@ Flowise has 3 different modules in a single mono repository.
 
 ## 🌱 Env Variables
 
-Flowise supports different environment variables to configure your instance. You can specify the following variables in the `.env` file inside `packages/server` folder. Read [more](https://github.com/FlowiseAI/Flowise/blob/main/CONTRIBUTING.md#-env-variables)
+Autonomous supports different environment variables to configure your instance. You can specify the following variables in the `.env` file inside `packages/server` folder. See the `.env.example` file for available options.
 
 ## 📖 Documentation
 
-You can view the Flowise Docs [here](https://docs.flowiseai.com/)
+Comprehensive documentation is available in the `docs/` folder:
+
+- **[AUTONOMOUS_TECHNICAL_DOCUMENTATION.md](docs/AUTONOMOUS_TECHNICAL_DOCUMENTATION.md)** - Complete technical reference
+- **[TECHNICAL_FLOW_DIAGRAMS.md](docs/TECHNICAL_FLOW_DIAGRAMS.md)** - Architecture and flow diagrams
+- **[AUTONOMOUS-TOOLS-ANALYSIS.md](docs/AUTONOMOUS-TOOLS-ANALYSIS.md)** - Available tools and analysis
+- **[CLEANUP_SUMMARY_FROM_FLOWISE.md](docs/CLEANUP_SUMMARY_FROM_FLOWISE.md)** - Migration and cleanup history
+
+**Key Topics:**
+- Architecture & System Design
+- LLM Usage Tracking & Cost Calculation
+- Multi-Tenancy & Organization Management
+- Security & Encryption (E2E)
+- Deployment Options (Docker, PM2, Kubernetes)
+- API Reference & Endpoints
+
+For additional help, see the Support section below.
 
 ## 🌐 Self Host
 
-Deploy Flowise self-hosted in your existing infrastructure, we support various [deployments](https://docs.flowiseai.com/configuration/deployment)
+Autonomous is designed for autonomous server deployment. You can deploy it in your own infrastructure using Docker or by building from source.
 
--   [AWS](https://docs.flowiseai.com/configuration/deployment/aws)
--   [Azure](https://docs.flowiseai.com/configuration/deployment/azure)
--   [Digital Ocean](https://docs.flowiseai.com/configuration/deployment/digital-ocean)
--   [GCP](https://docs.flowiseai.com/configuration/deployment/gcp)
--   [Alibaba Cloud](https://computenest.console.aliyun.com/service/instance/create/default?type=user&ServiceName=Flowise社区版)
--   <details>
-      <summary>Others</summary>
+### Docker Deployment
 
-    -   [Railway](https://docs.flowiseai.com/configuration/deployment/railway)
+See the [Docker](#-docker) section above for Docker Compose and Docker Image deployment instructions.
 
-        [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/pn4G8S?referralCode=WVNPD9)
+### Manual Deployment
 
-    -   [Northflank](https://northflank.com/stacks/deploy-flowiseai)
+1. Follow the [Developers](#-developers) setup instructions
+2. Configure environment variables (see [Env Variables](#-env-variables))
+3. Build and start the application
+4. Deploy to your preferred hosting environment (AWS, Azure, GCP, etc.)
 
-        [![Deploy to Northflank](https://assets.northflank.com/deploy_to_northflank_smm_36700fb050.svg)](https://northflank.com/stacks/deploy-flowiseai)
+For detailed deployment guides, refer to the [documentation](https://docs.autonomous.ai/configuration/deployment).
 
-    -   [Render](https://docs.flowiseai.com/configuration/deployment/render)
-
-        [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://docs.flowiseai.com/configuration/deployment/render)
-
-    -   [HuggingFace Spaces](https://docs.flowiseai.com/deployment/hugging-face)
-
-        <a href="https://huggingface.co/spaces/FlowiseAI/Flowise"><img src="https://huggingface.co/datasets/huggingface/badges/raw/main/open-in-hf-spaces-sm.svg" alt="HuggingFace Spaces"></a>
-
-    -   [Elestio](https://elest.io/open-source/flowiseai)
-
-        [![Deploy on Elestio](https://elest.io/images/logos/deploy-to-elestio-btn.png)](https://elest.io/open-source/flowiseai)
-
-    -   [Sealos](https://template.sealos.io/deploy?templateName=flowise)
-
-        [![Deploy on Sealos](https://sealos.io/Deploy-on-Sealos.svg)](https://template.sealos.io/deploy?templateName=flowise)
-
-    -   [RepoCloud](https://repocloud.io/details/?app_id=29)
-
-        [![Deploy on RepoCloud](https://d16t0pc4846x52.cloudfront.net/deploy.png)](https://repocloud.io/details/?app_id=29)
-
-      </details>
-
-## ☁️ Flowise Cloud
-
-Get Started with [Flowise Cloud](https://flowiseai.com/).
 
 ## 🙋 Support
 
-Feel free to ask any questions, raise problems, and request new features in [Discussion](https://github.com/FlowiseAI/Flowise/discussions).
+For support, please contact: smartappbuilder_support@chainsys.com
 
-## 🙌 Contributing
-
-Thanks go to these awesome contributors
-
-<a href="https://github.com/FlowiseAI/Flowise/graphs/contributors">
-<img src="https://contrib.rocks/image?repo=FlowiseAI/Flowise" />
-</a><br><br>
-
-See [Contributing Guide](CONTRIBUTING.md). Reach out to us at [Discord](https://discord.gg/jbaHfsRVBW) if you have any questions or issues.
-
-[![Star History Chart](https://api.star-history.com/svg?repos=FlowiseAI/Flowise&type=Timeline)](https://star-history.com/#FlowiseAI/Flowise&Date)
 
 ## 📄 License
 

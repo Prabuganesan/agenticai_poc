@@ -8,7 +8,7 @@ import { ChatPromptTemplate, HumanMessagePromptTemplate, MessagesPlaceholder } f
 import { formatLogToMessage } from 'langchain/agents/format_scratchpad/log_to_message'
 import { getBaseClasses, transformBracesWithColon } from '../../../src/utils'
 import {
-    FlowiseMemory,
+    AutonomousMemory,
     ICommonObject,
     IMessage,
     INode,
@@ -21,6 +21,7 @@ import { ConsoleCallbackHandler, CustomChainHandler, additionalCallbacks } from 
 import { AgentExecutor, XMLAgentOutputParser } from '../../../src/agents'
 import { Moderation, checkInputs } from '../../moderation/Moderation'
 import { formatResponse } from '../../outputparsers/OutputParserHelpers'
+import path from 'path'
 
 const defaultSystemMessage = `You are a helpful assistant. Help the user answer any questions.
 
@@ -117,7 +118,7 @@ class XMLAgent_Agents implements INode {
     }
 
     async run(nodeData: INodeData, input: string, options: ICommonObject): Promise<string | ICommonObject> {
-        const memory = nodeData.inputs?.memory as FlowiseMemory
+        const memory = nodeData.inputs?.memory as AutonomousMemory
         const moderations = nodeData.inputs?.inputModeration as Moderation[]
 
         const shouldStreamResponse = options.shouldStreamResponse
@@ -144,6 +145,9 @@ class XMLAgent_Agents implements INode {
         let res: ChainValues = {}
         let sourceDocuments: ICommonObject[] = []
         let usedTools: IUsedTool[] = []
+
+        // Track start time BEFORE LLM execution
+        const startTime = Date.now()
 
         if (shouldStreamResponse) {
             const handler = new CustomChainHandler(sseStreamer, chatId)
@@ -181,6 +185,57 @@ class XMLAgent_Agents implements INode {
             if (res.usedTools) {
                 usedTools = res.usedTools
             }
+        }
+
+        // Track end time AFTER LLM execution
+        const endTime = Date.now()
+        const timeDelta = endTime - startTime
+
+        // Track LLM usage
+        try {
+            if (options.orgId && res) {
+                // Dynamic import from server package
+                const llmUsageTrackerPath = path.resolve(__dirname, '../../../../server/src/utils/llm-usage-tracker')
+                const { trackLLMUsage, extractProviderAndModel, extractUsageMetadata } = await import(llmUsageTrackerPath)
+
+                // Get model from nodeData
+                const model = nodeData.inputs?.model as BaseChatModel
+                const { provider, model: modelName } = extractProviderAndModel(nodeData, { model })
+
+                // Extract usage metadata from result
+                const { promptTokens, completionTokens, totalTokens } = extractUsageMetadata(res)
+
+                await trackLLMUsage({
+                    requestId: (options.apiMessageId as string) || (options.chatId as string),
+                    executionId: options.parentExecutionId as string,
+                    orgId: (options.orgId as string) || '',
+                    userId: (options.incomingInput?.userId as string) || (options.userId as string) || '0',
+                    chatflowId: options.chatflowid as string,
+                    chatId: options.chatId as string,
+                    sessionId: options.sessionId as string,
+                    feature: 'chatflow',
+                    nodeId: nodeData.id,
+                    nodeType: 'AgentExecutor',
+                    nodeName: 'XMLAgent',
+                    location: 'main_flow',
+                    provider,
+                    model: modelName,
+                    requestType: 'chat',
+                    promptTokens: promptTokens || 0,
+                    completionTokens: completionTokens || 0,
+                    totalTokens: totalTokens || 0,
+                    processingTimeMs: timeDelta,
+                    responseLength: (res?.output as string)?.length || 0,
+                    success: true,
+                    cacheHit: false,
+                    metadata: {
+                        usedTools: usedTools.length > 0 ? usedTools.length : undefined,
+                        sourceDocuments: sourceDocuments.length > 0 ? sourceDocuments.length : undefined
+                    }
+                })
+            }
+        } catch (trackError) {
+            // Silently fail - tracking should not break the main flow
         }
 
         await memory.addChatMessages(
@@ -221,7 +276,7 @@ const prepareAgent = async (
 ) => {
     const model = nodeData.inputs?.model as BaseChatModel
     const maxIterations = nodeData.inputs?.maxIterations as string
-    const memory = nodeData.inputs?.memory as FlowiseMemory
+    const memory = nodeData.inputs?.memory as AutonomousMemory
     let systemMessage = nodeData.inputs?.systemMessage as string
     let tools = nodeData.inputs?.tools
     tools = flatten(tools)

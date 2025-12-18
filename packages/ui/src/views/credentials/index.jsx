@@ -49,7 +49,6 @@ import keySVG from '@/assets/images/key.svg'
 import { baseURL } from '@/store/constant'
 import { SET_COMPONENT_CREDENTIALS } from '@/store/actions'
 import { useError } from '@/store/context/ErrorContext'
-import ShareWithWorkspaceDialog from '@/ui-component/dialog/ShareWithWorkspaceDialog'
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
     borderColor: theme.palette.grey[900] + 25,
@@ -91,8 +90,7 @@ const Credentials = () => {
     const [credentials, setCredentials] = useState([])
     const [componentsCredentials, setComponentsCredentials] = useState([])
 
-    const [showShareCredentialDialog, setShowShareCredentialDialog] = useState(false)
-    const [shareCredentialDialogProps, setShareCredentialDialogProps] = useState({})
+    // Share credential dialog removed - not needed for autonomous server
 
     const { confirm } = useConfirm()
 
@@ -104,7 +102,7 @@ const Credentials = () => {
         setSearch(event.target.value)
     }
     function filterCredentials(data) {
-        return data.name.toLowerCase().indexOf(search.toLowerCase()) > -1
+        return data.credentialName.toLowerCase().indexOf(search.toLowerCase()) > -1
     }
 
     const listCredential = () => {
@@ -183,9 +181,8 @@ const Credentials = () => {
                 }
             } catch (error) {
                 enqueueSnackbar({
-                    message: `Failed to delete Credential: ${
-                        typeof error.response.data === 'object' ? error.response.data.message : error.response.data
-                    }`,
+                    message: `Failed to delete Credential: ${typeof error.response.data === 'object' ? error.response.data.message : error.response.data
+                        }`,
                     options: {
                         key: new Date().getTime() + Math.random(),
                         variant: 'error',
@@ -370,9 +367,6 @@ const Credentials = () => {
                                                                         alt={credential.credentialName}
                                                                         src={`${baseURL}/api/v1/components-credentials-icon/${credential.credentialName}`}
                                                                         onError={(e) => {
-                                                                            e.target.onerror = null
-                                                                            e.target.style.padding = '5px'
-                                                                            e.target.src = keySVG
                                                                         }}
                                                                     />
                                                                 </Box>
@@ -380,10 +374,14 @@ const Credentials = () => {
                                                             </Box>
                                                         </StyledTableCell>
                                                         <StyledTableCell>
-                                                            {moment(credential.updatedDate).format('MMMM Do, YYYY HH:mm:ss')}
+                                                            {credential.updatedDate || credential.createdDate
+                                                                ? moment(credential.updatedDate || credential.createdDate).format('MMMM Do, YYYY HH:mm:ss')
+                                                                : 'N/A'}
                                                         </StyledTableCell>
                                                         <StyledTableCell>
-                                                            {moment(credential.createdDate).format('MMMM Do, YYYY HH:mm:ss')}
+                                                            {credential.createdDate
+                                                                ? moment(credential.createdDate).format('MMMM Do, YYYY HH:mm:ss')
+                                                                : 'N/A'}
                                                         </StyledTableCell>
                                                         {!credential.shared && (
                                                             <>
@@ -450,14 +448,6 @@ const Credentials = () => {
                     onConfirm={onConfirm}
                     setError={setError}
                 ></AddEditCredentialDialog>
-            )}
-            {showShareCredentialDialog && (
-                <ShareWithWorkspaceDialog
-                    show={showShareCredentialDialog}
-                    dialogProps={shareCredentialDialogProps}
-                    onCancel={() => setShowShareCredentialDialog(false)}
-                    setError={setError}
-                ></ShareWithWorkspaceDialog>
             )}
             <ConfirmDialog />
         </>

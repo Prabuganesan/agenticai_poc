@@ -702,7 +702,7 @@ paths:
                                 vectorStore:
                                     type: string
                                     nullable: true
-                                    example: '{"name":"faiss"}'
+                                    example: '{"name":"milvus"}'
                                     description: Vector Store configurations
                                 recordManager:
                                     type: string
@@ -1850,10 +1850,6 @@ components:
                     type: string
                     format: date-time
                     example: '2024-08-24T14:15:22Z'
-                leadEmail:
-                    type: string
-                    nullable: true
-                    example: 'user@example.com'
 
         Chatflow:
             type: object
@@ -2586,7 +2582,7 @@ components:
                     properties:
                         name:
                             type: string
-                            example: faiss
+                            example: milvus
                             description: Name of the vector store (camelCase)
                         config:
                             type: object

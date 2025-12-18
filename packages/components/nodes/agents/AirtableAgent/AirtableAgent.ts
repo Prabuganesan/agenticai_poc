@@ -8,6 +8,7 @@ import { ConsoleCallbackHandler, CustomChainHandler, additionalCallbacks } from 
 import { LoadPyodide, finalSystemPrompt, systemPrompt } from './core'
 import { checkInputs, Moderation } from '../../moderation/Moderation'
 import { formatResponse } from '../../outputparsers/OutputParserHelpers'
+import path from 'path'
 
 class Airtable_Agents implements INode {
     label: string
@@ -169,7 +170,58 @@ json.dumps(my_dict)`
                 dict: dataframeColDict,
                 question: input
             }
+
+            // Track start time BEFORE LLM execution
+            const startTime1 = Date.now()
+
             const res = await chain.call(inputs, [loggerHandler, ...callbacks])
+
+            // Track end time AFTER LLM execution
+            const endTime1 = Date.now()
+            const timeDelta1 = endTime1 - startTime1
+
+            // Track LLM usage for first chain call
+            try {
+                if (options.orgId && res) {
+                    const llmUsageTrackerPath = path.resolve(__dirname, '../../../../server/src/utils/llm-usage-tracker')
+                    const { trackLLMUsage, extractProviderAndModel, extractUsageMetadata } = await import(llmUsageTrackerPath)
+                    const { provider, model: modelName } = extractProviderAndModel(nodeData, { model })
+                    const { promptTokens, completionTokens, totalTokens } = extractUsageMetadata({
+                        usageMetadata: res?.usageMetadata,
+                        usage_metadata: res?.usage_metadata,
+                        llmOutput: res?.llmOutput,
+                        tokenUsage: res?.tokenUsage
+                    })
+                    await trackLLMUsage({
+                        requestId: (options.apiMessageId as string) || (options.chatId as string),
+                        executionId: options.parentExecutionId as string,
+                        orgId: (options.orgId as string) || '',
+                        userId: (options.incomingInput?.userId as string) || (options.userId as string) || '0',
+                        chatflowId: options.chatflowid as string,
+                        chatId: options.chatId as string,
+                        sessionId: options.sessionId as string,
+                        feature: 'chatflow',
+                        nodeId: nodeData.id,
+                        nodeType: 'LLMChain',
+                        nodeName: 'AirtableAgent_CodeGen',
+                        location: 'main_flow',
+                        provider,
+                        model: modelName,
+                        requestType: 'chat',
+                        promptTokens: promptTokens || 0,
+                        completionTokens: completionTokens || 0,
+                        totalTokens: totalTokens || 0,
+                        processingTimeMs: timeDelta1,
+                        responseLength: (res?.text as string)?.length || 0,
+                        success: true,
+                        cacheHit: false,
+                        metadata: {}
+                    })
+                }
+            } catch (trackError) {
+                // Silently fail
+            }
+
             pythonCode = res?.text
             // Regex to get rid of markdown code blocks syntax
             pythonCode = pythonCode.replace(/^```[a-z]+\n|\n```$/gm, '')
@@ -199,14 +251,64 @@ json.dumps(my_dict)`
                 answer: finalResult
             }
 
+            // Track start time BEFORE LLM execution
+            const startTime2 = Date.now()
+
+            let result
             if (options.shouldStreamResponse) {
                 const handler = new CustomChainHandler(shouldStreamResponse ? sseStreamer : undefined, chatId)
-                const result = await chain.call(inputs, [loggerHandler, handler, ...callbacks])
-                return result?.text
+                result = await chain.call(inputs, [loggerHandler, handler, ...callbacks])
             } else {
-                const result = await chain.call(inputs, [loggerHandler, ...callbacks])
-                return result?.text
+                result = await chain.call(inputs, [loggerHandler, ...callbacks])
             }
+
+            // Track end time AFTER LLM execution
+            const endTime2 = Date.now()
+            const timeDelta2 = endTime2 - startTime2
+
+            // Track LLM usage for second chain call
+            try {
+                if (options.orgId && result) {
+                    const llmUsageTrackerPath = path.resolve(__dirname, '../../../../server/src/utils/llm-usage-tracker')
+                    const { trackLLMUsage, extractProviderAndModel, extractUsageMetadata } = await import(llmUsageTrackerPath)
+                    const { provider, model: modelName } = extractProviderAndModel(nodeData, { model })
+                    const { promptTokens, completionTokens, totalTokens } = extractUsageMetadata({
+                        usageMetadata: result?.usageMetadata,
+                        usage_metadata: result?.usage_metadata,
+                        llmOutput: result?.llmOutput,
+                        tokenUsage: result?.tokenUsage
+                    })
+                    await trackLLMUsage({
+                        requestId: (options.apiMessageId as string) || (options.chatId as string),
+                        executionId: options.parentExecutionId as string,
+                        orgId: (options.orgId as string) || '',
+                        userId: (options.incomingInput?.userId as string) || (options.userId as string) || '0',
+                        chatflowId: options.chatflowid as string,
+                        chatId: options.chatId as string,
+                        sessionId: options.sessionId as string,
+                        feature: 'chatflow',
+                        nodeId: nodeData.id,
+                        nodeType: 'LLMChain',
+                        nodeName: 'AirtableAgent_FinalAnswer',
+                        location: 'main_flow',
+                        provider,
+                        model: modelName,
+                        requestType: 'chat',
+                        promptTokens: promptTokens || 0,
+                        completionTokens: completionTokens || 0,
+                        totalTokens: totalTokens || 0,
+                        processingTimeMs: timeDelta2,
+                        responseLength: (result?.text as string)?.length || 0,
+                        success: true,
+                        cacheHit: false,
+                        metadata: {}
+                    })
+                }
+            } catch (trackError) {
+                // Silently fail
+            }
+
+            return result?.text
         }
 
         return pythonCode

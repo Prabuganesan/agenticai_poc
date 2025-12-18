@@ -6,6 +6,7 @@ const router = express.Router()
 
 // READ
 router.get(['/', '/:id'], chatflowsController.getSinglePublicChatbotConfig)
+router.get('/:id/theme', chatflowsController.getEmbedTheme)
 
 // UPDATE
 

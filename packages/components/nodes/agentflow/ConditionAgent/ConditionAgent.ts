@@ -187,9 +187,6 @@ class ConditionAgent_Agentflow implements INode {
             for (const nodeName in componentNodes) {
                 const componentNode = componentNodes[nodeName]
                 if (componentNode.category === 'Chat Models') {
-                    if (componentNode.tags?.includes('LlamaIndex')) {
-                        continue
-                    }
                     returnOptions.push({
                         label: componentNode.label,
                         name: nodeName,
@@ -252,6 +249,7 @@ class ConditionAgent_Agentflow implements INode {
 
         try {
             const abortController = options.abortController as AbortController
+            const callbacks = options.callbacks
 
             // Extract input parameters
             const model = nodeData.inputs?.conditionAgentModel as string
@@ -279,13 +277,15 @@ class ConditionAgent_Agentflow implements INode {
             const pastChatHistory = (options.pastChatHistory as BaseMessageLike[]) ?? []
             const runtimeChatHistory = (options.agentflowRuntime?.chatHistory as BaseMessageLike[]) ?? []
 
+            // Initialize the LLM model instance with callbacks automatically attached
+            const { initializeLLMWithCallbacks } = await import('../utils')
             // Initialize the LLM model instance
             const nodeInstanceFilePath = options.componentNodes[model].filePath as string
             const nodeModule = await import(nodeInstanceFilePath)
             const newLLMNodeInstance = new nodeModule.nodeClass()
             const newNodeData = {
                 ...nodeData,
-                credential: modelConfig['FLOWISE_CREDENTIAL_ID'],
+                credential: modelConfig['AUTONOMOUS_CREDENTIAL_ID'],
                 inputs: {
                     ...nodeData.inputs,
                     ...modelConfig
@@ -300,28 +300,78 @@ class ConditionAgent_Agentflow implements INode {
             }
 
             // Prepare messages array
-            const messages: BaseMessageLike[] = [
-                {
-                    role: 'system',
-                    content: systemPrompt
-                },
-                {
-                    role: 'user',
-                    content: `{"input": "Hello", "scenarios": ["user is asking about AI", "user is not asking about AI"], "instruction": "Your task is to check if the user is asking about AI."}`
-                },
-                {
-                    role: 'assistant',
-                    content: `\`\`\`json\n{"output": "user is not asking about AI"}\n\`\`\``
+            // Check if custom messages are provided from previous node output or node inputs
+            let messages: BaseMessageLike[] = []
+            let customMessages: BaseMessageLike[] | undefined
+
+            // Check previous node's output for messages
+            const previousNodes = (options.previousNodes as ICommonObject[]) || []
+            if (previousNodes.length > 0) {
+                const previousNode = previousNodes[previousNodes.length - 1]
+                if (previousNode?.input?.messages && Array.isArray(previousNode.input.messages)) {
+                    customMessages = previousNode.input.messages as BaseMessageLike[]
                 }
-            ]
+            }
+
+            // Also check nodeData.inputs.messages (in case it's set directly)
+            if (!customMessages && nodeData.inputs?.messages && Array.isArray(nodeData.inputs.messages)) {
+                customMessages = nodeData.inputs.messages as BaseMessageLike[]
+            }
+
+            if (customMessages && customMessages.length > 0) {
+                // Use custom messages if provided, but ensure system prompt is set correctly
+                // Filter and convert to proper message format
+                const filteredMessages: Array<{ role: string; content: string }> = customMessages
+                    .filter(
+                        (msg): msg is { role: string; content: string } =>
+                            typeof msg === 'object' && msg !== null && 'role' in msg && 'content' in msg
+                    )
+                    .map((msg) => ({
+                        role: msg.role,
+                        content: typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content)
+                    }))
+
+                messages = filteredMessages as BaseMessageLike[]
+
+                // Replace system message with the configured system prompt
+                const systemMessageIndex = filteredMessages.findIndex((msg) => msg.role === 'system')
+                if (systemMessageIndex >= 0) {
+                    messages[systemMessageIndex] = {
+                        role: 'system',
+                        content: systemPrompt
+                    }
+                } else {
+                    // If no system message exists, add it at the beginning
+                    messages.unshift({
+                        role: 'system',
+                        content: systemPrompt
+                    })
+                }
+            } else {
+                // Default: Use hardcoded example messages
+                messages = [
+                    {
+                        role: 'system',
+                        content: systemPrompt
+                    },
+                    {
+                        role: 'user',
+                        content: `{"input": "Hello", "scenarios": ["user is asking about AI", "user is not asking about AI"], "instruction": "Your task is to check if the user is asking about AI."}`
+                    },
+                    {
+                        role: 'assistant',
+                        content: `\`\`\`json\n{"output": "user is not asking about AI"}\n\`\`\``
+                    }
+                ]
+            }
             // Use to store messages with image file references as we do not want to store the base64 data into database
             let runtimeImageMessagesWithFileRef: BaseMessageLike[] = []
             // Use to keep track of past messages with image file references
             let pastImageMessagesWithFileRef: BaseMessageLike[] = []
 
-            input = `{"input": ${input}, "scenarios": ${JSON.stringify(
+            input = `{"input": ${JSON.stringify(input)}, "scenarios": ${JSON.stringify(
                 _conditionAgentScenarios.map((scenario) => scenario.scenario)
-            )}, "instruction": ${conditionAgentInstructions}}`
+            )}, "instruction": ${JSON.stringify(conditionAgentInstructions)}}`
 
             // Handle memory management if enabled
             if (enableMemory) {
@@ -337,7 +387,8 @@ class ConditionAgent_Agentflow implements INode {
                     options,
                     modelConfig,
                     runtimeImageMessagesWithFileRef,
-                    pastImageMessagesWithFileRef
+                    pastImageMessagesWithFileRef,
+                    callbacks
                 })
             } else {
                 /*
@@ -370,11 +421,16 @@ class ConditionAgent_Agentflow implements INode {
             // Track execution time
             const startTime = Date.now()
 
-            response = await llmNodeInstance.invoke(messages, { signal: abortController?.signal })
+
+
+            response = await llmNodeInstance.invoke(messages, { signal: abortController?.signal, callbacks })
 
             // Calculate execution time
             const endTime = Date.now()
             const timeDelta = endTime - startTime
+
+            // Track LLM usage
+            // Handled by UsageTrackingCallbackHandler which is passed in via parsing from the `buildAgentflow` callbacks
 
             // End analytics tracking
             if (analyticHandlers && llmIds) {
@@ -386,16 +442,34 @@ class ConditionAgent_Agentflow implements INode {
 
             let calledOutputName: string
             try {
-                const parsedResponse = this.parseJsonMarkdown(response.content as string)
+                let parsedResponse: any = response.content
+                if (typeof response.content === 'string') {
+                    parsedResponse = this.parseJsonMarkdown(response.content)
+                } else if (Array.isArray(response.content)) {
+                    // Handle complex content (array of objects)
+                    const textContent = (response.content as any[]).find((item: any) => item.type === 'text')?.text
+                    if (textContent && typeof textContent === 'string') {
+                        parsedResponse = this.parseJsonMarkdown(textContent)
+                    } else {
+                        // Attempt to find any string content or stringify mixed content as fallback
+                        const fallbackText = response.content
+                            .map((item: any) => (typeof item === 'string' ? item : item.text || ''))
+                            .join('')
+                        if (fallbackText) {
+                            parsedResponse = this.parseJsonMarkdown(fallbackText)
+                        }
+                    }
+                }
+
                 if (!parsedResponse.output || typeof parsedResponse.output !== 'string') {
                     throw new Error('LLM response is missing the "output" key or it is not a string.')
                 }
                 calledOutputName = parsedResponse.output
             } catch (error) {
+                const rawResponse =
+                    typeof response.content === 'object' ? JSON.stringify(response.content, null, 2) : (response.content as string)
                 throw new Error(
-                    `Failed to parse a valid scenario from the LLM's response. Please check if the model is capable of following JSON output instructions. Raw LLM Response: "${
-                        response.content as string
-                    }"`
+                    `Failed to parse a valid scenario from the LLM's response. Please check if the model is capable of following JSON output instructions. Raw LLM Response: "${rawResponse}"`
                 )
             }
 
@@ -479,6 +553,7 @@ class ConditionAgent_Agentflow implements INode {
         input,
         abortController,
         options,
+        callbacks,
         modelConfig,
         runtimeImageMessagesWithFileRef,
         pastImageMessagesWithFileRef
@@ -492,6 +567,7 @@ class ConditionAgent_Agentflow implements INode {
         input: string
         abortController: AbortController
         options: ICommonObject
+        callbacks?: any
         modelConfig: ICommonObject
         runtimeImageMessagesWithFileRef: BaseMessageLike[]
         pastImageMessagesWithFileRef: BaseMessageLike[]
@@ -537,12 +613,12 @@ class ConditionAgent_Agentflow implements INode {
                             )
                         }
                     ],
-                    { signal: abortController?.signal }
+                    { signal: abortController?.signal, callbacks }
                 )
                 messages.push({ role: 'assistant', content: summary.content as string })
             } else if (memoryType === 'conversationSummaryBuffer') {
                 // Summary buffer: Summarize messages that exceed token limit
-                await this.handleSummaryBuffer(messages, pastMessages, llmNodeInstance, nodeData, abortController)
+                await this.handleSummaryBuffer(messages, pastMessages, llmNodeInstance, nodeData, abortController, callbacks)
             } else {
                 // Default: Use all messages
                 messages.push(...pastMessages)
@@ -563,7 +639,8 @@ class ConditionAgent_Agentflow implements INode {
         pastMessages: BaseMessageLike[],
         llmNodeInstance: BaseChatModel,
         nodeData: INodeData,
-        abortController: AbortController
+        abortController: AbortController,
+        callbacks?: any
     ): Promise<void> {
         const maxTokenLimit = (nodeData.inputs?.conditionAgentMemoryMaxTokenLimit as number) || 2000
 
@@ -598,7 +675,7 @@ class ConditionAgent_Agentflow implements INode {
                         content: DEFAULT_SUMMARIZER_TEMPLATE.replace('{conversation}', messagesToSummarizeString)
                     }
                 ],
-                { signal: abortController?.signal }
+                { signal: abortController?.signal, callbacks }
             )
 
             // Add summary as a system message at the beginning, then add remaining messages

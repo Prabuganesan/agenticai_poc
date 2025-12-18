@@ -12,7 +12,7 @@ import {
     IServerSideEventStreamer,
     convertChatHistoryToText,
     generateFollowUpPrompts
-} from 'flowise-components'
+} from 'kodivian-components'
 import {
     IncomingAgentflowInput,
     INodeData,
@@ -36,10 +36,8 @@ import {
     CHAT_HISTORY_VAR_PREFIX,
     databaseEntities,
     FILE_ATTACHMENT_PREFIX,
-    getAppVersion,
     getGlobalVariable,
     getStartingNode,
-    getTelemetryFlowObj,
     QUESTION_VAR_PREFIX,
     CURRENT_DATE_TIME_VAR_PREFIX,
     _removeCredentialId,
@@ -49,14 +47,14 @@ import {
 import { ChatFlow } from '../database/entities/ChatFlow'
 import { Variable } from '../database/entities/Variable'
 import { replaceInputsWithConfig, constructGraphs, getAPIOverrideConfig } from '../utils'
-import logger from './logger'
-import { getErrorMessage } from '../errors/utils'
+import chatSessionsService from '../services/chat-sessions'
+import { logDebug, logError } from './logger/system-helper'
+import { agentflowLog, executionLog } from './logger/module-methods'
+import { getErrorMessage, sanitizeErrorMessage } from '../errors/utils'
 import { Execution } from '../database/entities/Execution'
 import { utilAddChatMessage } from './addChatMesage'
 import { CachePool } from '../CachePool'
 import { ChatMessage } from '../database/entities/ChatMessage'
-import { Telemetry } from './telemetry'
-import { getWorkspaceSearchOptions } from '../enterprise/utils/ControllerServiceUtils'
 import { UsageCacheManager } from '../UsageCacheManager'
 import { generateTTSForResponseStream, shouldAutoPlayTTS } from './buildChatflow'
 
@@ -108,13 +106,11 @@ interface IExecuteNodeParams {
     chatId: string
     sessionId: string
     apiMessageId: string
-    evaluationRunId?: string
     isInternal: boolean
     pastChatHistory: IMessage[]
     prependedChatHistory: IMessage[]
     appDataSource: DataSource
     usageCacheManager: UsageCacheManager
-    telemetry: Telemetry
     componentNodes: IComponentNodes
     cachePool: CachePool
     sseStreamer: IServerSideEventStreamer
@@ -136,8 +132,6 @@ interface IExecuteNodeParams {
     iterationContext?: ICommonObject
     loopCounts?: Map<string, number>
     orgId: string
-    workspaceId: string
-    subscriptionId: string
     productId: string
 }
 
@@ -160,20 +154,95 @@ const addExecution = async (
     agentflowId: string,
     agentFlowExecutedData: IAgentflowExecutedData[],
     sessionId: string,
-    workspaceId: string
+    orgId: string,
+    userId?: string
 ) => {
+    // Validate required fields
+    if (!agentflowId || agentflowId.trim() === '') {
+        throw new Error('agentflowId is required but was not provided. Cannot create execution without agentflowId.')
+    }
+    if (!sessionId || sessionId.trim() === '') {
+        throw new Error('sessionId is required but was not provided. Cannot create execution without sessionId.')
+    }
+
+    const { generateGuid } = await import('./guidGenerator')
     const newExecution = new Execution()
-    const bodyExecution = {
-        agentflowId,
+    const bodyExecution: any = {
+        guid: generateGuid(),
+        agentflowid: agentflowId, // Use lowercase column name, not the RelationId property
         state: 'INPROGRESS',
-        sessionId,
-        workspaceId,
+        sessionid: sessionId, // Use lowercase column name, not the RelationId property
+        orgId,
         executionData: JSON.stringify(agentFlowExecutedData)
     }
-    Object.assign(newExecution, bodyExecution)
+    // Helper function to safely convert to number for Oracle
+    // Oracle is strict about number types and will throw ORA-01722 if strings are passed
+    const safeToNumber = (value: any, defaultValue: number = 0): number => {
+        if (value == null || value === '' || value === 'undefined' || value === 'null') {
+            return defaultValue
+        }
+        if (typeof value === 'number') {
+            return isNaN(value) || !isFinite(value) ? defaultValue : value
+        }
+        if (typeof value === 'string') {
+            const trimmed = value.trim()
+            if (trimmed === '' || trimmed === 'undefined' || trimmed === 'null') {
+                return defaultValue
+            }
+            const num = Number(trimmed)
+            return isNaN(num) || !isFinite(num) ? defaultValue : num
+        }
+        const num = Number(value)
+        return isNaN(num) || !isFinite(num) ? defaultValue : num
+    }
 
-    const execution = appDataSource.getRepository(Execution).create(newExecution)
-    return await appDataSource.getRepository(Execution).save(execution)
+    // Set created_by and created_on for execution
+    // Ensure userId is properly converted to number for Oracle compatibility
+    const userIdNum = userId ? safeToNumber(userId) : undefined
+    if (userIdNum === undefined || isNaN(userIdNum)) {
+        throw new Error('User ID is required for creating execution')
+    }
+
+    const repository = appDataSource.getRepository(Execution)
+
+    // Use raw SQL insert to bypass TypeORM's duplicate column detection
+    // This is necessary because having both @JoinColumn and @Column for the same
+    // column causes TypeORM to try to insert the column twice
+    const executionGuid = generateGuid()
+    const executionData = JSON.stringify(agentFlowExecutedData)
+    const createdOn = Date.now()
+    const dbType = (appDataSource.options.type as 'postgres' | 'oracle') || 'postgres'
+
+    const agentflowidCol = dbType === 'oracle' ? 'AGENTFLOWID' : 'agentflowid'
+    const sessionidCol = dbType === 'oracle' ? 'SESSIONID' : 'sessionid'
+    const tableName = dbType === 'oracle' ? '"AUTO_EXECUTION"' : 'auto_execution'
+
+    // Ensure all numeric values are properly converted for Oracle
+    const safeUserIdNum = safeToNumber(userIdNum, 0)
+    const safeCreatedOn = safeToNumber(createdOn, Date.now())
+
+    if (dbType === 'oracle') {
+        await appDataSource.manager.query(
+            `INSERT INTO ${tableName} (GUID, EXECUTIONDATA, STATE, CREATED_BY, CREATED_ON, ${agentflowidCol}, ${sessionidCol}) VALUES (:1, :2, :3, :4, :5, :6, :7)`,
+            [executionGuid, executionData, 'INPROGRESS', safeUserIdNum, safeCreatedOn, agentflowId, sessionId]
+        )
+    } else {
+        await appDataSource.manager.query(
+            `INSERT INTO ${tableName} (guid, executiondata, state, created_by, created_on, ${agentflowidCol}, ${sessionidCol}) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            [executionGuid, executionData, 'INPROGRESS', userIdNum, createdOn, agentflowId, sessionId]
+        )
+    }
+
+    // Fetch the saved execution to return it
+    const savedExecution = await repository.findOne({
+        where: { guid: executionGuid }
+    })
+
+    if (!savedExecution) {
+        throw new Error('Failed to create execution - execution not found after insert')
+    }
+
+    return savedExecution
 }
 
 /**
@@ -183,14 +252,39 @@ const addExecution = async (
  * @param {Partial<IExecution>} data
  * @returns {Promise<void>}
  */
-const updateExecution = async (appDataSource: DataSource, executionId: string, workspaceId: string, data?: Partial<IExecution>) => {
+const updateExecution = async (appDataSource: DataSource, executionId: string, orgId: string, data?: Partial<IExecution>) => {
     const execution = await appDataSource.getRepository(Execution).findOneBy({
-        id: executionId,
-        workspaceId
+        guid: executionId
     })
 
     if (!execution) {
         throw new Error(`Execution ${executionId} not found`)
+    }
+
+    // Helper function to safely convert to number for Oracle
+    // Oracle is strict about number types and will throw ORA-01722 if strings are passed
+    const safeToNumber = (value: any, defaultValue: number = 0): number => {
+        if (value == null || value === '' || value === 'undefined' || value === 'null') {
+            return defaultValue
+        }
+        if (typeof value === 'number') {
+            return isNaN(value) || !isFinite(value) ? defaultValue : value
+        }
+        if (typeof value === 'string') {
+            const trimmed = value.trim()
+            if (trimmed === '' || trimmed === 'undefined' || trimmed === 'null') {
+                return defaultValue
+            }
+            const num = Number(trimmed)
+            return isNaN(num) || !isFinite(num) ? defaultValue : num
+        }
+        const num = Number(value)
+        return isNaN(num) || !isFinite(num) ? defaultValue : num
+    }
+
+    // Set last_modified_on if data is provided
+    if (data) {
+        data.last_modified_on = Date.now()
     }
 
     const updateExecution = new Execution()
@@ -202,14 +296,41 @@ const updateExecution = async (appDataSource: DataSource, executionId: string, w
         bodyExecution.state = data.state
 
         if (data.state === 'STOPPED') {
-            bodyExecution.stoppedDate = new Date()
+            bodyExecution.stoppedDate = Date.now()
         }
     }
 
     Object.assign(updateExecution, bodyExecution)
 
+    // For Oracle, ensure all numeric fields are properly converted before saving
+    const dbType = (appDataSource.options.type as 'postgres' | 'oracle') || 'postgres'
+    if (dbType === 'oracle') {
+        // Ensure numeric fields are numbers, not strings
+        if (updateExecution.last_modified_on !== undefined) {
+            updateExecution.last_modified_on = safeToNumber(updateExecution.last_modified_on, Date.now())
+        }
+        if (updateExecution.stoppedDate !== undefined) {
+            updateExecution.stoppedDate = safeToNumber(updateExecution.stoppedDate, Date.now())
+        }
+    }
+
     appDataSource.getRepository(Execution).merge(execution, updateExecution)
-    await appDataSource.getRepository(Execution).save(execution)
+    const updatedExecution = await appDataSource.getRepository(Execution).save(execution)
+
+    // Log execution update
+    try {
+        await executionLog('info', 'Execution updated', {
+            userId: execution.created_by?.toString() || 'unknown',
+            orgId,
+            executionId: execution.guid,
+            agentflowId: execution.agentflowId,
+            sessionId: execution.sessionId,
+            state: updatedExecution.state,
+            previousState: execution.state
+        }).catch(() => { }) // Don't fail if logging fails
+    } catch (logError) {
+        // Silently fail - logging should not break execution update
+    }
 }
 
 export const resolveVariables = async (
@@ -626,7 +747,7 @@ function getNodeInputConnections(edges: IReactFlowEdge[], nodeId: string): IReac
  * Analyzes node dependencies and sets up expected inputs
  */
 function setupNodeDependencies(nodeId: string, edges: IReactFlowEdge[], nodes: IReactFlowNode[]): IWaitingNode {
-    logger.debug(`\n🔍 Analyzing dependencies for node: ${nodeId}`)
+    logDebug(`\n🔍 Analyzing dependencies for node: ${nodeId}`).catch(() => { })
     const inputConnections = getNodeInputConnections(edges, nodeId)
     const waitingNode: IWaitingNode = {
         nodeId,
@@ -647,13 +768,13 @@ function setupNodeDependencies(nodeId: string, edges: IReactFlowEdge[], nodes: I
         const conditionParent = findConditionParent(connection.source, edges, nodes)
 
         if (conditionParent) {
-            logger.debug(`  📌 Found conditional input from ${connection.source} (condition: ${conditionParent})`)
+            logDebug(`  📌 Found conditional input from ${connection.source} (condition: ${conditionParent})`).catch(() => {})
             waitingNode.isConditional = true
             const group = inputsByCondition.get(conditionParent) || []
             group.push(connection.source)
             inputsByCondition.set(conditionParent, group)
         } else {
-            logger.debug(`  📌 Found required input from ${connection.source}`)
+            logDebug(`  📌 Found required input from ${connection.source}`).catch(() => {})
             waitingNode.expectedInputs.add(connection.source)
         }
     }
@@ -661,7 +782,7 @@ function setupNodeDependencies(nodeId: string, edges: IReactFlowEdge[], nodes: I
     // Set up conditional groups
     inputsByCondition.forEach((sources, conditionId) => {
         if (conditionId) {
-            logger.debug(`  📋 Conditional group ${conditionId}: [${sources.join(', ')}]`)
+            logDebug(`  📋 Conditional group ${conditionId}: [${sources.join(', ')}]`).catch(() => {})
             waitingNode.conditionalGroups.set(conditionId, sources)
         }
     })
@@ -724,12 +845,12 @@ function findConditionParent(nodeId: string, edges: IReactFlowEdge[], nodes: IRe
  * Checks if a node has received all required inputs
  */
 function hasReceivedRequiredInputs(waitingNode: IWaitingNode): boolean {
-    logger.debug(`\n✨ Checking inputs for node: ${waitingNode.nodeId}`)
+    logDebug(`\n✨ Checking inputs for node: ${waitingNode.nodeId}`).catch(() => {})
 
     // Check non-conditional required inputs
     for (const required of waitingNode.expectedInputs) {
         const hasInput = waitingNode.receivedInputs.has(required)
-        logger.debug(`  📊 Required input ${required}: ${hasInput ? '✅' : '❌'}`)
+        logDebug(`  📊 Required input ${required}: ${hasInput ? '✅' : '❌'}`).catch(() => {})
         if (!hasInput) return false
     }
 
@@ -737,7 +858,7 @@ function hasReceivedRequiredInputs(waitingNode: IWaitingNode): boolean {
     for (const [groupId, possibleSources] of waitingNode.conditionalGroups) {
         // Need at least one input from each conditional group
         const hasInputFromGroup = possibleSources.some((source) => waitingNode.receivedInputs.has(source))
-        logger.debug(`  📊 Conditional group ${groupId}: ${hasInputFromGroup ? '✅' : '❌'}`)
+        logDebug(`  📊 Conditional group ${groupId}: ${hasInputFromGroup ? '✅' : '❌'}`).catch(() => {})
         if (!hasInputFromGroup) return false
     }
 
@@ -806,12 +927,12 @@ async function processNodeOutputs({
     sseStreamer,
     chatId
 }: IProcessNodeOutputsParams): Promise<{ humanInput?: IHumanInput }> {
-    logger.debug(`\n🔄 Processing outputs from node: ${nodeId}`)
+    logDebug(`\n🔄 Processing outputs from node: ${nodeId}`).catch(() => {})
 
     let updatedHumanInput = humanInput
 
     const childNodeIds = graph[nodeId] || []
-    logger.debug(`  👉 Child nodes: [${childNodeIds.join(', ')}]`)
+    logDebug(`  👉 Child nodes: [${childNodeIds.join(', ')}]`).catch(() => {})
 
     const currentNode = nodes.find((n) => n.id === nodeId)
     if (!currentNode) return { humanInput: updatedHumanInput }
@@ -819,7 +940,7 @@ async function processNodeOutputs({
     // Get nodes to ignore based on conditions
     const ignoreNodeIds = await determineNodesToIgnore(currentNode, result, edges, nodeId)
     if (ignoreNodeIds.length) {
-        logger.debug(`  ⏭️  Skipping nodes: [${ignoreNodeIds.join(', ')}]`)
+        logDebug(`  ⏭️  Skipping nodes: [${ignoreNodeIds.join(', ')}]`).catch(() => {})
     }
 
     for (const childId of childNodeIds) {
@@ -828,22 +949,22 @@ async function processNodeOutputs({
         const childNode = nodes.find((n) => n.id === childId)
         if (!childNode) continue
 
-        logger.debug(`  📝 Processing child node: ${childId}`)
+        logDebug(`  📝 Processing child node: ${childId}`).catch(() => {})
 
         let waitingNode = waitingNodes.get(childId)
 
         if (!waitingNode) {
-            logger.debug(`    🆕 First time seeing node ${childId} - analyzing dependencies`)
+            logDebug(`    🆕 First time seeing node ${childId} - analyzing dependencies`).catch(() => {})
             waitingNode = setupNodeDependencies(childId, edges, nodes)
             waitingNodes.set(childId, waitingNode)
         }
 
         waitingNode.receivedInputs.set(nodeId, result)
-        logger.debug(`    ➕ Added input from ${nodeId}`)
+        logDebug(`    ➕ Added input from ${nodeId}`).catch(() => {})
 
         // Check if node is ready to execute
         if (hasReceivedRequiredInputs(waitingNode)) {
-            logger.debug(`    ✅ Node ${childId} ready for execution!`)
+            logDebug(`    ✅ Node ${childId} ready for execution!`).catch(() => {})
             waitingNodes.delete(childId)
             nodeExecutionQueue.push({
                 nodeId: childId,
@@ -851,26 +972,26 @@ async function processNodeOutputs({
                 inputs: Object.fromEntries(waitingNode.receivedInputs)
             })
         } else {
-            logger.debug(`    ⏳ Node ${childId} still waiting for inputs`)
-            logger.debug(`      Has: [${Array.from(waitingNode.receivedInputs.keys()).join(', ')}]`)
-            logger.debug(`      Needs: [${Array.from(waitingNode.expectedInputs).join(', ')}]`)
+            logDebug(`    ⏳ Node ${childId} still waiting for inputs`).catch(() => {})
+            logDebug(`      Has: [${Array.from(waitingNode.receivedInputs.keys()).join(', ')}]`).catch(() => {})
+            logDebug(`      Needs: [${Array.from(waitingNode.expectedInputs).join(', ')}]`).catch(() => {})
             if (waitingNode.conditionalGroups.size > 0) {
-                logger.debug('      Conditional groups:')
+                logDebug('      Conditional groups:').catch(() => {})
                 waitingNode.conditionalGroups.forEach((sources, groupId) => {
-                    logger.debug(`        ${groupId}: [${sources.join(', ')}]`)
+                    logDebug(`        ${groupId}: [${sources.join(', ')}]`).catch(() => {})
                 })
             }
         }
     }
 
     if (nodeName === 'loopAgentflow' && result.output?.nodeID) {
-        logger.debug(`  🔄 Looping back to node: ${result.output.nodeID}`)
+        logDebug(`  🔄 Looping back to node: ${result.output.nodeID}`).catch(() => { })
 
         const loopCount = (loopCounts.get(nodeId) || 0) + 1
         const maxLoop = result.output.maxLoopCount || MAX_LOOP_COUNT
 
         if (loopCount < maxLoop) {
-            logger.debug(`    Loop count: ${loopCount}/${maxLoop}`)
+            logDebug(`    Loop count: ${loopCount}/${maxLoop}`).catch(() => { })
             loopCounts.set(nodeId, loopCount)
             nodeExecutionQueue.push({
                 nodeId: result.output.nodeID,
@@ -880,11 +1001,11 @@ async function processNodeOutputs({
 
             // Clear humanInput when looping to prevent it from being reused
             if (updatedHumanInput) {
-                logger.debug(`    🧹 Clearing humanInput for loop iteration`)
+                logDebug(`    🧹 Clearing humanInput for loop iteration`).catch(() => { })
                 updatedHumanInput = undefined
             }
         } else {
-            logger.debug(`    ⚠️ Maximum loop count (${maxLoop}) reached, stopping loop`)
+            logDebug(`    ⚠️ Maximum loop count (${maxLoop}) reached, stopping loop`).catch(() => { })
             const fallbackMessage = result.output.fallbackMessage || `Loop completed after reaching maximum iteration count of ${maxLoop}.`
             if (sseStreamer) {
                 sseStreamer.streamTokenEvent(chatId, fallbackMessage)
@@ -978,7 +1099,32 @@ function combineNodeInputs(receivedInputs: Map<string, any>): any {
             }
         } catch (error) {
             // Log error but continue processing other inputs
-            console.error(`Error combining input from node ${sourceNodeId}:`, error)
+            // Use new logging system - throw error if logging fails
+            // Use async IIFE since combineNodeInputs is not async
+            ; (async () => {
+                try {
+                    const { executionLog } = await import('./logger/module-methods')
+                    const userId = 'system' // System operation
+                    await executionLog(
+                        'error',
+                        `Error combining input from node ${sourceNodeId}: ${error instanceof Error ? error.message : String(error)}`,
+                        {
+                            userId,
+                            sourceNodeId,
+                            error: error instanceof Error ? error.stack : String(error)
+                        }
+                    )
+                } catch (logError) {
+                    // Throw error if new logging system fails - no fallback
+                    throw new Error(
+                        `Failed to log execution error: ${logError instanceof Error ? logError.message : String(logError)
+                        }. Original error: ${error instanceof Error ? error.message : String(error)}`
+                    )
+                }
+            })().catch((logError) => {
+                // If logging fails, throw error
+                throw logError
+            })
             result.error = error as Error
         }
     }
@@ -1008,13 +1154,11 @@ const executeNode = async ({
     chatId,
     sessionId,
     apiMessageId,
-    evaluationRunId,
     parentExecutionId,
     pastChatHistory,
     prependedChatHistory,
     appDataSource,
     usageCacheManager,
-    telemetry,
     componentNodes,
     cachePool,
     sseStreamer,
@@ -1036,8 +1180,6 @@ const executeNode = async ({
     iterationContext,
     loopCounts,
     orgId,
-    workspaceId,
-    subscriptionId,
     productId
 }: IExecuteNodeParams): Promise<{
     result: any
@@ -1071,15 +1213,15 @@ const executeNode = async ({
         }
 
         // Get available variables and resolve them
-        const availableVariables = await appDataSource.getRepository(Variable).findBy(getWorkspaceSearchOptions(workspaceId))
+        const availableVariables = await appDataSource.getRepository(Variable).findBy({})
 
         // Prepare flow config
         let updatedState = cloneDeep(agentflowRuntime.state)
         const runtimeChatHistory = agentflowRuntime.chatHistory || []
         const chatHistory = [...pastChatHistory, ...runtimeChatHistory]
         const flowConfig: IFlowConfig = {
-            chatflowid: chatflow.id,
-            chatflowId: chatflow.id,
+            chatflowid: chatflow.guid,
+            chatflowId: chatflow.guid,
             chatId,
             sessionId,
             apiMessageId,
@@ -1133,7 +1275,7 @@ const executeNode = async ({
             agentFlowExecutedData = agentFlowExecutedData.filter((execData) => execData.nodeId !== nodeId)
 
             // Clear humanInput after it's been consumed to prevent subsequent humanInputAgentflow nodes from proceeding
-            logger.debug(`🧹 Clearing humanInput after consumption by node: ${nodeId}`)
+            logDebug(`🧹 Clearing humanInput after consumption by node: ${nodeId}`).catch(() => { })
             updatedHumanInput = undefined
         }
 
@@ -1157,16 +1299,14 @@ const executeNode = async ({
         }
 
         // Prepare run parameters
-        const runParams = {
+        const runParams: any = {
             orgId,
-            workspaceId,
-            subscriptionId,
             chatId,
             sessionId,
-            chatflowid: chatflow.id,
-            chatflowId: chatflow.id,
+            chatflowid: chatflow.guid,
+            chatflowId: chatflow.guid,
             apiMessageId: flowConfig.apiMessageId,
-            logger,
+            logger: undefined,
             appDataSource,
             databaseEntities,
             usageCacheManager,
@@ -1185,11 +1325,51 @@ const executeNode = async ({
             parentTraceIds,
             humanInputAction,
             iterationContext,
-            evaluationRunId
+            incomingInput, // Pass incomingInput so nodes can access userId and other context
+            reactFlowNodes: nodes // Pass nodes array so ExecuteFlow can access parent flow nodes for credential extraction
+        }
+
+        // Inject UsageTrackingCallbackHandler
+        let usageHandler: any = null
+        try {
+            const { UsageTrackingCallbackHandler } = await import('./UsageTrackingCallbackHandler')
+            usageHandler = new UsageTrackingCallbackHandler(
+                {
+                    chatflowId: chatflow.guid,
+                    chatId,
+                    sessionId,
+                    chatflowType: chatflow.type || 'AGENTFLOW',
+                    userId: (incomingInput as any).userId,
+                    orgId,
+                    executionId: parentExecutionId
+                },
+                reactFlowNodeData
+            )
+            if (!runParams.callbacks) runParams.callbacks = []
+            runParams.callbacks.push(usageHandler)
+        } catch (e) {
+            console.error('[buildAgentflow] Error injecting UsageTrackingCallbackHandler:', e)
         }
 
         // Execute node
         let results = await newNodeInstance.run(reactFlowNodeData, finalInput, runParams)
+
+        // For LLM nodes in agentflows, ensure the callback is attached directly to the instance
+        // This mirrors the behavior in chatflows where callbacks are attached during init()
+        if (usageHandler && (reactFlowNode.data.category === 'Chat Models' || reactFlowNode.data.category === 'LLMs')) {
+            try {
+                if (results?.callbacks) {
+                    // Check if handler is already in the callbacks array
+                    if (!results.callbacks.includes(usageHandler)) {
+                        results.callbacks.push(usageHandler)
+                    }
+                } else if (results) {
+                    results.callbacks = [usageHandler]
+                }
+            } catch (e) {
+                console.error('[server] Error attaching callback to LLM instance:', e)
+            }
+        }
 
         // Handle iteration node with recursive execution
         if (
@@ -1197,13 +1377,15 @@ const executeNode = async ({
             results?.input?.iterationInput &&
             Array.isArray(results.input.iterationInput)
         ) {
-            logger.debug(`  🔄 Processing iteration node with ${results.input.iterationInput.length} items using recursive execution`)
+            logDebug(`  🔄 Processing iteration node with ${results.input.iterationInput.length} items using recursive execution`).catch(
+                () => { }
+            )
 
             // Get child nodes for this iteration
             const childNodes = nodes.filter((node) => node.parentNode === nodeId)
 
             if (childNodes.length > 0) {
-                logger.debug(`  📦 Found ${childNodes.length} child nodes for iteration`)
+                logDebug(`  📦 Found ${childNodes.length} child nodes for iteration`).catch(() => { })
 
                 // Create a new flow object containing only the nodes in this iteration block
                 const iterationFlowData: IReactFlowObject = {
@@ -1228,7 +1410,7 @@ const executeNode = async ({
                 // Execute sub-flow for each item in the iteration array
                 for (let i = 0; i < results.input.iterationInput.length; i++) {
                     const item = results.input.iterationInput[i]
-                    logger.debug(`  🔄 Processing iteration ${i + 1}/${results.input.iterationInput.length} recursively`)
+                    logDebug(`  🔄 Processing iteration ${i + 1}/${results.input.iterationInput.length} recursively`).catch(() => { })
 
                     // Create iteration context
                     const iterationContext = {
@@ -1246,10 +1428,8 @@ const executeNode = async ({
                             incomingInput,
                             chatflow: iterationChatflow,
                             chatId,
-                            evaluationRunId,
                             appDataSource,
                             usageCacheManager,
-                            telemetry,
                             cachePool,
                             sseStreamer,
                             baseURL,
@@ -1264,8 +1444,6 @@ const executeNode = async ({
                                 agentflowRuntime
                             },
                             orgId,
-                            workspaceId,
-                            subscriptionId,
                             productId
                         })
 
@@ -1292,12 +1470,28 @@ const executeNode = async ({
                             // Update parent execution record with combined data if we have a parent execution ID
                             if (parentExecutionId) {
                                 try {
-                                    logger.debug(`  📝 Updating parent execution ${parentExecutionId} with iteration ${i + 1} data`)
-                                    await updateExecution(appDataSource, parentExecutionId, workspaceId, {
+                                    logDebug(`  📝 Updating parent execution ${parentExecutionId} with iteration ${i + 1} data`).catch(
+                                        () => { }
+                                    )
+                                    await updateExecution(appDataSource, parentExecutionId, orgId, {
                                         executionData: JSON.stringify(agentFlowExecutedData)
                                     })
                                 } catch (error) {
-                                    console.error(`  ❌ Error updating parent execution: ${getErrorMessage(error)}`)
+                                    // Use new logging system - throw error if logging fails
+                                    const { executionLog } = await import('./logger/module-methods')
+                                    const userId = (incomingInput as any)?.userId || 'system'
+                                    await executionLog('error', `Error updating parent execution: ${getErrorMessage(error)}`, {
+                                        userId,
+                                        executionId: parentExecutionId,
+                                        parentExecutionId: parentExecutionId,
+                                        error: getErrorMessage(error)
+                                    }).catch((logError) => {
+                                        // Throw error if new logging system fails - no fallback
+                                        throw new Error(
+                                            `Failed to log execution error: ${logError instanceof Error ? logError.message : String(logError)
+                                            }. Original error: ${getErrorMessage(error)}`
+                                        )
+                                    })
                                 }
                             }
                         }
@@ -1308,7 +1502,7 @@ const executeNode = async ({
                             subFlowResult.agentflowRuntime.state &&
                             Object.keys(subFlowResult.agentflowRuntime.state).length > 0
                         ) {
-                            logger.debug(`  🔄 Merging iteration ${i + 1} runtime state back to parent`)
+                            logDebug(`  🔄 Merging iteration ${i + 1} runtime state back to parent`).catch(() => { })
 
                             updatedState = {
                                 ...updatedState,
@@ -1322,7 +1516,21 @@ const executeNode = async ({
                             results.state = updatedState
                         }
                     } catch (error) {
-                        console.error(`  ❌ Error in iteration ${i + 1}: ${getErrorMessage(error)}`)
+                        // Use new logging system - throw error if logging fails
+                        const { executionLog } = await import('./logger/module-methods')
+                        const userId = (incomingInput as any)?.userId || 'system'
+                        await executionLog('error', `Error in iteration ${i + 1}: ${getErrorMessage(error)}`, {
+                            userId,
+                            executionId: parentExecutionId,
+                            iteration: i + 1,
+                            error: getErrorMessage(error)
+                        }).catch((logError) => {
+                            // Throw error if new logging system fails - no fallback
+                            throw new Error(
+                                `Failed to log execution error: ${logError instanceof Error ? logError.message : String(logError)
+                                }. Original error: ${getErrorMessage(error)}`
+                            )
+                        })
                         iterationResults.push(`Error in iteration ${i + 1}: ${getErrorMessage(error)}`)
                     }
                 }
@@ -1334,7 +1542,7 @@ const executeNode = async ({
                     content: iterationResults.join('\n')
                 }
 
-                logger.debug(`  📊 Completed all iterations. Total results: ${iterationResults.length}`)
+                logDebug(`  📊 Completed all iterations. Total results: ${iterationResults.length}`).catch(() => { })
             }
         }
 
@@ -1434,7 +1642,7 @@ const executeNode = async ({
 
         return { result: results, agentFlowExecutedData, humanInput: updatedHumanInput }
     } catch (error) {
-        logger.error(`[server]: Error executing node ${nodeId}: ${getErrorMessage(error)}`)
+        logError(`[server]: Error executing node ${nodeId}: ${getErrorMessage(error)}`).catch(() => { })
         throw error
     }
 }
@@ -1476,9 +1684,7 @@ export const executeAgentFlow = async ({
     incomingInput,
     chatflow,
     chatId,
-    evaluationRunId,
     appDataSource,
-    telemetry,
     usageCacheManager,
     cachePool,
     sseStreamer,
@@ -1492,18 +1698,37 @@ export const executeAgentFlow = async ({
     iterationContext,
     isTool = false,
     orgId,
-    workspaceId,
-    subscriptionId,
     productId
 }: IExecuteAgentFlowParams) => {
-    logger.debug('\n🚀 Starting flow execution')
+    logDebug('\n🚀 Starting flow execution').catch(() => { })
+
+    // Wrap componentNodes with LLM tracking proxy for automatic metrics collection
+    const { createLLMTrackingProxy } = await import('./llm-tracking-proxy')
+    const trackedComponentNodes = createLLMTrackingProxy(componentNodes, {
+        chatflowId: chatflow.guid,
+        chatId: chatId,
+        sessionId: iterationContext?.sessionId || incomingInput.overrideConfig?.sessionId || chatId,
+        chatflowType: chatflow.type || 'AGENTFLOW',
+        userId: (incomingInput as any).userId,
+        orgId: orgId || '',
+        executionId: parentExecutionId
+    })
 
     const question = incomingInput.question
     const form = incomingInput.form
     let overrideConfig = incomingInput.overrideConfig ?? {}
     const uploads = incomingInput.uploads
     const userMessageDateTime = new Date()
-    const chatflowid = chatflow.id
+
+    // Validate chatflow and chatflow.guid exists before proceeding
+    if (!chatflow) {
+        throw new Error('Chatflow is required but was not provided.')
+    }
+    if (!chatflow.guid || chatflow.guid.trim() === '') {
+        throw new Error('Chatflow GUID is required but was not provided. Cannot create execution without agentflowId.')
+    }
+
+    const chatflowid = chatflow.guid
     const sessionId = iterationContext?.sessionId || overrideConfig.sessionId || chatId
     const humanInput: IHumanInput | undefined = incomingInput.humanInput
 
@@ -1517,7 +1742,8 @@ export const executeAgentFlow = async ({
     }
 
     const prependedChatHistory = incomingInput.history ?? []
-    const apiMessageId = uuidv4()
+    const { generateGuid } = await import('./guidGenerator')
+    const apiMessageId = generateGuid() // Use 15-character GUID instead of UUID
 
     /*** Get chatflows and prepare data  ***/
     const flowData = chatflow.flowData
@@ -1579,16 +1805,27 @@ export const executeAgentFlow = async ({
 
     // If not a recursive call or parent execution not found, proceed normally
     if (!isRecursive) {
-        const previousExecutions = await appDataSource.getRepository(Execution).find({
-            where: {
-                sessionId,
-                agentflowId: chatflowid,
-                workspaceId
-            },
-            order: {
-                createdDate: 'DESC'
-            }
-        })
+        // Use QueryBuilder for Oracle compatibility (handles column name case correctly)
+        const dbType = (appDataSource.options.type as 'postgres' | 'oracle') || 'postgres'
+        const queryBuilder = appDataSource
+            .getRepository(Execution)
+            .createQueryBuilder('execution')
+
+        // Use actual database column names (not property names) in raw SQL
+        // Oracle stores unquoted identifiers in uppercase, PostgreSQL uses lowercase
+        if (dbType === 'oracle') {
+            queryBuilder
+                .where('execution.SESSIONID = :sessionId', { sessionId })
+                .andWhere('execution.AGENTFLOWID = :agentflowId', { agentflowId: chatflowid })
+        } else {
+            queryBuilder
+                .where('execution.sessionid = :sessionId', { sessionId })
+                .andWhere('execution.agentflowid = :agentflowId', { agentflowId: chatflowid })
+        }
+
+        queryBuilder.orderBy('execution.created_on', 'DESC')
+
+        const previousExecutions = await queryBuilder.getMany()
 
         if (previousExecutions.length) {
             previousExecution = previousExecutions[0]
@@ -1668,7 +1905,7 @@ export const executeAgentFlow = async ({
         // Handle different execution states
         if (previousExecution.state === 'STOPPED') {
             // Normal case - execution is stopped and ready to resume
-            logger.debug(`  ✅ Previous execution is in STOPPED state, ready to resume`)
+            logDebug(`  ✅ Previous execution is in STOPPED state, ready to resume`).catch(() => { })
         } else if (previousExecution.state === 'ERROR') {
             // Check if second-to-last execution item is STOPPED and last is ERROR
             if (executionData.length >= 2) {
@@ -1676,29 +1913,31 @@ export const executeAgentFlow = async ({
                 const secondLastItem = executionData[executionData.length - 2]
 
                 if (lastItem.status === 'ERROR' && secondLastItem.status === 'STOPPED') {
-                    logger.debug(`  🔄 Found ERROR after STOPPED - removing last error item to allow retry`)
-                    logger.debug(`    Removing: ${lastItem.nodeId} (${lastItem.nodeLabel}) - ${lastItem.data?.error || 'Unknown error'}`)
+                    logDebug(`  🔄 Found ERROR after STOPPED - removing last error item to allow retry`).catch(() => { })
+                    logDebug(`    Removing: ${lastItem.nodeId} (${lastItem.nodeLabel}) - ${lastItem.data?.error || 'Unknown error'}`).catch(
+                        () => { }
+                    )
 
                     // Remove the last ERROR item
                     executionData = executionData.slice(0, -1)
                     shouldUpdateExecution = true
                 } else {
                     throw new Error(
-                        `Cannot resume execution ${previousExecution.id} because it is in 'ERROR' state ` +
-                            `and the previous item is not in 'STOPPED' state. Only executions that ended with a ` +
-                            `STOPPED state (or ERROR after STOPPED) can be resumed.`
+                        `Cannot resume execution ${previousExecution.guid} because it is in 'ERROR' state ` +
+                        `and the previous item is not in 'STOPPED' state. Only executions that ended with a ` +
+                        `STOPPED state (or ERROR after STOPPED) can be resumed.`
                     )
                 }
             } else {
                 throw new Error(
-                    `Cannot resume execution ${previousExecution.id} because it is in 'ERROR' state ` +
-                        `with insufficient execution data. Only executions in 'STOPPED' state can be resumed.`
+                    `Cannot resume execution ${previousExecution.guid} because it is in 'ERROR' state ` +
+                    `with insufficient execution data. Only executions in 'STOPPED' state can be resumed.`
                 )
             }
         } else {
             throw new Error(
-                `Cannot resume execution ${previousExecution.id} because it is in '${previousExecution.state}' state. ` +
-                    `Only executions in 'STOPPED' state (or 'ERROR' after 'STOPPED') can be resumed.`
+                `Cannot resume execution ${previousExecution.guid} because it is in '${previousExecution.state}' state. ` +
+                `Only executions in 'STOPPED' state (or 'ERROR' after 'STOPPED') can be resumed.`
             )
         }
 
@@ -1714,7 +1953,7 @@ export const executeAgentFlow = async ({
             }
 
             startNodeId = stoppedNode.nodeId
-            logger.debug(`  🔍 Auto-detected stopped node to resume from: ${startNodeId} (${stoppedNode.nodeLabel})`)
+            logDebug(`  🔍 Auto-detected stopped node to resume from: ${startNodeId} (${stoppedNode.nodeLabel})`).catch(() => { })
         }
 
         // Verify that the node exists in previous execution
@@ -1723,7 +1962,7 @@ export const executeAgentFlow = async ({
         if (!nodeExists) {
             throw new Error(
                 `Node ${startNodeId} not found in previous execution. ` +
-                    `This could indicate an invalid resume attempt or a modified flow.`
+                `This could indicate an invalid resume attempt or a modified flow.`
             )
         }
 
@@ -1734,8 +1973,8 @@ export const executeAgentFlow = async ({
 
         // Update execution data if we removed an error item
         if (shouldUpdateExecution) {
-            logger.debug(`  📝 Updating execution data after removing error item`)
-            await updateExecution(appDataSource, previousExecution.id, workspaceId, {
+            logDebug(`  📝 Updating execution data after removing error item`).catch(() => { })
+            await updateExecution(appDataSource, previousExecution.guid, orgId || '', {
                 executionData: JSON.stringify(executionData),
                 state: 'INPROGRESS'
             })
@@ -1748,11 +1987,11 @@ export const executeAgentFlow = async ({
         agentflowRuntime.state = (lastState as ICommonObject) ?? {}
 
         // Update execution state to INPROGRESS
-        await updateExecution(appDataSource, previousExecution.id, workspaceId, {
+        await updateExecution(appDataSource, previousExecution.guid, orgId || '', {
             state: 'INPROGRESS'
         })
         newExecution = previousExecution
-        parentExecutionId = previousExecution.id
+        parentExecutionId = previousExecution.guid
 
         // Update humanInput with the resolved startNodeId
         humanInput.startNodeId = startNodeId
@@ -1764,16 +2003,25 @@ export const executeAgentFlow = async ({
         // For recursive calls with a valid parent execution ID, don't create a new execution
         // Instead, fetch the parent execution to use it
         const parentExecution = await appDataSource.getRepository(Execution).findOne({
-            where: { id: parentExecutionId, workspaceId }
+            where: { guid: parentExecutionId }
         })
 
         if (parentExecution) {
-            logger.debug(`   📝 Using parent execution ID: ${parentExecutionId} for recursive call (iteration: ${!!iterationContext})`)
+            logDebug(`   📝 Using parent execution ID: ${parentExecutionId} for recursive call (iteration: ${!!iterationContext})`).catch(
+                () => { }
+            )
             newExecution = parentExecution
         } else {
             console.warn(`   ⚠️ Parent execution ID ${parentExecutionId} not found, will create new execution`)
-            newExecution = await addExecution(appDataSource, chatflowid, agentFlowExecutedData, sessionId, workspaceId)
-            parentExecutionId = newExecution.id
+            newExecution = await addExecution(
+                appDataSource,
+                chatflowid,
+                agentFlowExecutedData,
+                sessionId,
+                orgId || '',
+                (incomingInput as any).userId
+            )
+            parentExecutionId = newExecution.guid
         }
     } else {
         const { startingNodeIds: startingNodeIdsFromFlow } = getStartingNode(nodeDependencies)
@@ -1781,8 +2029,15 @@ export const executeAgentFlow = async ({
         checkForMultipleStartNodes(startingNodeIds, isRecursive, nodes)
 
         // Only create a new execution if this is not a recursive call
-        newExecution = await addExecution(appDataSource, chatflowid, agentFlowExecutedData, sessionId, workspaceId)
-        parentExecutionId = newExecution.id
+        newExecution = await addExecution(
+            appDataSource,
+            chatflowid,
+            agentFlowExecutedData,
+            sessionId,
+            orgId || '',
+            (incomingInput as any).userId
+        )
+        parentExecutionId = newExecution.guid
     }
 
     // Add starting nodes to queue
@@ -1805,7 +2060,7 @@ export const executeAgentFlow = async ({
                 sessionId
             },
             order: {
-                createdDate: 'ASC'
+                created_on: 'ASC'
             }
         })
         .then((messages) =>
@@ -1882,7 +2137,6 @@ export const executeAgentFlow = async ({
             }
             analyticHandlers = AnalyticHandler.getInstance({ inputs: { analytics: analyticInputs } } as any, {
                 orgId,
-                workspaceId,
                 appDataSource,
                 databaseEntities,
                 componentNodes,
@@ -1896,12 +2150,12 @@ export const executeAgentFlow = async ({
             )
         }
     } catch (error) {
-        logger.error(`[server]: Error initializing analytic handlers: ${getErrorMessage(error)}`)
+        logError(`[server]: Error initializing analytic handlers: ${getErrorMessage(error)}`).catch(() => { })
     }
 
     while (nodeExecutionQueue.length > 0 && status === 'INPROGRESS') {
-        logger.debug(`\n▶️  Iteration ${iterations + 1}:`)
-        logger.debug(`   Queue: [${nodeExecutionQueue.map((n) => n.nodeId).join(', ')}]`)
+        logDebug(`\n▶️  Iteration ${iterations + 1}:`).catch(() => { })
+        logDebug(`   Queue: [${nodeExecutionQueue.map((n) => n.nodeId).join(', ')}]`).catch(() => { })
 
         if (iterations === 0 && !isRecursive) {
             sseStreamer?.streamAgentFlowEvent(chatId, 'INPROGRESS')
@@ -1924,7 +2178,7 @@ export const executeAgentFlow = async ({
                 throw new Error('Aborted')
             }
 
-            logger.debug(`   🎯 Executing node: ${reactFlowNode?.data.label}`)
+            logDebug(`   🎯 Executing node: ${reactFlowNode?.data.label}`).catch(() => { })
 
             // Execute current node
             const executionResult = await executeNode({
@@ -1939,15 +2193,13 @@ export const executeAgentFlow = async ({
                 chatId,
                 sessionId,
                 apiMessageId,
-                evaluationRunId,
                 parentExecutionId,
                 isInternal,
                 pastChatHistory,
                 prependedChatHistory,
                 appDataSource,
                 usageCacheManager,
-                telemetry,
-                componentNodes,
+                componentNodes: trackedComponentNodes,
                 cachePool,
                 sseStreamer,
                 baseURL,
@@ -1966,9 +2218,7 @@ export const executeAgentFlow = async ({
                 isRecursive,
                 iterationContext,
                 loopCounts,
-                orgId,
-                workspaceId,
-                subscriptionId,
+                orgId: orgId || '',
                 productId
             })
 
@@ -2045,7 +2295,8 @@ export const executeAgentFlow = async ({
         } catch (error) {
             const isAborted = getErrorMessage(error).includes('Aborted')
             const errorStatus = isAborted ? 'TERMINATED' : 'ERROR'
-            const errorMessage = isAborted ? 'Flow execution was cancelled' : getErrorMessage(error)
+            // Sanitize error message for frontend (logs full error server-side)
+            const errorMessage = isAborted ? 'Flow execution was cancelled' : sanitizeErrorMessage(error, logError)
 
             status = errorStatus
 
@@ -2074,7 +2325,7 @@ export const executeAgentFlow = async ({
             if (!isRecursive) {
                 sseStreamer?.streamAgentFlowExecutedDataEvent(chatId, agentFlowExecutedData)
 
-                await updateExecution(appDataSource, newExecution.id, workspaceId, {
+                await updateExecution(appDataSource, newExecution.guid, orgId || '', {
                     executionData: JSON.stringify(agentFlowExecutedData),
                     state: errorStatus
                 })
@@ -2089,7 +2340,7 @@ export const executeAgentFlow = async ({
             throw new Error(errorMessage)
         }
 
-        logger.debug(`/////////////////////////////////////////////////////////////////////////////`)
+        logDebug(`/////////////////////////////////////////////////////////////////////////////`).catch(() => { })
     }
 
     // check if there is any status stopped from agentFlowExecutedData
@@ -2109,7 +2360,7 @@ export const executeAgentFlow = async ({
 
     // Only update execution record if this is not a recursive call
     if (!isRecursive) {
-        await updateExecution(appDataSource, newExecution.id, workspaceId, {
+        await updateExecution(appDataSource, newExecution.guid, orgId || '', {
             executionData: JSON.stringify(agentFlowExecutedData),
             state: status
         })
@@ -2117,8 +2368,8 @@ export const executeAgentFlow = async ({
         sseStreamer?.streamAgentFlowEvent(chatId, status)
     }
 
-    logger.debug(`\n🏁 Flow execution completed`)
-    logger.debug(`   Status: ${status}`)
+    logDebug(`\n🏁 Flow execution completed`).catch(() => { })
+    logDebug(`   Status: ${status}`).catch(() => { })
 
     // check if last agentFlowExecutedData.data.output contains the key "content"
     const lastNodeOutput = agentFlowExecutedData[agentFlowExecutedData.length - 1].data?.output as ICommonObject | undefined
@@ -2131,7 +2382,7 @@ export const executeAgentFlow = async ({
             chatflowConfig = typeof chatflow.chatbotConfig === 'string' ? JSON.parse(chatflow.chatbotConfig) : chatflow.chatbotConfig
         }
     } catch (e) {
-        logger.error('[server]: Error parsing chatflow config:', e)
+        logError('[server]: Error parsing chatflow config:', e).catch(() => { })
     }
 
     if (chatflowConfig?.postProcessing?.enabled === true && content) {
@@ -2160,9 +2411,8 @@ export const executeAgentFlow = async ({
                 },
                 appDataSource,
                 databaseEntities,
-                workspaceId,
                 orgId,
-                logger
+                logger: { error: logError }
             }
             const customFuncNodeInstance = new nodeModule.nodeClass()
             const customFunctionResponse = await customFuncNodeInstance.run(nodeData, question || form, options)
@@ -2175,7 +2425,7 @@ export const executeAgentFlow = async ({
                 content = moderatedResponse
             }
         } catch (e) {
-            logger.error('[server]: Post Processing Error:', e)
+            logError('[server]: Post Processing Error:', e).catch(() => { })
         }
     }
 
@@ -2200,9 +2450,9 @@ export const executeAgentFlow = async ({
         let query = await appDataSource
             .getRepository(ChatMessage)
             .createQueryBuilder('chat_message')
-            .where('chat_message.chatId = :chatId', { chatId })
-            .orWhere('chat_message.sessionId = :sessionId', { sessionId })
-            .orderBy('chat_message.createdDate', 'DESC')
+            .where('chat_message.chatid = :chatId', { chatId })
+            .orWhere('chat_message.sessionid = :sessionId', { sessionId })
+            .orderBy('chat_message.created_on', 'DESC')
             .getMany()
 
         for (const result of query) {
@@ -2235,29 +2485,81 @@ export const executeAgentFlow = async ({
         }
     }
 
-    const userMessage: Omit<IChatMessage, 'id'> = {
+    const userIdNum = (incomingInput as any).userId ? parseInt((incomingInput as any).userId) : undefined
+    const userMessage: Omit<IChatMessage, 'guid' | 'id'> = {
         role: 'userMessage',
         content: finalUserInput,
         chatflowid,
-        chatType: evaluationRunId ? ChatType.EVALUATION : isInternal ? ChatType.INTERNAL : ChatType.EXTERNAL,
+        chatType: isInternal ? ChatType.INTERNAL : ChatType.EXTERNAL,
         chatId,
         sessionId,
-        createdDate: userMessageDateTime,
+        created_on: userMessageDateTime.getTime(),
+        created_by: userIdNum || 0,
         fileUploads: uploads ? JSON.stringify(fileUploads) : undefined,
-        leadEmail: incomingInput.leadEmail,
-        executionId: newExecution.id
+        // leadEmail: incomingInput.leadEmail, // Leads feature removed for autonomous server deployment
+        executionId: newExecution.guid
     }
-    await utilAddChatMessage(userMessage, appDataSource)
+    if (!orgId) {
+        throw new Error('orgId is required for utilAddChatMessage in buildAgentflow')
+    }
+    await utilAddChatMessage(userMessage, appDataSource, orgId, userIdNum)
 
-    const apiMessage: Omit<IChatMessage, 'createdDate'> = {
-        id: apiMessageId,
+    // Log agentflow execution start
+    const userId = (incomingInput as any).userId
+    if (orgId) {
+        await agentflowLog('info', 'Agentflow execution started', {
+            userId: userId || 'anonymous',
+            orgId,
+            chatflowId: chatflowid,
+            chatId,
+            sessionId,
+            questionLength: finalUserInput.length,
+            executionId: newExecution.guid,
+            isInternal
+        }).catch(() => { }) // Don't fail if logging fails
+
+        // Also log to assistant service group if this is an assistant query
+        if (chatflow.type === 'ASSISTANT') {
+            try {
+                const { assistantLog } = await import('./logger/module-methods')
+                await assistantLog('info', 'Assistant query started', {
+                    userId: userId || 'anonymous',
+                    orgId,
+                    assistantId: chatflowid, // For assistants, chatflowId is the assistantId
+                    chatflowId: chatflowid,
+                    chatId,
+                    sessionId,
+                    questionLength: finalUserInput.length,
+                    executionId: newExecution.guid,
+                    isInternal
+                }).catch(() => { }) // Don't fail if logging fails
+            } catch (logError) {
+                // Silently fail - logging should not break execution
+            }
+        }
+    }
+
+    // Update chat session after user message (if userId available)
+    if (userId && orgId && chatId) {
+        try {
+            await chatSessionsService.updateChatSessionOnMessage(chatflowid, chatId, orgId, userId, finalUserInput || '', 'user')
+        } catch (error) {
+            // Log but don't fail if session update fails
+            logDebug(`[server]: Failed to update chat session: ${getErrorMessage(error)}`).catch(() => { })
+        }
+    }
+
+    const apiMessage: Partial<IChatMessage> = {
+        guid: apiMessageId,
         role: 'apiMessage',
         content: content,
         chatflowid,
-        chatType: evaluationRunId ? ChatType.EVALUATION : isInternal ? ChatType.INTERNAL : ChatType.EXTERNAL,
+        chatType: isInternal ? ChatType.INTERNAL : ChatType.EXTERNAL,
         chatId,
         sessionId,
-        executionId: newExecution.id
+        created_on: Date.now(),
+        created_by: userIdNum || 0,
+        executionId: newExecution.guid
     }
     if (lastNodeOutput?.sourceDocuments) apiMessage.sourceDocuments = JSON.stringify(lastNodeOutput.sourceDocuments)
     if (lastNodeOutput?.usedTools) apiMessage.usedTools = JSON.stringify(lastNodeOutput.usedTools)
@@ -2265,10 +2567,9 @@ export const executeAgentFlow = async ({
     if (lastNodeOutput?.artifacts) apiMessage.artifacts = JSON.stringify(lastNodeOutput.artifacts)
     if (chatflow.followUpPrompts) {
         const followUpPromptsConfig = JSON.parse(chatflow.followUpPrompts)
-        const followUpPrompts = await generateFollowUpPrompts(followUpPromptsConfig, apiMessage.content, {
-            orgId,
-            workspaceId,
-            chatId,
+        const followUpPrompts = await generateFollowUpPrompts(followUpPromptsConfig, apiMessage.content || '', {
+            orgId: orgId || '',
+            chatId: chatId || '',
             chatflowid,
             appDataSource,
             databaseEntities
@@ -2280,23 +2581,60 @@ export const executeAgentFlow = async ({
     if (lastNodeOutput?.humanInputAction && Object.keys(lastNodeOutput.humanInputAction).length)
         apiMessage.action = JSON.stringify(lastNodeOutput.humanInputAction)
 
-    const chatMessage = await utilAddChatMessage(apiMessage, appDataSource)
+    if (!orgId) {
+        throw new Error('orgId is required for utilAddChatMessage in buildAgentflow')
+    }
+    const chatMessage = await utilAddChatMessage(apiMessage, appDataSource, orgId, userIdNum)
 
-    logger.debug(`[server]: Finished running agentflow ${chatflowid}`)
-
-    await telemetry.sendTelemetry(
-        'prediction_sent',
-        {
-            version: await getAppVersion(),
+    // Log agentflow execution completion
+    if (orgId) {
+        await agentflowLog('info', 'Agentflow execution completed', {
+            userId: userId || 'anonymous',
+            orgId,
             chatflowId: chatflowid,
             chatId,
-            type: evaluationRunId ? ChatType.EVALUATION : isInternal ? ChatType.INTERNAL : ChatType.EXTERNAL,
-            flowGraph: getTelemetryFlowObj(nodes, edges),
-            productId,
-            subscriptionId
-        },
-        orgId
-    )
+            sessionId,
+            responseLength: content?.length || 0,
+            executionId: newExecution.guid,
+            hasSourceDocuments: !!lastNodeOutput?.sourceDocuments,
+            hasUsedTools: !!lastNodeOutput?.usedTools
+        }).catch(() => { }) // Don't fail if logging fails
+
+        // Also log to assistant service group if this is an assistant query
+        if (chatflow.type === 'ASSISTANT') {
+            try {
+                const { assistantLog } = await import('./logger/module-methods')
+                await assistantLog('info', 'Assistant query completed', {
+                    userId: userId || 'anonymous',
+                    orgId,
+                    assistantId: chatflowid, // For assistants, chatflowId is the assistantId
+                    chatflowId: chatflowid,
+                    chatId,
+                    sessionId,
+                    responseLength: content?.length || 0,
+                    executionId: newExecution.guid,
+                    hasSourceDocuments: !!lastNodeOutput?.sourceDocuments,
+                    hasUsedTools: !!lastNodeOutput?.usedTools
+                }).catch(() => { }) // Don't fail if logging fails
+            } catch (logError) {
+                // Silently fail - logging should not break execution
+            }
+        }
+    }
+
+    // Update chat session after api message (if userId available)
+    if (userId && orgId && chatId) {
+        try {
+            await chatSessionsService.updateChatSessionOnMessage(chatflowid, chatId, orgId, userId, content || '', 'api')
+        } catch (error) {
+            // Log but don't fail if session update fails
+            logDebug(`[server]: Failed to update chat session: ${getErrorMessage(error)}`).catch(() => { })
+        }
+    }
+
+    logDebug(`[server]: Finished running agentflow ${chatflowid}`).catch(() => { })
+
+    // Telemetry removed
 
     /*** Prepare response ***/
     let result: ICommonObject = {}
@@ -2304,9 +2642,9 @@ export const executeAgentFlow = async ({
     result.question = incomingInput.question // return the question in the response, this is used when input text is empty but question is in audio format
     result.form = form
     result.chatId = chatId
-    result.chatMessageId = chatMessage?.id
+    result.chatMessageId = chatMessage?.guid
     result.followUpPrompts = JSON.stringify(apiMessage.followUpPrompts)
-    result.executionId = newExecution.id
+    result.executionId = newExecution.guid
     result.agentFlowExecutedData = agentFlowExecutedData
 
     if (sessionId) result.sessionId = sessionId
@@ -2326,7 +2664,7 @@ export const executeAgentFlow = async ({
                 chatflow.textToSpeech,
                 options,
                 chatId,
-                chatMessage?.id,
+                chatMessage?.guid,
                 sseStreamer,
                 abortController
             )

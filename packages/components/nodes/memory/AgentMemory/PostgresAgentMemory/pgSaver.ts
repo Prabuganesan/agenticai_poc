@@ -274,7 +274,7 @@ CREATE TABLE IF NOT EXISTS ${tableName} (
                 chatflowid: this.config.chatflowid
             },
             order: {
-                createdDate: 'ASC'
+                created_on: 'ASC'
             }
         })
 

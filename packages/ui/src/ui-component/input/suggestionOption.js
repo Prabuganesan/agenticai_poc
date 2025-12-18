@@ -112,7 +112,7 @@ export const suggestionOptions = (
                 category: 'Node Outputs'
             })
 
-            const structuredOutputs = nodeData?.inputs?.llmStructuredOutput ?? nodeData?.inputs?.agentStructuredOutput ?? []
+            const structuredOutputs = nodeData?.inputs?.llmStructuredOutput ?? []
             if (structuredOutputs && structuredOutputs.length > 0) {
                 structuredOutputs.forEach((item) => {
                     defaultItems.unshift({

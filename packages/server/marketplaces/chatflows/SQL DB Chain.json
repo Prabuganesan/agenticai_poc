@@ -201,7 +201,7 @@
                         "options": [
                             {
                                 "label": "SQLite",
-                                "name": "sqlite"
+                                "name": "better-sqlite3"
                             },
                             {
                                 "label": "PostgreSQL",
@@ -216,7 +216,7 @@
                                 "name": "mysql"
                             }
                         ],
-                        "default": "sqlite",
+                        "default": "better-sqlite3",
                         "id": "sqlDatabaseChain_0-input-database-options"
                     },
                     {
@@ -299,7 +299,7 @@
                 "inputs": {
                     "inputModeration": "",
                     "model": "{{chatOpenAI_0.data.instance}}",
-                    "database": "sqlite",
+                    "database": "better-sqlite3",
                     "url": "",
                     "customPrompt": ""
                 },

@@ -4,11 +4,15 @@ import {
     UnstructuredLoaderOptions,
     UnstructuredLoaderStrategy,
     SkipInferTableTypes,
-    HiResModelName
+    HiResModelName,
+    UnstructuredLoader as LCUnstructuredLoader
 } from '@langchain/community/document_loaders/fs/unstructured'
 import { getCredentialData, getCredentialParam, handleEscapeCharacters } from '../../../src/utils'
 import { getFileFromStorage, INodeOutputsValue } from '../../../src'
 import { UnstructuredLoader } from './Unstructured'
+import { isPathTraversal } from '../../../src/validator'
+import sanitize from 'sanitize-filename'
+import path from 'path'
 
 class UnstructuredFile_DocumentLoaders implements INode {
     label: string
@@ -40,6 +44,17 @@ class UnstructuredFile_DocumentLoaders implements INode {
             optional: true
         }
         this.inputs = [
+            /** Deprecated
+            {
+                label: 'File Path',
+                name: 'filePath',
+                type: 'string',
+                placeholder: '',
+                optional: true,
+                warning:
+                    'Use the File Upload instead of File path. If file is uploaded, this path is ignored. Path will be deprecated in future releases.'
+            },
+             */
             {
                 label: 'Files Upload',
                 name: 'fileObject',
@@ -440,6 +455,7 @@ class UnstructuredFile_DocumentLoaders implements INode {
     }
 
     async init(nodeData: INodeData, _: string, options: ICommonObject): Promise<any> {
+        const filePath = nodeData.inputs?.filePath as string
         const unstructuredAPIUrl = nodeData.inputs?.unstructuredAPIUrl as string
         const strategy = nodeData.inputs?.strategy as UnstructuredLoaderStrategy
         const encoding = nodeData.inputs?.encoding as string
@@ -544,8 +560,37 @@ class UnstructuredFile_DocumentLoaders implements INode {
                     docs.push(...loaderDocs)
                 }
             }
+        } else if (filePath) {
+            if (!filePath || typeof filePath !== 'string') {
+                throw new Error('Invalid file path format')
+            }
+
+            if (isPathTraversal(filePath)) {
+                throw new Error('Invalid path characters detected in filePath - path traversal not allowed')
+            }
+
+            const parsedPath = path.parse(filePath)
+            const sanitizedFilename = sanitize(parsedPath.base)
+
+            if (!sanitizedFilename || sanitizedFilename.trim() === '') {
+                throw new Error('Invalid filename after sanitization')
+            }
+
+            const sanitizedFilePath = path.join(parsedPath.dir, sanitizedFilename)
+
+            if (!path.isAbsolute(sanitizedFilePath)) {
+                throw new Error('File path must be absolute')
+            }
+
+            if (sanitizedFilePath.includes('..')) {
+                throw new Error('Invalid file path - directory traversal not allowed')
+            }
+
+            const loader = new LCUnstructuredLoader(sanitizedFilePath, obj)
+            const loaderDocs = await loader.load()
+            docs.push(...loaderDocs)
         } else {
-            throw new Error('File upload is required')
+            throw new Error('File path or File upload is required')
         }
 
         if (metadata) {

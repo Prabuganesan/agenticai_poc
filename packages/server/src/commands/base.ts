@@ -1,7 +1,7 @@
 import { Command, Flags } from '@oclif/core'
 import dotenv from 'dotenv'
 import path from 'path'
-import logger from '../utils/logger'
+// Old logger removed - use new logging system from '../utils/logger/system-helper'
 
 dotenv.config({ path: path.join(__dirname, '..', '..', '.env'), override: true })
 
@@ -12,52 +12,36 @@ enum EXIT_CODE {
 
 export abstract class BaseCommand extends Command {
     static flags = {
-        // General Settings
-        FLOWISE_FILE_SIZE_LIMIT: Flags.string(),
-        PORT: Flags.string(),
-        CORS_ORIGINS: Flags.string(),
-        IFRAME_ORIGINS: Flags.string(),
-        DEBUG: Flags.string(),
-        NUMBER_OF_PROXIES: Flags.string(),
-        SHOW_COMMUNITY_NODES: Flags.string(),
-        DISABLE_FLOWISE_TELEMETRY: Flags.string(),
-        DISABLED_NODES: Flags.string(),
+        // Data Path
+        AUTONOMOUS_DATA_PATH: Flags.string({
+            description: 'Base path for all autonomous server data (database, uploads, logs, etc.). Defaults to server folder/.autonomous'
+        }),
 
-        // Logging
-        LOG_PATH: Flags.string(),
+        // Encryption
+        ENABLE_E2E_ENCRYPTION: Flags.string({
+            description: 'Enable end-to-end encryption for requests/responses/SSE'
+        }),
+
+        // TOON Format
+        ENABLE_TOON_FORMAT: Flags.string({
+            description: 'Enable TOON format processing for LLM inputs and outputs'
+        }),
+
+        // Logging Flags
+        LOG_ENABLED: Flags.string({
+            description: 'Global master switch for all logging'
+        }),
+        LOG_SYSTEM_ENABLED: Flags.string(),
+        LOG_WORKFLOWS_ENABLED: Flags.string(),
+        LOG_SERVICES_ENABLED: Flags.string(),
+        LOG_STORAGE_ENABLED: Flags.string(),
+        LOG_INFRASTRUCTURE_ENABLED: Flags.string(),
         LOG_LEVEL: Flags.string(),
         LOG_SANITIZE_BODY_FIELDS: Flags.string(),
         LOG_SANITIZE_HEADER_FIELDS: Flags.string(),
 
-        // Custom tool/function dependencies
-        TOOL_FUNCTION_BUILTIN_DEP: Flags.string(),
-        TOOL_FUNCTION_EXTERNAL_DEP: Flags.string(),
-        ALLOW_BUILTIN_DEP: Flags.string(),
-
-        // Database
-        DATABASE_TYPE: Flags.string(),
-        DATABASE_PATH: Flags.string(),
-        DATABASE_PORT: Flags.string(),
-        DATABASE_HOST: Flags.string(),
-        DATABASE_NAME: Flags.string(),
-        DATABASE_USER: Flags.string(),
-        DATABASE_PASSWORD: Flags.string(),
-        DATABASE_SSL: Flags.string(),
-        DATABASE_SSL_KEY_BASE64: Flags.string(),
-        DATABASE_REJECT_UNAUTHORIZED: Flags.string(),
-
-        // Langsmith tracing
-        LANGCHAIN_TRACING_V2: Flags.string(),
-        LANGCHAIN_ENDPOINT: Flags.string(),
-        LANGCHAIN_API_KEY: Flags.string(),
-        LANGCHAIN_PROJECT: Flags.string(),
-
-        // Model list config
-        MODEL_LIST_CONFIG_JSON: Flags.string(),
-
         // Storage
         STORAGE_TYPE: Flags.string(),
-        BLOB_STORAGE_PATH: Flags.string(),
         S3_STORAGE_BUCKET_NAME: Flags.string(),
         S3_STORAGE_ACCESS_KEY_ID: Flags.string(),
         S3_STORAGE_SECRET_ACCESS_KEY: Flags.string(),
@@ -69,87 +53,100 @@ export abstract class BaseCommand extends Command {
         GOOGLE_CLOUD_STORAGE_BUCKET_NAME: Flags.string(),
         GOOGLE_CLOUD_UNIFORM_BUCKET_ACCESS: Flags.string(),
 
-        // Credentials / Secret Keys
-        SECRETKEY_STORAGE_TYPE: Flags.string(),
-        SECRETKEY_PATH: Flags.string(),
-        FLOWISE_SECRETKEY_OVERWRITE: Flags.string(),
-        SECRETKEY_AWS_ACCESS_KEY: Flags.string(),
-        SECRETKEY_AWS_SECRET_KEY: Flags.string(),
-        SECRETKEY_AWS_REGION: Flags.string(),
-        SECRETKEY_AWS_NAME: Flags.string(),
+        // Server Settings
+        SERVER_HOST: Flags.string(),
+        SERVER_PORT: Flags.string(),
+        CONTEXT_PATH: Flags.string(),
+        CORS_ORIGINS: Flags.string(),
+        IFRAME_ORIGINS: Flags.string(),
+        CHATBOT_IFRAME_ORIGINS: Flags.string(),
+        AUTONOMOUS_FILE_SIZE_LIMIT: Flags.string(),
+        NUMBER_OF_PROXIES: Flags.string(),
+        TRUST_PROXY: Flags.string(),
 
-        // Queue
-        MODE: Flags.string(),
-        WORKER_CONCURRENCY: Flags.string(),
+        // Session Configuration
+        SESSION_COOKIE_MAX_AGE: Flags.string(),
+        SESSION_COOKIE_DOMAIN: Flags.string(),
+        SESSION_COOKIE_PATH: Flags.string(),
+        SESSION_COOKIE_HTTP_ONLY: Flags.string(),
+        SESSION_COOKIE_SECURE: Flags.string(),
+        SESSION_COOKIE_SAME_SITE: Flags.string(),
+
+        // Main Database (for org configs)
+        MAIN_DB_HOST: Flags.string(),
+        MAIN_DB_PORT: Flags.string(),
+        MAIN_DB_DATABASE: Flags.string(),
+        MAIN_DB_USER: Flags.string(),
+        MAIN_DB_PASSWORD: Flags.string(),
+        MAIN_DB_TYPE: Flags.string(),
+        DB_POOL_SIZE: Flags.string(),
+        DB_SSL: Flags.string(),
+        ENABLE_TABLE_CREATION: Flags.string(),
+
+        // Legacy Database Flags (deprecated, kept for backward compatibility)
+        DATABASE_TYPE: Flags.string(),
+        DATABASE_PORT: Flags.string(),
+        DATABASE_HOST: Flags.string(),
+        DATABASE_NAME: Flags.string(),
+        DATABASE_USER: Flags.string(),
+        DATABASE_PASSWORD: Flags.string(),
+        DATABASE_SSL: Flags.string(),
+        DATABASE_SSL_KEY_BASE64: Flags.string(),
+
+        // Redis Configuration
+        REDIS_DB_SESSION: Flags.string({
+            description: 'Redis DB number for sessions'
+        }),
+        REDIS_DB_QUEUE: Flags.string({
+            description: 'Redis DB number for BullMQ queues'
+        }),
+        REDIS_KEEP_ALIVE: Flags.string(),
+
+        // Queue Configuration
+        MODE: Flags.string({
+            description: 'Server mode: queue or main'
+        }),
         QUEUE_NAME: Flags.string(),
+        WORKER_CONCURRENCY: Flags.string(),
         QUEUE_REDIS_EVENT_STREAM_MAX_LEN: Flags.string(),
         REMOVE_ON_AGE: Flags.string(),
         REMOVE_ON_COUNT: Flags.string(),
-        REDIS_URL: Flags.string(),
-        REDIS_HOST: Flags.string(),
-        REDIS_PORT: Flags.string(),
-        REDIS_USERNAME: Flags.string(),
-        REDIS_PASSWORD: Flags.string(),
-        REDIS_TLS: Flags.string(),
-        REDIS_CERT: Flags.string(),
-        REDIS_KEY: Flags.string(),
-        REDIS_CA: Flags.string(),
-        REDIS_KEEP_ALIVE: Flags.string(),
         ENABLE_BULLMQ_DASHBOARD: Flags.string(),
 
-        // Security
-        CUSTOM_MCP_SECURITY_CHECK: Flags.string(),
-        CUSTOM_MCP_PROTOCOL: Flags.string(),
-        HTTP_DENY_LIST: Flags.string(),
-        TRUST_PROXY: Flags.string(),
-
-        // Auth
-        APP_URL: Flags.string(),
-        SMTP_HOST: Flags.string(),
-        SMTP_PORT: Flags.string(),
-        SMTP_USER: Flags.string(),
-        SMTP_PASSWORD: Flags.string(),
-        SMTP_SECURE: Flags.string(),
-        ALLOW_UNAUTHORIZED_CERTS: Flags.string(),
-        SENDER_EMAIL: Flags.string(),
-        JWT_AUTH_TOKEN_SECRET: Flags.string(),
-        JWT_REFRESH_TOKEN_SECRET: Flags.string(),
-        JWT_ISSUER: Flags.string(),
-        JWT_AUDIENCE: Flags.string(),
-        JWT_TOKEN_EXPIRY_IN_MINUTES: Flags.string(),
-        JWT_REFRESH_TOKEN_EXPIRY_IN_MINUTES: Flags.string(),
-        EXPIRE_AUTH_TOKENS_ON_RESTART: Flags.string(),
-        EXPRESS_SESSION_SECRET: Flags.string(),
-        SECURE_COOKIES: Flags.string(),
-        INVITE_TOKEN_EXPIRY_IN_HOURS: Flags.string(),
-        PASSWORD_RESET_TOKEN_EXPIRY_IN_MINS: Flags.string(),
-        PASSWORD_SALT_HASH_ROUNDS: Flags.string(),
-        TOKEN_HASH_SECRET: Flags.string(),
-        WORKSPACE_INVITE_TEMPLATE_PATH: Flags.string(),
-
-        // Enterprise
-        LICENSE_URL: Flags.string(),
-        FLOWISE_EE_LICENSE_KEY: Flags.string(),
-        OFFLINE: Flags.string(),
+        // Autonomous-specific
+        APPBUILDER_SHORT_CODE: Flags.string(),
+        APPDESIGNER_SHORT_CODE: Flags.string(),
+        APPPUBLISHER_SHORT_CODE: Flags.string(),
+        LICENSE_CODE: Flags.string(),
+        SIMPLE_CRYPTO_KEY: Flags.string(),
 
         // Metrics
-        POSTHOG_PUBLIC_API_KEY: Flags.string(),
         ENABLE_METRICS: Flags.string(),
         METRICS_PROVIDER: Flags.string(),
         METRICS_INCLUDE_NODE_METRICS: Flags.string(),
         METRICS_SERVICE_NAME: Flags.string(),
-        METRICS_OPEN_TELEMETRY_METRIC_ENDPOINT: Flags.string(),
-        METRICS_OPEN_TELEMETRY_PROTOCOL: Flags.string(),
-        METRICS_OPEN_TELEMETRY_DEBUG: Flags.string(),
 
-        // Proxy
-        GLOBAL_AGENT_HTTP_PROXY: Flags.string(),
-        GLOBAL_AGENT_HTTPS_PROXY: Flags.string(),
-        GLOBAL_AGENT_NO_PROXY: Flags.string(),
+        // Node Configuration
+        SHOW_COMMUNITY_NODES: Flags.string(),
+        DISABLED_NODES: Flags.string(),
+        MODEL_LIST_CONFIG_JSON: Flags.string(),
+        DEBUG: Flags.string(),
 
-        // Document Loaders
-        PUPPETEER_EXECUTABLE_FILE_PATH: Flags.string(),
-        PLAYWRIGHT_EXECUTABLE_FILE_PATH: Flags.string()
+        // Tool/Function Dependencies
+        TOOL_FUNCTION_BUILTIN_DEP: Flags.string(),
+        TOOL_FUNCTION_EXTERNAL_DEP: Flags.string(),
+        ALLOW_BUILTIN_DEP: Flags.string(),
+
+        // LangChain Tracing
+        LANGCHAIN_TRACING_V2: Flags.string(),
+        LANGCHAIN_ENDPOINT: Flags.string(),
+        LANGCHAIN_API_KEY: Flags.string(),
+        LANGCHAIN_PROJECT: Flags.string(),
+
+        // Security
+        CUSTOM_MCP_SECURITY_CHECK: Flags.string(),
+        CUSTOM_MCP_PROTOCOL: Flags.string(),
+        HTTP_DENY_LIST: Flags.string()
     }
 
     protected async stopProcess() {
@@ -161,13 +158,15 @@ export abstract class BaseCommand extends Command {
             try {
                 // Shut down the app after timeout if it ever stuck removing pools
                 setTimeout(async () => {
-                    logger.info('Flowise was forced to shut down after 30 secs')
+                    const { logInfo } = await import('../utils/logger/system-helper')
+                    logInfo('Autonomous was forced to shut down after 30 secs').catch(() => {})
                     await this.failExit()
                 }, 30000)
 
                 await this.stopProcess()
             } catch (error) {
-                logger.error('There was an error shutting down Flowise...', error)
+                const { logError } = await import('../utils/logger/system-helper')
+                logError('There was an error shutting down Autonomous...', error).catch(() => {})
             }
         }
     }
@@ -188,15 +187,19 @@ export abstract class BaseCommand extends Command {
 
         // Prevent throw new Error from crashing the app
         // TODO: Get rid of this and send proper error message to ui
-        process.on('uncaughtException', (err) => {
-            logger.error('uncaughtException: ', err)
+        process.on('uncaughtException', async (err) => {
+            const { logError } = await import('../utils/logger/system-helper')
+            logError('uncaughtException: ', err).catch(() => {})
         })
 
-        process.on('unhandledRejection', (err) => {
-            logger.error('unhandledRejection: ', err)
+        process.on('unhandledRejection', async (err) => {
+            const { logError } = await import('../utils/logger/system-helper')
+            logError('unhandledRejection: ', err).catch(() => {})
         })
 
         const { flags } = await this.parse(this.constructor as any)
+
+        // Set environment variables from flags using loop (simplified approach from Autonomous)
         Object.keys(flags).forEach((key) => {
             if (Object.prototype.hasOwnProperty.call(flags, key) && flags[key]) {
                 process.env[key] = flags[key]

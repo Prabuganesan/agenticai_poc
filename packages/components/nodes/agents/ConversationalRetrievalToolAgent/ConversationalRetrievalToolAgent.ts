@@ -8,7 +8,7 @@ import { formatToOpenAIToolMessages } from 'langchain/agents/format_scratchpad/o
 import { getBaseClasses, transformBracesWithColon, convertChatHistoryToText, convertBaseMessagetoIMessage } from '../../../src/utils'
 import { type ToolsAgentStep } from 'langchain/agents/openai/output_parser'
 import {
-    FlowiseMemory,
+    AutonomousMemory,
     ICommonObject,
     INode,
     INodeData,
@@ -27,6 +27,7 @@ import { RESPONSE_TEMPLATE, REPHRASE_TEMPLATE } from '../../chains/Conversationa
 import { addImagesToMessages, llmSupportsVision } from '../../../src/multiModalUtils'
 import { StringOutputParser } from '@langchain/core/output_parsers'
 import { Tool } from '@langchain/core/tools'
+import path from 'path'
 
 class ConversationalRetrievalToolAgent_Agents implements INode {
     label: string
@@ -131,7 +132,7 @@ class ConversationalRetrievalToolAgent_Agents implements INode {
     }
 
     async run(nodeData: INodeData, input: string, options: ICommonObject): Promise<string | ICommonObject> {
-        const memory = nodeData.inputs?.memory as FlowiseMemory
+        const memory = nodeData.inputs?.memory as AutonomousMemory
         const moderations = nodeData.inputs?.inputModeration as Moderation[]
 
         const shouldStreamResponse = options.shouldStreamResponse
@@ -160,6 +161,9 @@ class ConversationalRetrievalToolAgent_Agents implements INode {
         let sourceDocuments: ICommonObject[] = []
         let usedTools: IUsedTool[] = []
 
+        // Track start time BEFORE LLM execution
+        const startTime = Date.now()
+
         if (shouldStreamResponse) {
             const handler = new CustomChainHandler(sseStreamer, chatId)
             res = await executor.invoke({ input }, { callbacks: [loggerHandler, handler, ...callbacks] })
@@ -170,10 +174,8 @@ class ConversationalRetrievalToolAgent_Agents implements INode {
             if (res.usedTools) {
                 sseStreamer.streamUsedToolsEvent(chatId, res.usedTools)
                 usedTools = res.usedTools
-            }
 
-            // If the tool is set to returnDirect, stream the output to the client
-            if (res.usedTools && res.usedTools.length) {
+                // If the tool is set to returnDirect, stream the output to the client
                 let inputTools = nodeData.inputs?.tools
                 inputTools = flatten(inputTools)
                 for (const tool of res.usedTools) {
@@ -197,6 +199,10 @@ class ConversationalRetrievalToolAgent_Agents implements INode {
                 usedTools = res.usedTools
             }
         }
+
+        // Track end time AFTER LLM execution
+        const endTime = Date.now()
+        const timeDelta = endTime - startTime
 
         let output = res?.output as string
 
@@ -222,6 +228,53 @@ class ConversationalRetrievalToolAgent_Agents implements INode {
             ],
             this.sessionId
         )
+
+        // Track LLM usage
+        try {
+            if (options.orgId && res) {
+                // Dynamic import from server package
+                const llmUsageTrackerPath = path.resolve(__dirname, '../../../../server/src/utils/llm-usage-tracker')
+                const { trackLLMUsage, extractProviderAndModel, extractUsageMetadata } = await import(llmUsageTrackerPath)
+
+                // Get model from nodeData
+                const model = nodeData.inputs?.model as BaseChatModel
+                const { provider, model: modelName } = extractProviderAndModel(nodeData, { model })
+
+                // Extract usage metadata from result
+                const { promptTokens, completionTokens, totalTokens } = extractUsageMetadata(res)
+
+                await trackLLMUsage({
+                    requestId: (options.apiMessageId as string) || (options.chatId as string),
+                    executionId: options.parentExecutionId as string,
+                    orgId: (options.orgId as string) || '',
+                    userId: (options.incomingInput?.userId as string) || (options.userId as string) || '0',
+                    chatflowId: options.chatflowid as string,
+                    chatId: options.chatId as string,
+                    sessionId: options.sessionId as string,
+                    feature: 'chatflow',
+                    nodeId: nodeData.id,
+                    nodeType: 'AgentExecutor',
+                    nodeName: 'ConversationalRetrievalToolAgent',
+                    location: 'main_flow',
+                    provider,
+                    model: modelName,
+                    requestType: 'chat',
+                    promptTokens: promptTokens || 0,
+                    completionTokens: completionTokens || 0,
+                    totalTokens: totalTokens || 0,
+                    processingTimeMs: timeDelta,
+                    responseLength: output?.length || 0,
+                    success: true,
+                    cacheHit: false,
+                    metadata: {
+                        usedTools: usedTools.length > 0 ? usedTools : undefined,
+                        sourceDocuments: sourceDocuments.length > 0 ? sourceDocuments.length : undefined
+                    }
+                })
+            }
+        } catch (trackError) {
+            // Silently fail - tracking should not break the main flow
+        }
 
         let finalRes = res?.output
 
@@ -250,11 +303,9 @@ const prepareAgent = async (
     flowObj: { sessionId?: string; chatId?: string; input?: string }
 ) => {
     const model = nodeData.inputs?.model as BaseChatModel
-    const rephraseModel = (nodeData.inputs?.rephraseModel as BaseChatModel) || model // Use main model if not specified
     const maxIterations = nodeData.inputs?.maxIterations as string
-    const memory = nodeData.inputs?.memory as FlowiseMemory
+    const memory = nodeData.inputs?.memory as AutonomousMemory
     let systemMessage = nodeData.inputs?.systemMessage as string
-    let rephrasePrompt = nodeData.inputs?.rephrasePrompt as string
     let tools = nodeData.inputs?.tools
     tools = flatten(tools)
     const memoryKey = memory.memoryKey ? memory.memoryKey : 'chat_history'
@@ -262,9 +313,42 @@ const prepareAgent = async (
     const vectorStoreRetriever = nodeData.inputs?.vectorStoreRetriever as BaseRetriever
 
     systemMessage = transformBracesWithColon(systemMessage)
+
+    const rephraseModel = (nodeData.inputs?.rephraseModel as BaseChatModel) || model // Use main model if not specified
+    let rephrasePrompt = nodeData.inputs?.rephrasePrompt as string
     if (rephrasePrompt) {
         rephrasePrompt = transformBracesWithColon(rephrasePrompt)
     }
+    // Function to get standalone question (either rephrased or original)
+    const getStandaloneQuestion = async (input: string): Promise<string> => {
+        // If no rephrase prompt, return the original input
+        if (!rephrasePrompt) {
+            return input
+        }
+
+        // Get chat history (use empty string if none)
+        const messages = (await memory.getChatMessages(flowObj?.sessionId, true)) as BaseMessage[]
+        const iMessages = convertBaseMessagetoIMessage(messages)
+        const chatHistoryString = convertChatHistoryToText(iMessages)
+
+        // Always rephrase to normalize/expand user queries for better retrieval
+        try {
+            const CONDENSE_QUESTION_PROMPT = PromptTemplate.fromTemplate(rephrasePrompt)
+            const condenseQuestionChain = RunnableSequence.from([CONDENSE_QUESTION_PROMPT, rephraseModel, new StringOutputParser()])
+            const res = await condenseQuestionChain.invoke({
+                question: input,
+                chat_history: chatHistoryString
+            })
+            return res
+        } catch (error) {
+            console.error('Error rephrasing question:', error)
+            // On error, fall back to original input
+            return input
+        }
+    }
+
+    // Get standalone question before creating runnable
+    const standaloneQuestion = await getStandaloneQuestion(flowObj?.input || '')
 
     const prompt = ChatPromptTemplate.fromMessages([
         ['system', systemMessage ? systemMessage : `You are a helpful AI assistant.`],
@@ -308,37 +392,6 @@ const prepareAgent = async (
 
     const modelWithTools = model.bindTools(tools)
 
-    // Function to get standalone question (either rephrased or original)
-    const getStandaloneQuestion = async (input: string): Promise<string> => {
-        // If no rephrase prompt, return the original input
-        if (!rephrasePrompt) {
-            return input
-        }
-
-        // Get chat history (use empty string if none)
-        const messages = (await memory.getChatMessages(flowObj?.sessionId, true)) as BaseMessage[]
-        const iMessages = convertBaseMessagetoIMessage(messages)
-        const chatHistoryString = convertChatHistoryToText(iMessages)
-
-        // Always rephrase to normalize/expand user queries for better retrieval
-        try {
-            const CONDENSE_QUESTION_PROMPT = PromptTemplate.fromTemplate(rephrasePrompt)
-            const condenseQuestionChain = RunnableSequence.from([CONDENSE_QUESTION_PROMPT, rephraseModel, new StringOutputParser()])
-            const res = await condenseQuestionChain.invoke({
-                question: input,
-                chat_history: chatHistoryString
-            })
-            return res
-        } catch (error) {
-            console.error('Error rephrasing question:', error)
-            // On error, fall back to original input
-            return input
-        }
-    }
-
-    // Get standalone question before creating runnable
-    const standaloneQuestion = await getStandaloneQuestion(flowObj?.input || '')
-
     const runnableAgent = RunnableSequence.from([
         {
             [inputKey]: (i: { input: string; steps: ToolsAgentStep[] }) => i.input,
@@ -373,6 +426,4 @@ const prepareAgent = async (
     return executor
 }
 
-module.exports = {
-    nodeClass: ConversationalRetrievalToolAgent_Agents
-}
+module.exports = { nodeClass: ConversationalRetrievalToolAgent_Agents }

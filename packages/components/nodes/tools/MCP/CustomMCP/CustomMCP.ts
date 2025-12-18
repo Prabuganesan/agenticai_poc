@@ -75,7 +75,7 @@ class Custom_MCP implements INode {
                 placeholder: mcpServerConfig,
                 warning:
                     process.env.CUSTOM_MCP_PROTOCOL === 'sse'
-                        ? 'Only Remote MCP with url is supported. Read more <a href="https://docs.flowiseai.com/tutorials/tools-and-mcp#streamable-http-recommended" target="_blank">here</a>'
+                        ? 'Only Remote MCP with url is supported. Read more <a href="[AUTONOMOUS_DOCS]/tutorials/tools-and-mcp#streamable-http-recommended" target="_blank">here</a>'
                         : undefined
             },
             {
@@ -136,16 +136,16 @@ class Custom_MCP implements INode {
         }
 
         let sandbox: ICommonObject = {}
-        const workspaceId = options?.searchOptions?.workspaceId?._value || options?.workspaceId
 
         if (mcpServerConfig.includes('$vars')) {
             const appDataSource = options.appDataSource as DataSource
             const databaseEntities = options.databaseEntities as IDatabaseEntity
-            // If options.workspaceId is not set, create a new options object with the workspaceId for getVars.
-            const optionsWithWorkspaceId = options.workspaceId ? options : { ...options, workspaceId }
-            const variables = await getVars(appDataSource, databaseEntities, nodeData, optionsWithWorkspaceId)
+
+            const variables = await getVars(appDataSource, databaseEntities, nodeData, options)
             sandbox['$vars'] = prepareSandboxVars(variables)
         }
+
+        const workspaceId = options?.searchOptions?.workspaceId?._value || options?.workspaceId
 
         let canonicalConfig
         try {

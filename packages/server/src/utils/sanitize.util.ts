@@ -1,4 +1,4 @@
-import { User } from '../enterprise/database/entities/user.entity'
+// User entity import removed for autonomous server
 
 export function sanitizeNullBytes(obj: any): any {
     const stack = [obj]
@@ -33,7 +33,8 @@ export function sanitizeNullBytes(obj: any): any {
     return obj
 }
 
-export function sanitizeUser(user: Partial<User>) {
+// sanitizeUser removed for autonomous server - User entity no longer exists
+export function sanitizeUser(user: Partial<any>) {
     delete user.credential
     delete user.tempToken
     delete user.tokenExpiry

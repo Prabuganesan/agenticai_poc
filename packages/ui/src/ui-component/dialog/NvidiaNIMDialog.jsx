@@ -18,6 +18,7 @@ import axios from 'axios'
 import PropTypes from 'prop-types'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { baseURL } from '@/store/constant'
 
 const NvidiaNIMDialog = ({ open, onClose, onComplete }) => {
     const portalElement = document.getElementById('portal')
@@ -51,7 +52,7 @@ const NvidiaNIMDialog = ({ open, onClose, onComplete }) => {
     const handleDownloadInstaller = async () => {
         try {
             setLoading(true)
-            await axios.get('/api/v1/nvidia-nim/download-installer')
+            await axios.get(`${baseURL}/api/v1/nvidia-nim/download-installer`)
             setLoading(false)
         } catch (err) {
             let errorData = err.message
@@ -68,7 +69,7 @@ const NvidiaNIMDialog = ({ open, onClose, onComplete }) => {
     const preload = async () => {
         try {
             setLoading(true)
-            await axios.get('/api/v1/nvidia-nim/preload')
+            await axios.get(`${baseURL}/api/v1/nvidia-nim/preload`)
             setLoading(false)
             setActiveStep(1)
         } catch (err) {
@@ -87,7 +88,7 @@ const NvidiaNIMDialog = ({ open, onClose, onComplete }) => {
         try {
             setLoading(true)
             try {
-                const imageResponse = await axios.post('/api/v1/nvidia-nim/get-image', { imageTag })
+                const imageResponse = await axios.post(`${baseURL}/api/v1/nvidia-nim/get-image`, { imageTag })
                 if (imageResponse.data && imageResponse.data.tag === imageTag) {
                     setLoading(false)
                     setActiveStep(2)
@@ -101,11 +102,11 @@ const NvidiaNIMDialog = ({ open, onClose, onComplete }) => {
             }
 
             // Get token first
-            const tokenResponse = await axios.get('/api/v1/nvidia-nim/get-token')
+            const tokenResponse = await axios.get(`${baseURL}/api/v1/nvidia-nim/get-token`)
             const apiKey = tokenResponse.data.access_token
 
             // Pull image
-            await axios.post('/api/v1/nvidia-nim/pull-image', {
+            await axios.post(`${baseURL}/api/v1/nvidia-nim/pull-image`, {
                 imageTag,
                 apiKey
             })
@@ -113,7 +114,7 @@ const NvidiaNIMDialog = ({ open, onClose, onComplete }) => {
             // Start polling for image status
             const interval = setInterval(async () => {
                 try {
-                    const imageResponse = await axios.post('/api/v1/nvidia-nim/get-image', { imageTag })
+                    const imageResponse = await axios.post(`${baseURL}/api/v1/nvidia-nim/get-image`, { imageTag })
                     if (imageResponse.data) {
                         clearInterval(interval)
                         setLoading(false)
@@ -186,10 +187,10 @@ const NvidiaNIMDialog = ({ open, onClose, onComplete }) => {
     const startNewContainer = async () => {
         try {
             setLoading(true)
-            const tokenResponse = await axios.get('/api/v1/nvidia-nim/get-token')
+            const tokenResponse = await axios.get(`${baseURL}/api/v1/nvidia-nim/get-token`)
             const apiKey = tokenResponse.data.access_token
 
-            await axios.post('/api/v1/nvidia-nim/start-container', {
+            await axios.post(`${baseURL}/api/v1/nvidia-nim/start-container`, {
                 imageTag,
                 apiKey,
                 nimRelaxMemConstraints: parseInt(nimRelaxMemConstraints),
@@ -199,7 +200,7 @@ const NvidiaNIMDialog = ({ open, onClose, onComplete }) => {
             // Start polling for container status
             const interval = setInterval(async () => {
                 try {
-                    const containerResponse = await axios.post('/api/v1/nvidia-nim/get-container', {
+                    const containerResponse = await axios.post(`${baseURL}/api/v1/nvidia-nim/get-container`, {
                         imageTag,
                         port: parseInt(hostPort)
                     })
@@ -238,7 +239,7 @@ const NvidiaNIMDialog = ({ open, onClose, onComplete }) => {
             // Start polling for container status
             const interval = setInterval(async () => {
                 try {
-                    const containerResponse = await axios.post('/api/v1/nvidia-nim/get-container', {
+                    const containerResponse = await axios.post(`${baseURL}/api/v1/nvidia-nim/get-container`, {
                         imageTag,
                         port: parseInt(hostPort)
                     })

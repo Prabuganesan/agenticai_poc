@@ -1,5 +1,5 @@
 {
-    "description": "QnA chain using Ollama local LLM, LocalAI embedding model, and Faiss local vector store",
+    "description": "QnA chain using Ollama local LLM, LocalAI embedding model, and Chroma local vector store",
     "usecases": ["Documents QnA"],
     "framework": ["Langchain"],
     "nodes": [
@@ -157,7 +157,7 @@
                 "inputs": {
                     "inputModeration": "",
                     "model": "{{chatOllama_0.data.instance}}",
-                    "vectorStoreRetriever": "{{faiss_0.data.instance}}",
+                    "vectorStoreRetriever": "{{chroma_0.data.instance}}",
                     "memory": "",
                     "rephrasePrompt": "Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question.\n\nChat History:\n{chat_history}\nFollow Up Input: {question}\nStandalone Question:",
                     "responsePrompt": "You are a helpful assistant. Using the provided context, answer the user's question to the best of your ability using the resources provided.\nIf there is nothing in the context relevant to the question at hand, just say \"Hmm, I'm not sure.\" Don't try to make up an answer.\n------------\n{context}\n------------\nREMEMBER: If there is no relevant information within the context, just say \"Hmm, I'm not sure.\" Don't try to make up an answer."
@@ -543,29 +543,28 @@
         {
             "width": 300,
             "height": 458,
-            "id": "faiss_0",
+            "id": "chroma_0",
             "position": {
                 "x": 1199.3135683364685,
                 "y": 520.9300176396024
             },
             "type": "customNode",
             "data": {
-                "id": "faiss_0",
-                "label": "Faiss",
-                "version": 1,
-                "name": "faiss",
-                "type": "Faiss",
-                "baseClasses": ["Faiss", "VectorStoreRetriever", "BaseRetriever"],
+                "id": "chroma_0",
+                "label": "Chroma",
+                "version": 2,
+                "name": "chroma",
+                "type": "Chroma",
+                "baseClasses": ["Chroma", "VectorStoreRetriever", "BaseRetriever"],
                 "category": "Vector Stores",
-                "description": "Upsert embedded data and perform similarity search upon query using Faiss library from Meta",
+                "description": "Upsert embedded data and perform similarity search upon query using Chroma, an open-source embedding database",
                 "inputParams": [
                     {
-                        "label": "Base Path to load",
-                        "name": "basePath",
-                        "description": "Path to load faiss.index file",
-                        "placeholder": "C:\\Users\\User\\Desktop",
+                        "label": "Collection Name",
+                        "name": "collectionName",
                         "type": "string",
-                        "id": "faiss_0-input-basePath-string"
+                        "placeholder": "my-collection",
+                        "id": "chroma_0-input-collectionName-string"
                     },
                     {
                         "label": "Top K",
@@ -575,7 +574,7 @@
                         "type": "number",
                         "additionalParams": true,
                         "optional": true,
-                        "id": "faiss_0-input-topK-number"
+                        "id": "chroma_0-input-topK-number"
                     }
                 ],
                 "inputAnchors": [
@@ -585,19 +584,19 @@
                         "type": "Document",
                         "list": true,
                         "optional": true,
-                        "id": "faiss_0-input-document-Document"
+                        "id": "chroma_0-input-document-Document"
                     },
                     {
                         "label": "Embeddings",
                         "name": "embeddings",
                         "type": "Embeddings",
-                        "id": "faiss_0-input-embeddings-Embeddings"
+                        "id": "chroma_0-input-embeddings-Embeddings"
                     }
                 ],
                 "inputs": {
                     "document": ["{{textFile_0.data.instance}}"],
                     "embeddings": "{{localAIEmbeddings_0.data.instance}}",
-                    "basePath": "C:\\Users\\your-folder",
+                    "collectionName": "local-qa-collection",
                     "topK": ""
                 },
                 "outputAnchors": [
@@ -607,16 +606,16 @@
                         "type": "options",
                         "options": [
                             {
-                                "id": "faiss_0-output-retriever-Faiss|VectorStoreRetriever|BaseRetriever",
+                                "id": "chroma_0-output-retriever-Chroma|VectorStoreRetriever|BaseRetriever",
                                 "name": "retriever",
-                                "label": "Faiss Retriever",
-                                "type": "Faiss | VectorStoreRetriever | BaseRetriever"
+                                "label": "Chroma Retriever",
+                                "type": "Chroma | VectorStoreRetriever | BaseRetriever"
                             },
                             {
-                                "id": "faiss_0-output-vectorStore-Faiss|SaveableVectorStore|VectorStore",
+                                "id": "chroma_0-output-vectorStore-Chroma|SaveableVectorStore|VectorStore",
                                 "name": "vectorStore",
-                                "label": "Faiss Vector Store",
-                                "type": "Faiss | SaveableVectorStore | VectorStore"
+                                "label": "Chroma Vector Store",
+                                "type": "Chroma | SaveableVectorStore | VectorStore"
                             }
                         ],
                         "default": "retriever"
@@ -661,10 +660,10 @@
         {
             "source": "textFile_0",
             "sourceHandle": "textFile_0-output-document-Document|json",
-            "target": "faiss_0",
-            "targetHandle": "faiss_0-input-document-Document",
+            "target": "chroma_0",
+            "targetHandle": "chroma_0-input-document-Document",
             "type": "buttonedge",
-            "id": "textFile_0-textFile_0-output-document-Document|json-faiss_0-faiss_0-input-document-Document",
+            "id": "textFile_0-textFile_0-output-document-Document|json-chroma_0-chroma_0-input-document-Document",
             "data": {
                 "label": ""
             }
@@ -672,21 +671,21 @@
         {
             "source": "localAIEmbeddings_0",
             "sourceHandle": "localAIEmbeddings_0-output-localAIEmbeddings-LocalAI Embeddings|Embeddings",
-            "target": "faiss_0",
-            "targetHandle": "faiss_0-input-embeddings-Embeddings",
+            "target": "chroma_0",
+            "targetHandle": "chroma_0-input-embeddings-Embeddings",
             "type": "buttonedge",
-            "id": "localAIEmbeddings_0-localAIEmbeddings_0-output-localAIEmbeddings-LocalAI Embeddings|Embeddings-faiss_0-faiss_0-input-embeddings-Embeddings",
+            "id": "localAIEmbeddings_0-localAIEmbeddings_0-output-localAIEmbeddings-LocalAI Embeddings|Embeddings-chroma_0-chroma_0-input-embeddings-Embeddings",
             "data": {
                 "label": ""
             }
         },
         {
-            "source": "faiss_0",
-            "sourceHandle": "faiss_0-output-retriever-Faiss|VectorStoreRetriever|BaseRetriever",
+            "source": "chroma_0",
+            "sourceHandle": "chroma_0-output-retriever-Chroma|VectorStoreRetriever|BaseRetriever",
             "target": "conversationalRetrievalQAChain_0",
             "targetHandle": "conversationalRetrievalQAChain_0-input-vectorStoreRetriever-BaseRetriever",
             "type": "buttonedge",
-            "id": "faiss_0-faiss_0-output-retriever-Faiss|VectorStoreRetriever|BaseRetriever-conversationalRetrievalQAChain_0-conversationalRetrievalQAChain_0-input-vectorStoreRetriever-BaseRetriever",
+            "id": "chroma_0-chroma_0-output-retriever-Chroma|VectorStoreRetriever|BaseRetriever-conversationalRetrievalQAChain_0-conversationalRetrievalQAChain_0-input-vectorStoreRetriever-BaseRetriever",
             "data": {
                 "label": ""
             }

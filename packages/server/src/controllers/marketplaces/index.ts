@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from 'express'
 import { StatusCodes } from 'http-status-codes'
-import { InternalFlowiseError } from '../../errors/internalFlowiseError'
+import { InternalAutonomousError } from '../../errors/internalAutonomousError'
 import marketplacesService from '../../services/marketplaces'
+import { transformEntityForResponse, transformEntitiesForResponse } from '../../utils/responseTransform'
 
 // Get all templates for marketplaces
 const getAllTemplates = async (req: Request, res: Response, next: NextFunction) => {
@@ -16,19 +17,19 @@ const getAllTemplates = async (req: Request, res: Response, next: NextFunction) 
 const deleteCustomTemplate = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalFlowiseError(
+            throw new InternalAutonomousError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: marketplacesService.deleteCustomTemplate - id not provided!`
             )
         }
-        const workspaceId = req.user?.activeWorkspaceId
-        if (!workspaceId) {
-            throw new InternalFlowiseError(
+        const orgId = (req as any).orgId || req.user?.orgId
+        if (!orgId) {
+            throw new InternalAutonomousError(
                 StatusCodes.NOT_FOUND,
-                `Error: marketplacesController.deleteCustomTemplate - workspace ${workspaceId} not found!`
+                `Error: marketplacesController.deleteCustomTemplate - organization ${orgId} not found!`
             )
         }
-        const apiResponse = await marketplacesService.deleteCustomTemplate(req.params.id, workspaceId)
+        const apiResponse = await marketplacesService.deleteCustomTemplate(req.params.id, orgId)
         return res.json(apiResponse)
     } catch (error) {
         next(error)
@@ -37,8 +38,9 @@ const deleteCustomTemplate = async (req: Request, res: Response, next: NextFunct
 
 const getAllCustomTemplates = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const apiResponse = await marketplacesService.getAllCustomTemplates(req.user?.activeWorkspaceId)
-        return res.json(apiResponse)
+        const orgId = (req as any).orgId || req.user?.orgId
+        const apiResponse = await marketplacesService.getAllCustomTemplates(orgId)
+        return res.json(transformEntitiesForResponse(apiResponse))
     } catch (error) {
         next(error)
     }
@@ -46,22 +48,24 @@ const getAllCustomTemplates = async (req: Request, res: Response, next: NextFunc
 
 const saveCustomTemplate = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        if ((!req.body && !(req.body.chatflowId || req.body.tool)) || !req.body.name) {
-            throw new InternalFlowiseError(
+        // Check if req.body exists first to avoid TypeError when accessing properties
+        if (!req.body || (!req.body.name && !(req.body.chatflowId || req.body.tool))) {
+            throw new InternalAutonomousError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: marketplacesService.saveCustomTemplate - body not provided!`
             )
         }
         const body = req.body
-        body.workspaceId = req.user?.activeWorkspaceId
-        if (!body.workspaceId) {
-            throw new InternalFlowiseError(
+        const orgId = (req as any).orgId || req.user?.orgId
+        const userId = (req as any).userId
+        if (!orgId) {
+            throw new InternalAutonomousError(
                 StatusCodes.NOT_FOUND,
-                `Error: marketplacesController.saveCustomTemplate - workspace ${body.workspaceId} not found!`
+                `Error: marketplacesController.saveCustomTemplate - organization ${orgId} not found!`
             )
         }
-        const apiResponse = await marketplacesService.saveCustomTemplate(body)
-        return res.json(apiResponse)
+        const apiResponse = await marketplacesService.saveCustomTemplate(body, orgId, userId)
+        return res.json(transformEntityForResponse(apiResponse))
     } catch (error) {
         next(error)
     }

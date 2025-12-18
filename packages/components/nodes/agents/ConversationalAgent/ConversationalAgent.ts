@@ -11,7 +11,7 @@ import { getBaseClasses, transformBracesWithColon } from '../../../src/utils'
 import { ConsoleCallbackHandler, CustomChainHandler, additionalCallbacks } from '../../../src/handler'
 import {
     IVisionChatModal,
-    FlowiseMemory,
+    AutonomousMemory,
     ICommonObject,
     INode,
     INodeData,
@@ -23,6 +23,7 @@ import { AgentExecutor } from '../../../src/agents'
 import { addImagesToMessages, llmSupportsVision } from '../../../src/multiModalUtils'
 import { checkInputs, Moderation, streamResponse } from '../../moderation/Moderation'
 import { formatResponse } from '../../outputparsers/OutputParserHelpers'
+import path from 'path'
 
 const DEFAULT_PREFIX = `Assistant is a large language model trained by OpenAI.
 
@@ -112,7 +113,7 @@ class ConversationalAgent_Agents implements INode {
     }
 
     async run(nodeData: INodeData, input: string, options: ICommonObject): Promise<string | object> {
-        const memory = nodeData.inputs?.memory as FlowiseMemory
+        const memory = nodeData.inputs?.memory as AutonomousMemory
         const moderations = nodeData.inputs?.inputModeration as Moderation[]
 
         const shouldStreamResponse = options.shouldStreamResponse
@@ -120,7 +121,7 @@ class ConversationalAgent_Agents implements INode {
         const chatId = options.chatId
         if (moderations && moderations.length > 0) {
             try {
-                // Use the output of the moderation chain as input for the BabyAGI agent
+                // Use the output of the moderation chain as input for the agent
                 input = await checkInputs(moderations, input)
             } catch (e) {
                 await new Promise((resolve) => setTimeout(resolve, 500))
@@ -135,13 +136,86 @@ class ConversationalAgent_Agents implements INode {
         const loggerHandler = new ConsoleCallbackHandler(options.logger, options?.orgId)
         const callbacks = await additionalCallbacks(nodeData, options)
 
+        // Track token usage from LLM calls during agent execution
+        let accumulatedUsageMetadata: any = {
+            input_tokens: 0,
+            output_tokens: 0,
+            total_tokens: 0
+        }
+
+        // Create a callback to track token usage from LLM calls
+        const usageTrackingCallback = {
+            handleLLMEnd: (output: any) => {
+                try {
+                    // Priority 1: Check generations array for usage_metadata in message.additional_kwargs (Google/Gemini format)
+                    if (output?.generations && Array.isArray(output.generations)) {
+                        for (const genArray of output.generations) {
+                            if (Array.isArray(genArray)) {
+                                for (const gen of genArray) {
+                                    // Check message.additional_kwargs.usage_metadata (Google/Gemini format)
+                                    if (gen?.message?.additional_kwargs?.usage_metadata) {
+                                        const usage = gen.message.additional_kwargs.usage_metadata
+                                        accumulatedUsageMetadata.input_tokens += usage.input_tokens || usage.prompt_tokens || 0
+                                        accumulatedUsageMetadata.output_tokens += usage.output_tokens || usage.completion_tokens || 0
+                                        accumulatedUsageMetadata.total_tokens +=
+                                            usage.total_tokens || (usage.input_tokens || 0) + (usage.output_tokens || 0)
+                                    }
+                                    // Check message.usage_metadata (direct format)
+                                    else if (gen?.message?.usage_metadata) {
+                                        const usage = gen.message.usage_metadata
+                                        accumulatedUsageMetadata.input_tokens += usage.input_tokens || usage.prompt_tokens || 0
+                                        accumulatedUsageMetadata.output_tokens += usage.output_tokens || usage.completion_tokens || 0
+                                        accumulatedUsageMetadata.total_tokens +=
+                                            usage.total_tokens || (usage.input_tokens || 0) + (usage.output_tokens || 0)
+                                    }
+                                }
+                            } else if (genArray?.message?.additional_kwargs?.usage_metadata) {
+                                const usage = genArray.message.additional_kwargs.usage_metadata
+                                accumulatedUsageMetadata.input_tokens += usage.input_tokens || usage.prompt_tokens || 0
+                                accumulatedUsageMetadata.output_tokens += usage.output_tokens || usage.completion_tokens || 0
+                                accumulatedUsageMetadata.total_tokens +=
+                                    usage.total_tokens || (usage.input_tokens || 0) + (usage.output_tokens || 0)
+                            }
+                        }
+                    }
+
+                    // Priority 2: Check llmOutput.tokenUsage (standard LangChain format)
+                    if (output?.llmOutput?.tokenUsage) {
+                        const tokenUsage = output.llmOutput.tokenUsage
+                        accumulatedUsageMetadata.input_tokens += tokenUsage.promptTokens || 0
+                        accumulatedUsageMetadata.output_tokens += tokenUsage.completionTokens || 0
+                        accumulatedUsageMetadata.total_tokens +=
+                            tokenUsage.totalTokens || (tokenUsage.promptTokens || 0) + (tokenUsage.completionTokens || 0)
+                    }
+
+                    // Priority 3: Check root level usage_metadata
+                    if (output?.usage_metadata) {
+                        const usage = output.usage_metadata
+                        accumulatedUsageMetadata.input_tokens += usage.input_tokens || usage.prompt_tokens || 0
+                        accumulatedUsageMetadata.output_tokens += usage.output_tokens || usage.completion_tokens || 0
+                        accumulatedUsageMetadata.total_tokens +=
+                            usage.total_tokens || (usage.input_tokens || 0) + (usage.output_tokens || 0)
+                    }
+
+                    accumulatedUsageMetadata.total_tokens =
+                        accumulatedUsageMetadata.total_tokens ||
+                        accumulatedUsageMetadata.input_tokens + accumulatedUsageMetadata.output_tokens
+                } catch (e) {
+                    // Ignore errors in usage tracking
+                }
+            }
+        }
+
         let res: ChainValues = {}
         let sourceDocuments: ICommonObject[] = []
         let usedTools: IUsedTool[] = []
 
+        // Track start time BEFORE LLM execution
+        const startTime = Date.now()
+
         if (options.shouldStreamResponse) {
             const handler = new CustomChainHandler(shouldStreamResponse ? sseStreamer : undefined, chatId)
-            res = await executor.invoke({ input }, { callbacks: [loggerHandler, handler, ...callbacks] })
+            res = await executor.invoke({ input }, { callbacks: [loggerHandler, handler, usageTrackingCallback, ...callbacks] })
             if (res.sourceDocuments) {
                 if (options.sseStreamer) {
                     sseStreamer.streamSourceDocumentsEvent(options.chatId, flatten(res.sourceDocuments))
@@ -167,7 +241,7 @@ class ConversationalAgent_Agents implements INode {
                 sseStreamer.streamEndEvent(options.chatId)
             }
         } else {
-            res = await executor.invoke({ input }, { callbacks: [loggerHandler, ...callbacks] })
+            res = await executor.invoke({ input }, { callbacks: [loggerHandler, usageTrackingCallback, ...callbacks] })
             if (res.sourceDocuments) {
                 sourceDocuments = res.sourceDocuments
             }
@@ -175,6 +249,10 @@ class ConversationalAgent_Agents implements INode {
                 usedTools = res.usedTools
             }
         }
+
+        // Track end time AFTER LLM execution
+        const endTime = Date.now()
+        const timeDelta = endTime - startTime
 
         await memory.addChatMessages(
             [
@@ -190,8 +268,130 @@ class ConversationalAgent_Agents implements INode {
             this.sessionId
         )
 
-        let finalRes = res?.output
+        // Use accumulated usage metadata from callback tracking
+        // If we have accumulated tokens, use them; otherwise try to extract from result
+        let usageMetadata: any = undefined
 
+        if (
+            accumulatedUsageMetadata.total_tokens > 0 ||
+            accumulatedUsageMetadata.input_tokens > 0 ||
+            accumulatedUsageMetadata.output_tokens > 0
+        ) {
+            // Use accumulated usage from callback tracking
+            usageMetadata = {
+                input_tokens: accumulatedUsageMetadata.input_tokens,
+                output_tokens: accumulatedUsageMetadata.output_tokens,
+                total_tokens:
+                    accumulatedUsageMetadata.total_tokens || accumulatedUsageMetadata.input_tokens + accumulatedUsageMetadata.output_tokens
+            }
+        } else if (res?.intermediateSteps && Array.isArray(res.intermediateSteps)) {
+            // Fallback: Aggregate usage metadata from all LLM calls in intermediate steps
+            let totalInputTokens = 0
+            let totalOutputTokens = 0
+            let totalTokens = 0
+
+            for (const step of res.intermediateSteps) {
+                // Check if step has usage metadata in observation or action
+                if (step.observation?.usage_metadata) {
+                    totalInputTokens += step.observation.usage_metadata.input_tokens || step.observation.usage_metadata.prompt_tokens || 0
+                    totalOutputTokens +=
+                        step.observation.usage_metadata.output_tokens || step.observation.usage_metadata.completion_tokens || 0
+                    totalTokens += step.observation.usage_metadata.total_tokens || 0
+                }
+                if (step.action?.tool_input?.usage_metadata) {
+                    totalInputTokens +=
+                        step.action.tool_input.usage_metadata.input_tokens || step.action.tool_input.usage_metadata.prompt_tokens || 0
+                    totalOutputTokens +=
+                        step.action.tool_input.usage_metadata.output_tokens || step.action.tool_input.usage_metadata.completion_tokens || 0
+                    totalTokens += step.action.tool_input.usage_metadata.total_tokens || 0
+                }
+            }
+
+            // Also check if res itself has usage metadata
+            if (res.usage_metadata) {
+                totalInputTokens += res.usage_metadata.input_tokens || res.usage_metadata.prompt_tokens || 0
+                totalOutputTokens += res.usage_metadata.output_tokens || res.usage_metadata.completion_tokens || 0
+                totalTokens += res.usage_metadata.total_tokens || 0
+            }
+
+            if (totalTokens > 0 || totalInputTokens > 0 || totalOutputTokens > 0) {
+                usageMetadata = {
+                    input_tokens: totalInputTokens,
+                    output_tokens: totalOutputTokens,
+                    total_tokens: totalTokens || totalInputTokens + totalOutputTokens
+                }
+            }
+        } else if (res?.usage_metadata) {
+            // Direct usage metadata in result
+            usageMetadata = res.usage_metadata
+        }
+
+        // Track LLM usage
+        try {
+            if (options.orgId && usageMetadata) {
+                // Dynamic import from server package
+                const llmUsageTrackerPath = path.resolve(__dirname, '../../../../server/src/utils/llm-usage-tracker')
+                const { trackLLMUsage, extractProviderAndModel, extractUsageMetadata } = await import(llmUsageTrackerPath)
+
+                // Get model from nodeData
+                const model = nodeData.inputs?.model as BaseChatModel
+                const { provider, model: modelName } = extractProviderAndModel(nodeData, { model })
+
+                // Extract usage from accumulated metadata
+                const { promptTokens, completionTokens, totalTokens } = extractUsageMetadata({
+                    usageMetadata,
+                    usage_metadata: usageMetadata
+                })
+
+                await trackLLMUsage({
+                    requestId: (options.apiMessageId as string) || (options.chatId as string),
+                    executionId: options.parentExecutionId as string,
+                    orgId: (options.orgId as string) || '',
+                    userId: (options.incomingInput?.userId as string) || (options.userId as string) || '0',
+                    chatflowId: options.chatflowid as string,
+                    chatId: options.chatId as string,
+                    sessionId: options.sessionId as string,
+                    feature: 'chatflow',
+                    nodeId: nodeData.id,
+                    nodeType: 'AgentExecutor',
+                    nodeName: 'ConversationalAgent',
+                    location: 'main_flow',
+                    provider,
+                    model: modelName,
+                    requestType: 'chat',
+                    promptTokens: promptTokens || 0,
+                    completionTokens: completionTokens || 0,
+                    totalTokens: totalTokens || 0,
+                    processingTimeMs: timeDelta,
+                    responseLength: (res?.output as string)?.length || 0,
+                    success: true,
+                    cacheHit: false,
+                    metadata: {
+                        usedTools: usedTools.length > 0 ? usedTools : undefined,
+                        sourceDocuments: sourceDocuments.length > 0 ? sourceDocuments.length : undefined
+                    }
+                })
+            }
+        } catch (trackError) {
+            // Silently fail - tracking should not break the main flow
+        }
+
+        // Always return as object if we have usageMetadata, even if no sourceDocuments or usedTools
+        // This ensures usage metadata is preserved for tracking
+        if (usageMetadata) {
+            const finalRes: any = { text: res?.output }
+            if (sourceDocuments.length) {
+                finalRes.sourceDocuments = flatten(sourceDocuments)
+            }
+            if (usedTools.length) {
+                finalRes.usedTools = usedTools
+            }
+            finalRes.usageMetadata = usageMetadata
+            return finalRes
+        }
+
+        // If no usage metadata, return as before
+        let finalRes: any = res?.output
         if (sourceDocuments.length || usedTools.length) {
             finalRes = { text: res?.output }
             if (sourceDocuments.length) {
@@ -216,7 +416,7 @@ const prepareAgent = async (
     const maxIterations = nodeData.inputs?.maxIterations as string
     let tools = nodeData.inputs?.tools as Tool[]
     tools = flatten(tools)
-    const memory = nodeData.inputs?.memory as FlowiseMemory
+    const memory = nodeData.inputs?.memory as AutonomousMemory
     let systemMessage = nodeData.inputs?.systemMessage as string
     const memoryKey = memory.memoryKey ? memory.memoryKey : 'chat_history'
     const inputKey = memory.inputKey ? memory.inputKey : 'input'

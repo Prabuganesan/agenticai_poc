@@ -1,21 +1,21 @@
 import express from 'express'
 import assistantsController from '../../controllers/assistants'
-import { checkPermission, checkAnyPermission } from '../../enterprise/rbac/PermissionCheck'
+// Permission checks removed for autonomous server - handled externally
 
 const router = express.Router()
 
 // CREATE
-router.post('/', checkPermission('assistants:create'), assistantsController.createAssistant)
+router.post('/', assistantsController.createAssistant)
 
 // READ
-router.get('/', checkPermission('assistants:view'), assistantsController.getAllAssistants)
-router.get(['/', '/:id'], checkPermission('assistants:view'), assistantsController.getAssistantById)
+router.get('/', assistantsController.getAllAssistants)
+router.get(['/', '/:id'], assistantsController.getAssistantById)
 
 // UPDATE
-router.put(['/', '/:id'], checkAnyPermission('assistants:create,assistants:update'), assistantsController.updateAssistant)
+router.put(['/', '/:id'], assistantsController.updateAssistant)
 
 // DELETE
-router.delete(['/', '/:id'], checkPermission('assistants:delete'), assistantsController.deleteAssistant)
+router.delete(['/', '/:id'], assistantsController.deleteAssistant)
 
 router.get('/components/chatmodels', assistantsController.getChatModels)
 router.get('/components/docstores', assistantsController.getDocumentStores)

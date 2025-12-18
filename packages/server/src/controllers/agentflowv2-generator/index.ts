@@ -6,7 +6,8 @@ const generateAgentflowv2 = async (req: Request, res: Response, next: NextFuncti
         if (!req.body.question || !req.body.selectedChatModel) {
             throw new Error('Question and selectedChatModel are required')
         }
-        const apiResponse = await agentflowv2Service.generateAgentflowv2(req.body.question, req.body.selectedChatModel)
+        const orgId = (req as any).orgId || req.user?.orgId
+        const apiResponse = await agentflowv2Service.generateAgentflowv2(req.body.question, req.body.selectedChatModel, orgId)
         return res.json(apiResponse)
     } catch (error) {
         next(error)

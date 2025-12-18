@@ -1,6 +1,6 @@
 import { Queue, Worker, Job, QueueEvents, RedisOptions, KeepJobs } from 'bullmq'
 import { v4 as uuidv4 } from 'uuid'
-import logger from '../utils/logger'
+import { logInfo, logError } from '../utils/logger/system-helper'
 
 const QUEUE_REDIS_EVENT_STREAM_MAX_LEN = process.env.QUEUE_REDIS_EVENT_STREAM_MAX_LEN
     ? parseInt(process.env.QUEUE_REDIS_EVENT_STREAM_MAX_LEN)
@@ -13,9 +13,11 @@ export abstract class BaseQueue {
     protected queue: Queue
     protected queueEvents: QueueEvents
     protected connection: RedisOptions
+    protected orgId: number
     private worker: Worker
 
-    constructor(queueName: string, connection: RedisOptions) {
+    constructor(orgId: number, queueName: string, connection: RedisOptions) {
+        this.orgId = orgId
         this.connection = connection
         this.queue = new Queue(queueName, {
             connection: this.connection,
@@ -53,7 +55,24 @@ export abstract class BaseQueue {
             removeOnComplete = keepJobObj
         }
 
-        return await this.queue.add(jobId, jobData, { removeOnFail, removeOnComplete })
+        const job = await this.queue.add(jobId, jobData, { removeOnFail, removeOnComplete })
+
+        // Log queue operation
+        try {
+            const { queueLog } = await import('../utils/logger/module-methods')
+            const orgId = this.orgId?.toString() || jobData?.orgId?.toString() || 'unknown'
+            await queueLog('info', 'Job added to queue', {
+                userId: jobData?.userId?.toString() || 'system',
+                orgId: orgId,
+                queueName: this.queue.name,
+                jobId: job.id || jobId,
+                jobType: jobData?.type || 'unknown'
+            }).catch(() => {})
+        } catch (logError) {
+            // Silently fail - logging should not break queue operations
+        }
+
+        return job
     }
 
     public createWorker(concurrency: number = WORKER_CONCURRENCY): Worker {
@@ -62,20 +81,70 @@ export abstract class BaseQueue {
                 this.queue.name,
                 async (job: Job) => {
                     const start = new Date().getTime()
-                    logger.info(`[BaseQueue] Processing job ${job.id} in ${this.queue.name} at ${new Date().toISOString()}`)
+                    logInfo(`[BaseQueue] Processing job ${job.id} in ${this.queue.name} at ${new Date().toISOString()}`).catch(() => {})
+
+                    // Log queue operation - job started
+                    try {
+                        const { queueLog } = await import('../utils/logger/module-methods')
+                        const orgId = this.orgId?.toString() || job.data?.orgId?.toString() || 'unknown'
+                        await queueLog('info', 'Job processing started', {
+                            userId: job.data?.userId?.toString() || 'system',
+                            orgId: orgId,
+                            queueName: this.queue.name,
+                            jobId: job.id || 'unknown'
+                        }).catch(() => {})
+                    } catch (logError) {
+                        // Silently fail
+                    }
+
                     try {
                         const result = await this.processJob(job.data)
                         const end = new Date().getTime()
-                        logger.info(
-                            `[BaseQueue] Completed job ${job.id} in ${this.queue.name} at ${new Date().toISOString()} (${end - start}ms)`
-                        )
+                        const duration = end - start
+                        logInfo(
+                            `[BaseQueue] Completed job ${job.id} in ${this.queue.name} at ${new Date().toISOString()} (${duration}ms)`
+                        ).catch(() => {})
+
+                        // Log queue operation - job completed
+                        try {
+                            const { queueLog } = await import('../utils/logger/module-methods')
+                            const orgId = this.orgId?.toString() || job.data?.orgId?.toString() || 'unknown'
+                            await queueLog('info', 'Job completed successfully', {
+                                userId: job.data?.userId?.toString() || 'system',
+                                orgId: orgId,
+                                queueName: this.queue.name,
+                                jobId: job.id || 'unknown',
+                                durationMs: duration
+                            }).catch(() => {})
+                        } catch (logError) {
+                            // Silently fail
+                        }
+
                         return result
                     } catch (error) {
                         const end = new Date().getTime()
-                        logger.error(
-                            `[BaseQueue] Job ${job.id} failed in ${this.queue.name} at ${new Date().toISOString()} (${end - start}ms):`,
-                            { error }
-                        )
+                        const duration = end - start
+                        logError(
+                            `[BaseQueue] Job ${job.id} failed in ${this.queue.name} at ${new Date().toISOString()} (${duration}ms):`,
+                            error
+                        ).catch(() => {})
+
+                        // Log queue operation - job failed
+                        try {
+                            const { queueLog } = await import('../utils/logger/module-methods')
+                            const orgId = this.orgId?.toString() || job.data?.orgId?.toString() || 'unknown'
+                            await queueLog('error', 'Job failed', {
+                                userId: job.data?.userId?.toString() || 'system',
+                                orgId: orgId,
+                                queueName: this.queue.name,
+                                jobId: job.id || 'unknown',
+                                durationMs: duration,
+                                error: error instanceof Error ? error.message : String(error)
+                            }).catch(() => {})
+                        } catch (logError) {
+                            // Silently fail
+                        }
+
                         throw error
                     }
                 },
@@ -87,21 +156,21 @@ export abstract class BaseQueue {
 
             // Add error listeners to the worker
             this.worker.on('error', (err) => {
-                logger.error(`[BaseQueue] Worker error for queue "${this.queue.name}":`, { error: err })
+                logError(`[BaseQueue] Worker error for queue "${this.queue.name}":`, err).catch(() => {})
             })
 
             this.worker.on('closed', () => {
-                logger.info(`[BaseQueue] Worker closed for queue "${this.queue.name}"`)
+                logInfo(`[BaseQueue] Worker closed for queue "${this.queue.name}"`).catch(() => {})
             })
 
             this.worker.on('failed', (job, err) => {
-                logger.error(`[BaseQueue] Worker job ${job?.id} failed in queue "${this.queue.name}":`, { error: err })
+                logError(`[BaseQueue] Worker job ${job?.id} failed in queue "${this.queue.name}":`, err).catch(() => {})
             })
 
-            logger.info(`[BaseQueue] Worker created successfully for queue "${this.queue.name}"`)
+            logInfo(`[BaseQueue] Worker created successfully for queue "${this.queue.name}"`).catch(() => {})
             return this.worker
         } catch (error) {
-            logger.error(`[BaseQueue] Failed to create worker for queue "${this.queue.name}":`, { error })
+            logError(`[BaseQueue] Failed to create worker for queue "${this.queue.name}":`, error).catch(() => {})
             throw error
         }
     }

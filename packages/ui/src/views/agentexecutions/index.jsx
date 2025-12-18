@@ -235,7 +235,7 @@ const AgentExecutions = () => {
                 <ErrorBoundary error={error} />
             ) : (
                 <Stack flexDirection='column' sx={{ gap: 3 }}>
-                    <ViewHeader title='Agent Executions' description='Monitor and manage agentflows executions' />
+                    <ViewHeader title='Multi Agent Executions' description='Monitor and manage Multi-Agent executions' />
 
                     {/* Filter Section */}
                     <Box sx={{ mb: 2, width: '100%' }}>

@@ -1,10 +1,10 @@
 # Build local monorepo image
-# docker build --no-cache -t  flowise .
+# docker build --no-cache -t  autonomous .
 
 # Run image
-# docker run -d -p 3000:3000 flowise
+# docker run -d -p 3030:3030 autonomous
 
-FROM node:20-alpine
+FROM node:22.21.1-alpine
 
 # Install system dependencies and build tools
 RUN apk update && \
@@ -14,6 +14,8 @@ RUN apk update && \
         make \
         g++ \
         build-base \
+        cmake \
+        libomp \
         cairo-dev \
         pango-dev \
         chromium \
@@ -25,7 +27,7 @@ ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
 ENV NODE_OPTIONS=--max-old-space-size=8192
 
-WORKDIR /usr/src/flowise
+WORKDIR /usr/src/autonomous
 
 # Copy app source
 COPY . .
@@ -37,9 +39,9 @@ RUN pnpm install && \
 # Give the node user ownership of the application files
 RUN chown -R node:node .
 
-# Switch to non-root user (node user already exists in node:20-alpine)
+# Switch to non-root user (node user already exists in node:22.21.1-alpine)
 USER node
 
-EXPOSE 3000
+EXPOSE 3030
 
 CMD [ "pnpm", "start" ]

@@ -36,7 +36,7 @@ class Retriever_Agentflow implements INode {
     constructor() {
         this.label = 'Retriever'
         this.name = 'retrieverAgentflow'
-        this.version = 1.1
+        this.version = 1.0
         this.type = 'Retriever'
         this.category = 'Agent Flows'
         this.description = 'Retrieve information from vector database'
@@ -152,17 +152,36 @@ class Retriever_Agentflow implements INode {
         const knowledgeBases = nodeData.inputs?.retrieverKnowledgeDocumentStores as IKnowledgeBase[]
         if (knowledgeBases && knowledgeBases.length > 0) {
             for (const knowledgeBase of knowledgeBases) {
-                const [storeId, _] = knowledgeBase.documentStore.split(':')
+                // Parse documentStore format: could be "storeId:storeName" or just "storeId"
+                let storeId: string
+                if (knowledgeBase.documentStore && knowledgeBase.documentStore.includes(':')) {
+                    ;[storeId] = knowledgeBase.documentStore.split(':')
+                } else {
+                    storeId = knowledgeBase.documentStore
+                }
+
+                // Validate storeId
+                if (!storeId || typeof storeId !== 'string' || storeId.trim() === '') {
+                    throw new Error(
+                        `Invalid document store ID. ` +
+                            `documentStore value: "${knowledgeBase.documentStore}", ` +
+                            `extracted storeId: "${storeId}"`
+                    )
+                }
 
                 const docStoreVectorInstanceFilePath = options.componentNodes['documentStoreVS'].filePath as string
+                if (!docStoreVectorInstanceFilePath) {
+                    throw new Error('documentStoreVS component not found in componentNodes')
+                }
+
                 const docStoreVectorModule = await import(docStoreVectorInstanceFilePath)
                 const newDocStoreVectorInstance = new docStoreVectorModule.nodeClass()
-                const docStoreVectorInstance = (await newDocStoreVectorInstance.init(
+                const docStoreVectorInstanceResult = await newDocStoreVectorInstance.init(
                     {
                         ...nodeData,
                         inputs: {
                             ...nodeData.inputs,
-                            selectedStore: storeId
+                            selectedStore: storeId.trim()
                         },
                         outputs: {
                             output: 'retriever'
@@ -170,7 +189,55 @@ class Retriever_Agentflow implements INode {
                     },
                     '',
                     options
-                )) as BaseRetriever
+                )
+
+                // Check for error in result
+                if (
+                    docStoreVectorInstanceResult &&
+                    typeof docStoreVectorInstanceResult === 'object' &&
+                    'error' in docStoreVectorInstanceResult
+                ) {
+                    throw new Error(
+                        `Failed to initialize document store vector: ${docStoreVectorInstanceResult.error}. ` +
+                            `Store ID: "${storeId}", ` +
+                            `Document Store value: "${knowledgeBase.documentStore}"`
+                    )
+                }
+
+                // Handle different return types from init()
+                // init() should return BaseRetriever directly when output is 'retriever'
+                let docStoreVectorInstance: BaseRetriever
+
+                // Check if result is already a BaseRetriever (has invoke method)
+                if (docStoreVectorInstanceResult && typeof (docStoreVectorInstanceResult as any).invoke === 'function') {
+                    docStoreVectorInstance = docStoreVectorInstanceResult as BaseRetriever
+                }
+                // Check if result has a retriever property
+                else if (
+                    docStoreVectorInstanceResult &&
+                    typeof docStoreVectorInstanceResult === 'object' &&
+                    'retriever' in docStoreVectorInstanceResult
+                ) {
+                    docStoreVectorInstance = (docStoreVectorInstanceResult as any).retriever
+                }
+                // Otherwise, try to use it directly
+                else {
+                    docStoreVectorInstance = docStoreVectorInstanceResult as BaseRetriever
+                }
+
+                if (!docStoreVectorInstance || typeof docStoreVectorInstance.invoke !== 'function') {
+                    const resultType = docStoreVectorInstanceResult ? typeof docStoreVectorInstanceResult : 'null/undefined'
+                    const resultKeys =
+                        docStoreVectorInstanceResult && typeof docStoreVectorInstanceResult === 'object'
+                            ? Object.keys(docStoreVectorInstanceResult).join(', ')
+                            : 'N/A'
+                    throw new Error(
+                        `Document store vector instance does not have an invoke method. ` +
+                            `Result type: ${resultType}, ` +
+                            `Result keys: ${resultKeys}, ` +
+                            `Store ID: ${storeId}`
+                    )
+                }
 
                 docs = await docStoreVectorInstance.invoke(retrieverQuery || input, { signal: abortController?.signal })
             }

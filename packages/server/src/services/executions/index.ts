@@ -2,61 +2,66 @@ import { StatusCodes } from 'http-status-codes'
 import { In } from 'typeorm'
 import { ChatMessage } from '../../database/entities/ChatMessage'
 import { Execution } from '../../database/entities/Execution'
-import { InternalFlowiseError } from '../../errors/internalFlowiseError'
+import { InternalAutonomousError } from '../../errors/internalAutonomousError'
 import { getErrorMessage } from '../../errors/utils'
 import { ExecutionState, IAgentflowExecutedData } from '../../Interface'
 import { _removeCredentialId } from '../../utils'
-import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
+import { getDataSource } from '../../DataSource'
 
 export interface ExecutionFilters {
-    id?: string
+    guid?: string
     agentflowId?: string
     agentflowName?: string
     sessionId?: string
     state?: ExecutionState
-    startDate?: Date
-    endDate?: Date
+    startDate?: number
+    endDate?: number
     page?: number
     limit?: number
-    workspaceId?: string
+    orgId?: string
+    userId?: number
 }
 
-const getExecutionById = async (executionId: string, workspaceId?: string): Promise<Execution | null> => {
+const getExecutionById = async (executionId: string, orgId?: string): Promise<Execution | null> => {
     try {
-        const appServer = getRunningExpressApp()
-        const executionRepository = appServer.AppDataSource.getRepository(Execution)
+        if (!orgId) {
+            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+        }
+        const dataSource = getDataSource(parseInt(orgId))
+        const executionRepository = dataSource.getRepository(Execution)
 
-        const query: any = { id: executionId }
-        // Add workspace filtering if provided
-        if (workspaceId) query.workspaceId = workspaceId
-
-        const res = await executionRepository.findOne({ where: query })
+        const res = await executionRepository.findOne({ where: { guid: executionId } })
         if (!res) {
-            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Execution ${executionId} not found`)
+            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Execution ${executionId} not found`)
         }
         return res
     } catch (error) {
-        throw new InternalFlowiseError(
+        throw new InternalAutonomousError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: executionsService.getExecutionById - ${getErrorMessage(error)}`
         )
     }
 }
 
-const getPublicExecutionById = async (executionId: string): Promise<Execution | null> => {
+const getPublicExecutionById = async (executionId: string, orgId?: string): Promise<Execution | null> => {
     try {
-        const appServer = getRunningExpressApp()
-        const executionRepository = appServer.AppDataSource.getRepository(Execution)
-        const res = await executionRepository.findOne({ where: { id: executionId, isPublic: true } })
+        // Require orgId upfront - no cross-org search
+        if (!orgId) {
+            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+        }
+
+        const dataSource = getDataSource(parseInt(orgId))
+        const executionRepository = dataSource.getRepository(Execution)
+        const res = await executionRepository.findOne({ where: { guid: executionId, isPublic: true } })
         if (!res) {
-            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Execution ${executionId} not found`)
+            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Execution ${executionId} not found`)
         }
         const executionData = typeof res?.executionData === 'string' ? JSON.parse(res?.executionData) : res?.executionData
         const executionDataWithoutCredentialId = executionData.map((data: IAgentflowExecutedData) => _removeCredentialId(data))
         const stringifiedExecutionData = JSON.stringify(executionDataWithoutCredentialId)
         return { ...res, executionData: stringifiedExecutionData }
     } catch (error) {
-        throw new InternalFlowiseError(
+        throw new InternalAutonomousError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: executionsService.getPublicExecutionById - ${getErrorMessage(error)}`
         )
@@ -65,65 +70,72 @@ const getPublicExecutionById = async (executionId: string): Promise<Execution | 
 
 const getAllExecutions = async (filters: ExecutionFilters = {}): Promise<{ data: Execution[]; total: number }> => {
     try {
-        const appServer = getRunningExpressApp()
-        const { id, agentflowId, agentflowName, sessionId, state, startDate, endDate, page = 1, limit = 12, workspaceId } = filters
+        const { guid, agentflowId, agentflowName, sessionId, state, startDate, endDate, page = 1, limit = 12, orgId, userId } = filters
 
-        // Handle UUID fields properly using raw parameters to avoid type conversion issues
-        // This uses the query builder instead of direct objects for compatibility with UUID fields
-        const queryBuilder = appServer.AppDataSource.getRepository(Execution)
+        if (!orgId) {
+            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+        }
+
+        const dataSource = getDataSource(parseInt(orgId))
+        // Handle GUID fields properly using raw parameters
+        const queryBuilder = dataSource
+            .getRepository(Execution)
             .createQueryBuilder('execution')
             .leftJoinAndSelect('execution.agentflow', 'agentflow')
-            .orderBy('execution.updatedDate', 'DESC')
+            // Order by created_on DESC to show latest executions first (newest to oldest)
+            // This ensures Dec 11 appears before Dec 1, with most recent executions on first page
+            .orderBy('execution.created_on', 'DESC')
             .skip((page - 1) * limit)
             .take(limit)
 
-        if (id) queryBuilder.andWhere('execution.id = :id', { id })
-        if (agentflowId) queryBuilder.andWhere('execution.agentflowId = :agentflowId', { agentflowId })
+        if (guid) queryBuilder.andWhere('execution.guid = :guid', { guid })
+        if (agentflowId) queryBuilder.andWhere('execution.agentflowid = :agentflowId', { agentflowId })
         if (agentflowName)
             queryBuilder.andWhere('LOWER(agentflow.name) LIKE LOWER(:agentflowName)', { agentflowName: `%${agentflowName}%` })
-        if (sessionId) queryBuilder.andWhere('execution.sessionId = :sessionId', { sessionId })
+        if (sessionId) queryBuilder.andWhere('execution.sessionid = :sessionId', { sessionId })
         if (state) queryBuilder.andWhere('execution.state = :state', { state })
-        if (workspaceId) queryBuilder.andWhere('execution.workspaceId = :workspaceId', { workspaceId })
-
-        // Date range conditions
+        // Date range conditions (numeric timestamps)
         if (startDate && endDate) {
-            queryBuilder.andWhere('execution.createdDate BETWEEN :startDate AND :endDate', { startDate, endDate })
+            queryBuilder.andWhere('execution.created_on BETWEEN :startDate AND :endDate', { startDate, endDate })
         } else if (startDate) {
-            queryBuilder.andWhere('execution.createdDate >= :startDate', { startDate })
+            queryBuilder.andWhere('execution.created_on >= :startDate', { startDate })
         } else if (endDate) {
-            queryBuilder.andWhere('execution.createdDate <= :endDate', { endDate })
+            queryBuilder.andWhere('execution.created_on <= :endDate', { endDate })
         }
 
         const [data, total] = await queryBuilder.getManyAndCount()
 
         return { data, total }
     } catch (error) {
-        throw new InternalFlowiseError(
+        throw new InternalAutonomousError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: executionsService.getAllExecutions - ${getErrorMessage(error)}`
         )
     }
 }
 
-const updateExecution = async (executionId: string, data: Partial<Execution>, workspaceId?: string): Promise<Execution | null> => {
+const updateExecution = async (executionId: string, data: Partial<Execution>, orgId?: string): Promise<Execution | null> => {
     try {
-        const appServer = getRunningExpressApp()
+        if (!orgId) {
+            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+        }
 
-        const query: any = { id: executionId }
-        // Add workspace filtering if provided
-        if (workspaceId) query.workspaceId = workspaceId
-
-        const execution = await appServer.AppDataSource.getRepository(Execution).findOneBy(query)
+        const dataSource = getDataSource(parseInt(orgId))
+        const execution = await dataSource.getRepository(Execution).findOneBy({ guid: executionId })
         if (!execution) {
-            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Execution ${executionId} not found`)
+            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Execution ${executionId} not found`)
         }
         const updateExecution = new Execution()
         Object.assign(updateExecution, data)
-        await appServer.AppDataSource.getRepository(Execution).merge(execution, updateExecution)
-        const dbResponse = await appServer.AppDataSource.getRepository(Execution).save(execution)
+        // Set last_modified_on if not provided
+        if (!updateExecution.last_modified_on) {
+            updateExecution.last_modified_on = Date.now()
+        }
+        await dataSource.getRepository(Execution).merge(execution, updateExecution)
+        const dbResponse = await dataSource.getRepository(Execution).save(execution)
         return dbResponse
     } catch (error) {
-        throw new InternalFlowiseError(
+        throw new InternalAutonomousError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: executionsService.updateExecution - ${getErrorMessage(error)}`
         )
@@ -133,30 +145,30 @@ const updateExecution = async (executionId: string, data: Partial<Execution>, wo
 /**
  * Delete multiple executions by their IDs
  * @param executionIds Array of execution IDs to delete
- * @param workspaceId Optional workspace ID to filter executions
+ * @param orgId Optional organization ID to filter executions
  * @returns Object with success status and count of deleted executions
  */
-const deleteExecutions = async (executionIds: string[], workspaceId?: string): Promise<{ success: boolean; deletedCount: number }> => {
+const deleteExecutions = async (executionIds: string[], orgId?: string): Promise<{ success: boolean; deletedCount: number }> => {
     try {
-        const appServer = getRunningExpressApp()
-        const executionRepository = appServer.AppDataSource.getRepository(Execution)
+        if (!orgId) {
+            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+        }
 
-        // Create the where condition with workspace filtering if provided
-        const whereCondition: any = { id: In(executionIds) }
-        if (workspaceId) whereCondition.workspaceId = workspaceId
+        const dataSource = getDataSource(parseInt(orgId))
+        const executionRepository = dataSource.getRepository(Execution)
 
-        // Delete executions where id is in the provided array and belongs to the workspace
-        const result = await executionRepository.delete(whereCondition)
+        // Delete executions where guid is in the provided array
+        const result = await executionRepository.delete({ guid: In(executionIds) })
 
         // Update chat message executionId column to NULL
-        await appServer.AppDataSource.getRepository(ChatMessage).update({ executionId: In(executionIds) }, { executionId: null as any })
+        await dataSource.getRepository(ChatMessage).update({ executionId: In(executionIds) }, { executionId: null as any })
 
         return {
             success: true,
             deletedCount: result.affected || 0
         }
     } catch (error) {
-        throw new InternalFlowiseError(
+        throw new InternalAutonomousError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: executionsService.deleteExecutions - ${getErrorMessage(error)}`
         )

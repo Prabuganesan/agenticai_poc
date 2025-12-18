@@ -21,6 +21,7 @@ export const ReactFlowContext = ({ children }) => {
     const [reactFlowInstance, setReactFlowInstance] = useState(null)
 
     const onAgentflowNodeStatusUpdate = ({ nodeId, status, error }) => {
+        if (!reactFlowInstance) return
         reactFlowInstance.setNodes((nds) =>
             nds.map((node) => {
                 if (node.id === nodeId) {
@@ -36,6 +37,7 @@ export const ReactFlowContext = ({ children }) => {
     }
 
     const clearAgentflowNodeStatus = () => {
+        if (!reactFlowInstance) return
         reactFlowInstance.setNodes((nds) =>
             nds.map((node) => {
                 node.data = {

@@ -26,9 +26,9 @@ import { formatLogToString } from 'langchain/agents/format_scratchpad/log'
 import { IUsedTool } from './Interface'
 import { getErrorMessage } from './error'
 
-export const SOURCE_DOCUMENTS_PREFIX = '\n\n----FLOWISE_SOURCE_DOCUMENTS----\n\n'
-export const ARTIFACTS_PREFIX = '\n\n----FLOWISE_ARTIFACTS----\n\n'
-export const TOOL_ARGS_PREFIX = '\n\n----FLOWISE_TOOL_ARGS----\n\n'
+export const SOURCE_DOCUMENTS_PREFIX = '\n\n----AUTONOMOUS_SOURCE_DOCUMENTS----\n\n'
+export const ARTIFACTS_PREFIX = '\n\n----AUTONOMOUS_ARTIFACTS----\n\n'
+export const TOOL_ARGS_PREFIX = '\n\n----AUTONOMOUS_TOOL_ARGS----\n\n'
 
 /**
  * Utility function to format tool error messages with parameters for debugging
@@ -437,17 +437,137 @@ export class AgentExecutor extends BaseChain<ChainValues, AgentExecutorOutput> {
                          * - flowConfig?: { sessionId?: string, chatId?: string, input?: string }
                          */
                         if (tool) {
-                            observation = await (tool as any).call(
-                                this.isXML && typeof action.toolInput === 'string' ? { input: action.toolInput } : action.toolInput,
-                                runManager?.getChild(),
-                                undefined,
-                                {
-                                    sessionId: this.sessionId,
-                                    chatId: this.chatId,
-                                    input: this.input,
-                                    state: inputs
+                            const toolStartTime = Date.now()
+                            const toolName = action.tool || 'unknown'
+                            const orgId = (inputs as any)?.orgId || (inputs as any)?.state?.orgId || 'unknown'
+                            const userId = (inputs as any)?.userId || (inputs as any)?.state?.userId || 'anonymous'
+
+                            // Log tool execution start
+                            try {
+                                // Dynamic import with path resolution - components package cannot directly import from server
+                                const path = require('path')
+                                const fs = require('fs')
+                                // Try multiple possible paths
+                                const possiblePaths = [
+                                    path.resolve(__dirname, '../../server/src/utils/logger/module-methods'),
+                                    path.resolve(process.cwd(), 'packages/server/src/utils/logger/module-methods'),
+                                    path.resolve(process.cwd(), 'autonomous/packages/server/src/utils/logger/module-methods')
+                                ]
+                                let serverPath: string | null = null
+                                for (const p of possiblePaths) {
+                                    if (fs.existsSync(p + '.ts') || fs.existsSync(p + '.js')) {
+                                        serverPath = p
+                                        break
+                                    }
                                 }
-                            )
+                                if (serverPath) {
+                                    const { toolLog } = await import(serverPath)
+                                    await toolLog('info', 'Tool execution started', {
+                                        userId: userId.toString(),
+                                        orgId: orgId.toString(),
+                                        toolName: toolName,
+                                        toolInput:
+                                            typeof action.toolInput === 'string'
+                                                ? action.toolInput.substring(0, 200)
+                                                : JSON.stringify(action.toolInput).substring(0, 200),
+                                        sessionId: this.sessionId,
+                                        chatId: this.chatId
+                                    }).catch(() => {})
+                                }
+                            } catch (logError) {
+                                // Silently fail - logging should not break tool execution
+                            }
+
+                            try {
+                                observation = await (tool as any).call(
+                                    this.isXML && typeof action.toolInput === 'string' ? { input: action.toolInput } : action.toolInput,
+                                    runManager?.getChild(),
+                                    undefined,
+                                    {
+                                        sessionId: this.sessionId,
+                                        chatId: this.chatId,
+                                        input: this.input,
+                                        state: inputs
+                                    }
+                                )
+
+                                const toolEndTime = Date.now()
+                                const toolDuration = toolEndTime - toolStartTime
+
+                                // Log tool execution success
+                                try {
+                                    const path = require('path')
+                                    const fs = require('fs')
+                                    const possiblePaths = [
+                                        path.resolve(__dirname, '../../server/src/utils/logger/module-methods'),
+                                        path.resolve(process.cwd(), 'packages/server/src/utils/logger/module-methods'),
+                                        path.resolve(process.cwd(), 'autonomous/packages/server/src/utils/logger/module-methods')
+                                    ]
+                                    let serverPath: string | null = null
+                                    for (const p of possiblePaths) {
+                                        if (fs.existsSync(p + '.ts') || fs.existsSync(p + '.js')) {
+                                            serverPath = p
+                                            break
+                                        }
+                                    }
+                                    if (serverPath) {
+                                        const { toolLog } = await import(serverPath)
+                                        await toolLog('info', 'Tool execution completed', {
+                                            userId: userId.toString(),
+                                            orgId: orgId.toString(),
+                                            toolName: toolName,
+                                            toolOutput:
+                                                typeof observation === 'string'
+                                                    ? observation.substring(0, 200)
+                                                    : JSON.stringify(observation).substring(0, 200),
+                                            sessionId: this.sessionId,
+                                            chatId: this.chatId,
+                                            durationMs: toolDuration,
+                                            status: 'success'
+                                        }).catch(() => {})
+                                    }
+                                } catch (logError) {
+                                    // Silently fail
+                                }
+                            } catch (toolError) {
+                                const toolEndTime = Date.now()
+                                const toolDuration = toolEndTime - toolStartTime
+
+                                // Log tool execution failure
+                                try {
+                                    const path = require('path')
+                                    const fs = require('fs')
+                                    const possiblePaths = [
+                                        path.resolve(__dirname, '../../server/src/utils/logger/module-methods'),
+                                        path.resolve(process.cwd(), 'packages/server/src/utils/logger/module-methods'),
+                                        path.resolve(process.cwd(), 'autonomous/packages/server/src/utils/logger/module-methods')
+                                    ]
+                                    let serverPath: string | null = null
+                                    for (const p of possiblePaths) {
+                                        if (fs.existsSync(p + '.ts') || fs.existsSync(p + '.js')) {
+                                            serverPath = p
+                                            break
+                                        }
+                                    }
+                                    if (serverPath) {
+                                        const { toolLog } = await import(serverPath)
+                                        await toolLog('error', 'Tool execution failed', {
+                                            userId: userId.toString(),
+                                            orgId: orgId.toString(),
+                                            toolName: toolName,
+                                            sessionId: this.sessionId,
+                                            chatId: this.chatId,
+                                            durationMs: toolDuration,
+                                            status: 'failed',
+                                            error: toolError instanceof Error ? toolError.message : String(toolError)
+                                        }).catch(() => {})
+                                    }
+                                } catch (logError) {
+                                    // Silently fail
+                                }
+
+                                throw toolError
+                            }
                             let toolOutput = observation
                             if (typeof toolOutput === 'string' && toolOutput.includes(SOURCE_DOCUMENTS_PREFIX)) {
                                 toolOutput = toolOutput.split(SOURCE_DOCUMENTS_PREFIX)[0]

@@ -17,12 +17,16 @@ services:
         container_name: flowise-main
         restart: always
         ports:
-            - '${PORT:-3000}:${PORT:-3000}'
+            - '${SERVER_PORT:-3030}:${SERVER_PORT:-3030}'
         volumes:
             - ~/.flowise:/root/.flowise
         environment:
-            # --- Essential Flowise Vars ---
-            - PORT=${PORT:-3000}
+            # --- Base Configuration ---
+            - AUTONOMOUS_DATA_PATH=${AUTONOMOUS_DATA_PATH}
+            - SERVER_PORT=${SERVER_PORT:-3030}
+            - SERVER_HOST=${SERVER_HOST}
+            - CONTEXT_PATH=${CONTEXT_PATH:-/autonomous}
+            - PROXY_URL=${PROXY_URL}
             - DATABASE_PATH=${DATABASE_PATH:-/root/.flowise}
             - DATABASE_TYPE=${DATABASE_TYPE}
             - DATABASE_PORT=${DATABASE_PORT}
@@ -46,6 +50,12 @@ services:
             - DEBUG=${DEBUG}
             - LOG_PATH=${LOG_PATH}
             - LOG_LEVEL=${LOG_LEVEL}
+            - LOG_ENABLED=${LOG_ENABLED:-true}
+            - LOG_SYSTEM_ENABLED=${LOG_SYSTEM_ENABLED:-true}
+            - LOG_WORKFLOWS_ENABLED=${LOG_WORKFLOWS_ENABLED:-true}
+            - LOG_SERVICES_ENABLED=${LOG_SERVICES_ENABLED:-true}
+            - LOG_STORAGE_ENABLED=${LOG_STORAGE_ENABLED:-true}
+            - LOG_INFRASTRUCTURE_ENABLED=${LOG_INFRASTRUCTURE_ENABLED:-true}
             - LOG_SANITIZE_BODY_FIELDS=${LOG_SANITIZE_BODY_FIELDS}
             - LOG_SANITIZE_HEADER_FIELDS=${LOG_SANITIZE_HEADER_FIELDS}
 
@@ -72,7 +82,8 @@ services:
             - NUMBER_OF_PROXIES=${NUMBER_OF_PROXIES}
             - CORS_ORIGINS=${CORS_ORIGINS}
             - IFRAME_ORIGINS=${IFRAME_ORIGINS}
-            - FLOWISE_FILE_SIZE_LIMIT=${FLOWISE_FILE_SIZE_LIMIT}
+            - CHATBOT_IFRAME_ORIGINS=${CHATBOT_IFRAME_ORIGINS}
+            - AUTONOMOUS_FILE_SIZE_LIMIT=${AUTONOMOUS_FILE_SIZE_LIMIT}
             - SHOW_COMMUNITY_NODES=${SHOW_COMMUNITY_NODES}
             - DISABLE_FLOWISE_TELEMETRY=${DISABLE_FLOWISE_TELEMETRY}
             - DISABLED_NODES=${DISABLED_NODES}
@@ -106,8 +117,6 @@ services:
             - LICENSE_URL=${LICENSE_URL}
             - FLOWISE_EE_LICENSE_KEY=${FLOWISE_EE_LICENSE_KEY}
             - OFFLINE=${OFFLINE}
-            - INVITE_TOKEN_EXPIRY_IN_HOURS=${INVITE_TOKEN_EXPIRY_IN_HOURS}
-            - WORKSPACE_INVITE_TEMPLATE_PATH=${WORKSPACE_INVITE_TEMPLATE_PATH}
 
             # METRICS COLLECTION
             - POSTHOG_PUBLIC_API_KEY=${POSTHOG_PUBLIC_API_KEY}
@@ -126,7 +135,7 @@ services:
 
             # --- Queue Configuration (Main Instance) ---
             - MODE=${MODE:-queue}
-            - QUEUE_NAME=${QUEUE_NAME:-flowise-queue}
+            - QUEUE_NAME=${QUEUE_NAME:-autonomous-queue}
             - QUEUE_REDIS_EVENT_STREAM_MAX_LEN=${QUEUE_REDIS_EVENT_STREAM_MAX_LEN}
             - WORKER_CONCURRENCY=${WORKER_CONCURRENCY}
             - REMOVE_ON_AGE=${REMOVE_ON_AGE}
@@ -148,13 +157,60 @@ services:
             - CUSTOM_MCP_PROTOCOL=${CUSTOM_MCP_PROTOCOL}
             - HTTP_DENY_LIST=${HTTP_DENY_LIST}
             - TRUST_PROXY=${TRUST_PROXY}
+
+            # DOCUMENT LOADERS
+            - PUPPETEER_EXECUTABLE_FILE_PATH=${PUPPETEER_EXECUTABLE_FILE_PATH}
+            - PLAYWRIGHT_EXECUTABLE_FILE_PATH=${PLAYWRIGHT_EXECUTABLE_FILE_PATH}
+
+            # MAIN DATABASE CONFIGURATION
+            - MAIN_DB_HOST=${MAIN_DB_HOST}
+            - MAIN_DB_PORT=${MAIN_DB_PORT}
+            - MAIN_DB_DATABASE=${MAIN_DB_DATABASE}
+            - MAIN_DB_USER=${MAIN_DB_USER}
+            - MAIN_DB_PASSWORD=${MAIN_DB_PASSWORD}
+            - MAIN_DB_TYPE=${MAIN_DB_TYPE}
+            - DB_POOL_SIZE=${DB_POOL_SIZE}
+            - DB_SSL=${DB_SSL}
+            - ENABLE_TABLE_CREATION=${ENABLE_TABLE_CREATION}
+
+            # AUTONOMOUS SERVER MIGRATION
+            - APPBUILDER_SHORT_CODE=${APPBUILDER_SHORT_CODE}
+            - APPDESIGNER_SHORT_CODE=${APPDESIGNER_SHORT_CODE}
+            - APPPUBLISHER_SHORT_CODE=${APPPUBLISHER_SHORT_CODE}
+
+            # REDIS CONFIGURATION
+            - REDIS_DB_SESSION=${REDIS_DB_SESSION:-1}
+            - REDIS_DB_QUEUE=${REDIS_DB_QUEUE:-3}
+
+            # SERVER CONFIGURATION
+            - SERVER_MODE=${SERVER_MODE}
+            - SERVER_CLUSTER_MODE=${SERVER_CLUSTER_MODE}
+            - SERVER_INSTANCES=${SERVER_INSTANCES}
+            - SERVER_TARGET_SERVER=${SERVER_TARGET_SERVER}
+            - SERVER_DEPLOY_PATH=${SERVER_DEPLOY_PATH}
+
+            # SESSION CONFIGURATION
+            - SESSION_COOKIE_MAX_AGE=${SESSION_COOKIE_MAX_AGE:-900}
+            - SESSION_COOKIE_DOMAIN=${SESSION_COOKIE_DOMAIN}
+            - SESSION_COOKIE_PATH=${SESSION_COOKIE_PATH:-/}
+            - SESSION_COOKIE_HTTP_ONLY=${SESSION_COOKIE_HTTP_ONLY:-true}
+            - SESSION_COOKIE_SECURE=${SESSION_COOKIE_SECURE:-false}
+            - SESSION_COOKIE_SAME_SITE=${SESSION_COOKIE_SAME_SITE:-lax}
+
+            # LICENSE AND ENCRYPTION
+            - LICENSE_CODE=${LICENSE_CODE}
+            - SIMPLE_CRYPTO_KEY=${SIMPLE_CRYPTO_KEY}
+
+            # COUCHDB CONFIGURATION
+            - COUCHDB_DATABASE_CONFIG=${COUCHDB_DATABASE_CONFIG:-config}
+            - COUCHDB_DATABASE_MAIN_DATA=${COUCHDB_DATABASE_MAIN_DATA:-mobile_platform}
         healthcheck:
-            test: ['CMD', 'curl', '-f', 'http://localhost:${PORT:-3000}/api/v1/ping']
+            test: ['CMD', 'curl', '-f', 'http://localhost:${SERVER_PORT:-3030}/api/v1/ping']
             interval: 10s
             timeout: 5s
             retries: 5
             start_period: 30s
-        entrypoint: /bin/sh -c "sleep 3; flowise start"
+        entrypoint: /bin/sh -c "sleep 3; autonomous start"
         depends_on:
             - redis
         networks:
@@ -167,8 +223,12 @@ services:
         volumes:
             - ~/.flowise:/root/.flowise
         environment:
-            # --- Essential Flowise Vars ---
+            # --- Base Configuration ---
+            - AUTONOMOUS_DATA_PATH=${AUTONOMOUS_DATA_PATH}
             - WORKER_PORT=${WORKER_PORT:-5566}
+            - SERVER_HOST=${SERVER_HOST}
+            - CONTEXT_PATH=${CONTEXT_PATH:-/autonomous}
+            - PROXY_URL=${PROXY_URL}
             - DATABASE_PATH=${DATABASE_PATH:-/root/.flowise}
             - DATABASE_TYPE=${DATABASE_TYPE}
             - DATABASE_PORT=${DATABASE_PORT}
@@ -192,6 +252,12 @@ services:
             - DEBUG=${DEBUG}
             - LOG_PATH=${LOG_PATH}
             - LOG_LEVEL=${LOG_LEVEL}
+            - LOG_ENABLED=${LOG_ENABLED:-true}
+            - LOG_SYSTEM_ENABLED=${LOG_SYSTEM_ENABLED:-true}
+            - LOG_WORKFLOWS_ENABLED=${LOG_WORKFLOWS_ENABLED:-true}
+            - LOG_SERVICES_ENABLED=${LOG_SERVICES_ENABLED:-true}
+            - LOG_STORAGE_ENABLED=${LOG_STORAGE_ENABLED:-true}
+            - LOG_INFRASTRUCTURE_ENABLED=${LOG_INFRASTRUCTURE_ENABLED:-true}
             - LOG_SANITIZE_BODY_FIELDS=${LOG_SANITIZE_BODY_FIELDS}
             - LOG_SANITIZE_HEADER_FIELDS=${LOG_SANITIZE_HEADER_FIELDS}
 
@@ -218,7 +284,8 @@ services:
             - NUMBER_OF_PROXIES=${NUMBER_OF_PROXIES}
             - CORS_ORIGINS=${CORS_ORIGINS}
             - IFRAME_ORIGINS=${IFRAME_ORIGINS}
-            - FLOWISE_FILE_SIZE_LIMIT=${FLOWISE_FILE_SIZE_LIMIT}
+            - CHATBOT_IFRAME_ORIGINS=${CHATBOT_IFRAME_ORIGINS}
+            - AUTONOMOUS_FILE_SIZE_LIMIT=${AUTONOMOUS_FILE_SIZE_LIMIT}
             - SHOW_COMMUNITY_NODES=${SHOW_COMMUNITY_NODES}
             - DISABLE_FLOWISE_TELEMETRY=${DISABLE_FLOWISE_TELEMETRY}
             - DISABLED_NODES=${DISABLED_NODES}
@@ -252,8 +319,6 @@ services:
             - LICENSE_URL=${LICENSE_URL}
             - FLOWISE_EE_LICENSE_KEY=${FLOWISE_EE_LICENSE_KEY}
             - OFFLINE=${OFFLINE}
-            - INVITE_TOKEN_EXPIRY_IN_HOURS=${INVITE_TOKEN_EXPIRY_IN_HOURS}
-            - WORKSPACE_INVITE_TEMPLATE_PATH=${WORKSPACE_INVITE_TEMPLATE_PATH}
 
             # METRICS COLLECTION
             - POSTHOG_PUBLIC_API_KEY=${POSTHOG_PUBLIC_API_KEY}
@@ -272,7 +337,7 @@ services:
 
             # --- Queue Configuration (Worker Instance) ---
             - MODE=${MODE:-queue}
-            - QUEUE_NAME=${QUEUE_NAME:-flowise-queue}
+            - QUEUE_NAME=${QUEUE_NAME:-autonomous-queue}
             - QUEUE_REDIS_EVENT_STREAM_MAX_LEN=${QUEUE_REDIS_EVENT_STREAM_MAX_LEN}
             - WORKER_CONCURRENCY=${WORKER_CONCURRENCY}
             - REMOVE_ON_AGE=${REMOVE_ON_AGE}
@@ -294,6 +359,53 @@ services:
             - CUSTOM_MCP_PROTOCOL=${CUSTOM_MCP_PROTOCOL}
             - HTTP_DENY_LIST=${HTTP_DENY_LIST}
             - TRUST_PROXY=${TRUST_PROXY}
+
+            # DOCUMENT LOADERS
+            - PUPPETEER_EXECUTABLE_FILE_PATH=${PUPPETEER_EXECUTABLE_FILE_PATH}
+            - PLAYWRIGHT_EXECUTABLE_FILE_PATH=${PLAYWRIGHT_EXECUTABLE_FILE_PATH}
+
+            # MAIN DATABASE CONFIGURATION
+            - MAIN_DB_HOST=${MAIN_DB_HOST}
+            - MAIN_DB_PORT=${MAIN_DB_PORT}
+            - MAIN_DB_DATABASE=${MAIN_DB_DATABASE}
+            - MAIN_DB_USER=${MAIN_DB_USER}
+            - MAIN_DB_PASSWORD=${MAIN_DB_PASSWORD}
+            - MAIN_DB_TYPE=${MAIN_DB_TYPE}
+            - DB_POOL_SIZE=${DB_POOL_SIZE}
+            - DB_SSL=${DB_SSL}
+            - ENABLE_TABLE_CREATION=${ENABLE_TABLE_CREATION}
+
+            # AUTONOMOUS SERVER MIGRATION
+            - APPBUILDER_SHORT_CODE=${APPBUILDER_SHORT_CODE}
+            - APPDESIGNER_SHORT_CODE=${APPDESIGNER_SHORT_CODE}
+            - APPPUBLISHER_SHORT_CODE=${APPPUBLISHER_SHORT_CODE}
+
+            # REDIS CONFIGURATION
+            - REDIS_DB_SESSION=${REDIS_DB_SESSION:-1}
+            - REDIS_DB_QUEUE=${REDIS_DB_QUEUE:-3}
+
+            # SERVER CONFIGURATION
+            - SERVER_MODE=${SERVER_MODE}
+            - SERVER_CLUSTER_MODE=${SERVER_CLUSTER_MODE}
+            - SERVER_INSTANCES=${SERVER_INSTANCES}
+            - SERVER_TARGET_SERVER=${SERVER_TARGET_SERVER}
+            - SERVER_DEPLOY_PATH=${SERVER_DEPLOY_PATH}
+
+            # SESSION CONFIGURATION
+            - SESSION_COOKIE_MAX_AGE=${SESSION_COOKIE_MAX_AGE:-900}
+            - SESSION_COOKIE_DOMAIN=${SESSION_COOKIE_DOMAIN}
+            - SESSION_COOKIE_PATH=${SESSION_COOKIE_PATH:-/}
+            - SESSION_COOKIE_HTTP_ONLY=${SESSION_COOKIE_HTTP_ONLY:-true}
+            - SESSION_COOKIE_SECURE=${SESSION_COOKIE_SECURE:-false}
+            - SESSION_COOKIE_SAME_SITE=${SESSION_COOKIE_SAME_SITE:-lax}
+
+            # LICENSE AND ENCRYPTION
+            - LICENSE_CODE=${LICENSE_CODE}
+            - SIMPLE_CRYPTO_KEY=${SIMPLE_CRYPTO_KEY}
+
+            # COUCHDB CONFIGURATION
+            - COUCHDB_DATABASE_CONFIG=${COUCHDB_DATABASE_CONFIG:-config}
+            - COUCHDB_DATABASE_MAIN_DATA=${COUCHDB_DATABASE_MAIN_DATA:-mobile_platform}
         healthcheck:
             test: ['CMD', 'curl', '-f', 'http://localhost:${WORKER_PORT:-5566}/healthz']
             interval: 10s

@@ -26,8 +26,6 @@ import { AgentAction } from '@langchain/core/agents'
 import { LunaryHandler } from '@langchain/community/callbacks/handlers/lunary'
 
 import { getCredentialData, getCredentialParam, getEnvironmentVariable } from './utils'
-import { EvaluationRunTracer } from '../evaluation/EvaluationRunTracer'
-import { EvaluationRunTracerLlama } from '../evaluation/EvaluationRunTracerLlama'
 import { ICommonObject, IDatabaseEntity, INodeData, IServerSideEventStreamer } from './Interface'
 import { LangWatch, LangWatchSpan, LangWatchTrace, autoconvertTypedValues } from 'langwatch'
 import { DataSource } from 'typeorm'
@@ -251,79 +249,136 @@ export class ConsoleCallbackHandler extends BaseTracer {
     }
 
     onChainStart(run: Run) {
-        const crumbs = this.getBreadcrumbs(run)
-
-        this.logger.verbose(
-            `[${this.orgId}]: [chain/start] [${crumbs}] Entering Chain run with input: ${tryJsonStringify(run.inputs, '[inputs]')}`
-        )
+        try {
+            const crumbs = this.getBreadcrumbs(run)
+            if (this.logger && typeof this.logger.verbose === 'function') {
+                this.logger.verbose(
+                    `[${this.orgId}]: [chain/start] [${crumbs}] Entering Chain run with input: ${tryJsonStringify(run.inputs, '[inputs]')}`
+                )
+            }
+        } catch (error) {
+            // Silently ignore logger errors - new logging system is used instead
+        }
     }
 
     onChainEnd(run: Run) {
-        const crumbs = this.getBreadcrumbs(run)
-        this.logger.verbose(
-            `[${this.orgId}]: [chain/end] [${crumbs}] [${elapsed(run)}] Exiting Chain run with output: ${tryJsonStringify(
-                run.outputs,
-                '[outputs]'
-            )}`
-        )
+        try {
+            const crumbs = this.getBreadcrumbs(run)
+            if (this.logger && typeof this.logger.verbose === 'function') {
+                this.logger.verbose(
+                    `[${this.orgId}]: [chain/end] [${crumbs}] [${elapsed(run)}] Exiting Chain run with output: ${tryJsonStringify(
+                        run.outputs,
+                        '[outputs]'
+                    )}`
+                )
+            }
+        } catch (error) {
+            // Silently ignore logger errors - new logging system is used instead
+        }
     }
 
     onChainError(run: Run) {
-        const crumbs = this.getBreadcrumbs(run)
-        this.logger.verbose(
-            `[${this.orgId}]: [chain/error] [${crumbs}] [${elapsed(run)}] Chain run errored with error: ${tryJsonStringify(
-                run.error,
-                '[error]'
-            )}`
-        )
+        try {
+            const crumbs = this.getBreadcrumbs(run)
+            if (this.logger && typeof this.logger.verbose === 'function') {
+                this.logger.verbose(
+                    `[${this.orgId}]: [chain/error] [${crumbs}] [${elapsed(run)}] Chain run errored with error: ${tryJsonStringify(
+                        run.error,
+                        '[error]'
+                    )}`
+                )
+            }
+        } catch (error) {
+            // Silently ignore logger errors - new logging system is used instead
+        }
     }
 
     onLLMStart(run: Run) {
-        const crumbs = this.getBreadcrumbs(run)
-        const inputs = 'prompts' in run.inputs ? { prompts: (run.inputs.prompts as string[]).map((p) => p.trim()) } : run.inputs
-        this.logger.verbose(`[${this.orgId}]: [llm/start] [${crumbs}] Entering LLM run with input: ${tryJsonStringify(inputs, '[inputs]')}`)
+        try {
+            const crumbs = this.getBreadcrumbs(run)
+            const inputs = 'prompts' in run.inputs ? { prompts: (run.inputs.prompts as string[]).map((p) => p.trim()) } : run.inputs
+            if (this.logger && typeof this.logger.verbose === 'function') {
+                this.logger.verbose(
+                    `[${this.orgId}]: [llm/start] [${crumbs}] Entering LLM run with input: ${tryJsonStringify(inputs, '[inputs]')}`
+                )
+            }
+        } catch (error) {
+            // Silently ignore logger errors - new logging system is used instead
+        }
     }
 
     onLLMEnd(run: Run) {
-        const crumbs = this.getBreadcrumbs(run)
-        this.logger.verbose(
-            `[${this.orgId}]: [llm/end] [${crumbs}] [${elapsed(run)}] Exiting LLM run with output: ${tryJsonStringify(
-                run.outputs,
-                '[response]'
-            )}`
-        )
+        try {
+            const crumbs = this.getBreadcrumbs(run)
+            if (this.logger && typeof this.logger.verbose === 'function') {
+                this.logger.verbose(
+                    `[${this.orgId}]: [llm/end] [${crumbs}] [${elapsed(run)}] Exiting LLM run with output: ${tryJsonStringify(
+                        run.outputs,
+                        '[response]'
+                    )}`
+                )
+            }
+        } catch (error) {
+            // Silently ignore logger errors - new logging system is used instead
+        }
     }
 
     onLLMError(run: Run) {
-        const crumbs = this.getBreadcrumbs(run)
-        this.logger.verbose(
-            `[${this.orgId}]: [llm/error] [${crumbs}] [${elapsed(run)}] LLM run errored with error: ${tryJsonStringify(
-                run.error,
-                '[error]'
-            )}`
-        )
+        try {
+            const crumbs = this.getBreadcrumbs(run)
+            if (this.logger && typeof this.logger.verbose === 'function') {
+                this.logger.verbose(
+                    `[${this.orgId}]: [llm/error] [${crumbs}] [${elapsed(run)}] LLM run errored with error: ${tryJsonStringify(
+                        run.error,
+                        '[error]'
+                    )}`
+                )
+            }
+        } catch (error) {
+            // Silently ignore logger errors - new logging system is used instead
+        }
     }
 
     onToolStart(run: Run) {
-        const crumbs = this.getBreadcrumbs(run)
-        this.logger.verbose(`[${this.orgId}]: [tool/start] [${crumbs}] Entering Tool run with input: "${run.inputs.input?.trim()}"`)
+        try {
+            const crumbs = this.getBreadcrumbs(run)
+            if (this.logger && typeof this.logger.verbose === 'function') {
+                this.logger.verbose(`[${this.orgId}]: [tool/start] [${crumbs}] Entering Tool run with input: "${run.inputs.input?.trim()}"`)
+            }
+        } catch (error) {
+            // Silently ignore logger errors - new logging system is used instead
+        }
     }
 
     onToolEnd(run: Run) {
-        const crumbs = this.getBreadcrumbs(run)
-        this.logger.verbose(
-            `[${this.orgId}]: [tool/end] [${crumbs}] [${elapsed(run)}] Exiting Tool run with output: "${run.outputs?.output?.trim()}"`
-        )
+        try {
+            const crumbs = this.getBreadcrumbs(run)
+            if (this.logger && typeof this.logger.verbose === 'function') {
+                this.logger.verbose(
+                    `[${this.orgId}]: [tool/end] [${crumbs}] [${elapsed(
+                        run
+                    )}] Exiting Tool run with output: "${run.outputs?.output?.trim()}"`
+                )
+            }
+        } catch (error) {
+            // Silently ignore logger errors - new logging system is used instead
+        }
     }
 
     onToolError(run: Run) {
-        const crumbs = this.getBreadcrumbs(run)
-        this.logger.verbose(
-            `[${this.orgId}]: [tool/error] [${crumbs}] [${elapsed(run)}] Tool run errored with error: ${tryJsonStringify(
-                run.error,
-                '[error]'
-            )}`
-        )
+        try {
+            const crumbs = this.getBreadcrumbs(run)
+            if (this.logger && typeof this.logger.verbose === 'function') {
+                this.logger.verbose(
+                    `[${this.orgId}]: [tool/error] [${crumbs}] [${elapsed(run)}] Tool run errored with error: ${tryJsonStringify(
+                        run.error,
+                        '[error]'
+                    )}`
+                )
+            }
+        } catch (error) {
+            // Silently ignore logger errors - new logging system is used instead
+        }
     }
 
     onAgentAction(run: Run) {
@@ -433,7 +488,6 @@ export class CustomChainHandler extends BaseCallbackHandler {
     }
 }
 
-/*TODO - Add llamaIndex tracer to non evaluation runs*/
 class ExtendedLunaryHandler extends LunaryHandler {
     chatId: string
     appDataSource: DataSource
@@ -442,12 +496,12 @@ class ExtendedLunaryHandler extends LunaryHandler {
     thread: any
     apiMessageId: string
 
-    constructor({ flowiseOptions, ...options }: any) {
+    constructor({ autonomousOptions, ...options }: any) {
         super(options)
-        this.appDataSource = flowiseOptions.appDataSource
-        this.databaseEntities = flowiseOptions.databaseEntities
-        this.chatId = flowiseOptions.chatId
-        this.apiMessageId = flowiseOptions.apiMessageId
+        this.appDataSource = autonomousOptions.appDataSource
+        this.databaseEntities = autonomousOptions.databaseEntities
+        this.chatId = autonomousOptions.chatId
+        this.apiMessageId = autonomousOptions.apiMessageId
     }
 
     async initThread() {
@@ -559,7 +613,7 @@ export const additionalCallbacks = async (nodeData: INodeData, options: ICommonO
                         secretKey: langFuseSecretKey,
                         publicKey: langFusePublicKey,
                         baseUrl: langFuseEndpoint ?? 'https://cloud.langfuse.com',
-                        sdkIntegration: 'Flowise'
+                        sdkIntegration: 'Autonomous'
                     }
                     if (release) langFuseOptions.release = release
                     if (options.chatId) langFuseOptions.sessionId = options.chatId
@@ -577,8 +631,8 @@ export const additionalCallbacks = async (nodeData: INodeData, options: ICommonO
                     let lunaryFields = {
                         publicKey: lunaryPublicKey,
                         apiUrl: lunaryEndpoint ?? 'https://api.lunary.ai',
-                        runtime: 'flowise',
-                        flowiseOptions: options
+                        runtime: 'autonomous',
+                        autonomousOptions: options
                     }
 
                     if (nodeData?.inputs?.analytics?.lunary) {
@@ -588,13 +642,6 @@ export const additionalCallbacks = async (nodeData: INodeData, options: ICommonO
                     const handler = new ExtendedLunaryHandler(lunaryFields)
 
                     callbacks.push(handler)
-                } else if (provider === 'evaluation') {
-                    if (options.llamaIndex) {
-                        new EvaluationRunTracerLlama(options.evaluationRunId)
-                    } else {
-                        const evaluationHandler = new EvaluationRunTracer(options.evaluationRunId)
-                        callbacks.push(evaluationHandler)
-                    }
                 } else if (provider === 'langWatch') {
                     const langWatchApiKey = getCredentialParam('langWatchApiKey', credentialData, nodeData)
                     const langWatchEndpoint = getCredentialParam('langWatchEndpoint', credentialData, nodeData)
@@ -626,7 +673,7 @@ export const additionalCallbacks = async (nodeData: INodeData, options: ICommonO
                         spaceId: arizeSpaceId,
                         baseUrl: arizeEndpoint ?? 'https://otlp.arize.com',
                         projectName: arizeProject ?? 'default',
-                        sdkIntegration: 'Flowise',
+                        sdkIntegration: 'Autonomous',
                         enableCallback: true
                     }
 
@@ -646,7 +693,7 @@ export const additionalCallbacks = async (nodeData: INodeData, options: ICommonO
                         apiKey: phoenixApiKey,
                         baseUrl: phoenixEndpoint ?? 'https://app.phoenix.arize.com',
                         projectName: phoenixProject ?? 'default',
-                        sdkIntegration: 'Flowise',
+                        sdkIntegration: 'Autonomous',
                         enableCallback: true
                     }
 
@@ -668,7 +715,7 @@ export const additionalCallbacks = async (nodeData: INodeData, options: ICommonO
                         baseUrl: opikEndpoint ?? 'https://www.comet.com/opik/api',
                         projectName: opikProject ?? 'default',
                         workspace: opikWorkspace ?? 'default',
-                        sdkIntegration: 'Flowise',
+                        sdkIntegration: 'Autonomous',
                         enableCallback: true
                     }
 
@@ -784,7 +831,7 @@ export class AnalyticHandler {
                 secretKey: langFuseSecretKey,
                 publicKey: langFusePublicKey,
                 baseUrl: langFuseEndpoint ?? 'https://cloud.langfuse.com',
-                sdkIntegration: 'Flowise',
+                sdkIntegration: 'Autonomous',
                 release
             })
             this.handlers['langFuse'] = { client: langfuse }
@@ -795,7 +842,7 @@ export class AnalyticHandler {
             lunary.init({
                 publicKey: lunaryPublicKey,
                 apiUrl: lunaryEndpoint,
-                runtime: 'flowise'
+                runtime: 'autonomous'
             })
 
             this.handlers['lunary'] = { client: lunary }
@@ -820,7 +867,7 @@ export class AnalyticHandler {
                 spaceId: arizeSpaceId,
                 baseUrl: arizeEndpoint ?? 'https://otlp.arize.com',
                 projectName: arizeProject ?? 'default',
-                sdkIntegration: 'Flowise',
+                sdkIntegration: 'Autonomous',
                 enableCallback: false
             }
 
@@ -837,7 +884,7 @@ export class AnalyticHandler {
                 apiKey: phoenixApiKey,
                 baseUrl: phoenixEndpoint ?? 'https://app.phoenix.arize.com',
                 projectName: phoenixProject ?? 'default',
-                sdkIntegration: 'Flowise',
+                sdkIntegration: 'Autonomous',
                 enableCallback: false
             }
 
@@ -856,7 +903,7 @@ export class AnalyticHandler {
                 baseUrl: opikEndpoint ?? 'https://www.comet.com/opik/api',
                 projectName: opikProject ?? 'default',
                 workspace: opikWorkspace ?? 'default',
-                sdkIntegration: 'Flowise',
+                sdkIntegration: 'Autonomous',
                 enableCallback: false
             }
 
@@ -994,7 +1041,7 @@ export class AnalyticHandler {
             let rootSpan: Span | undefined = this.handlers['arize'].rootSpan
 
             if (!parentIds || !Object.keys(parentIds).length) {
-                rootSpan = tracer ? tracer.startSpan('Flowise') : undefined
+                rootSpan = tracer ? tracer.startSpan('Autonomous') : undefined
                 if (rootSpan) {
                     rootSpan.setAttribute('session.id', this.options.chatId)
                     rootSpan.setAttribute('openinference.span.kind', 'CHAIN')
@@ -1028,7 +1075,7 @@ export class AnalyticHandler {
             let rootSpan: Span | undefined = this.handlers['phoenix'].rootSpan
 
             if (!parentIds || !Object.keys(parentIds).length) {
-                rootSpan = tracer ? tracer.startSpan('Flowise') : undefined
+                rootSpan = tracer ? tracer.startSpan('Autonomous') : undefined
                 if (rootSpan) {
                     rootSpan.setAttribute('session.id', this.options.chatId)
                     rootSpan.setAttribute('openinference.span.kind', 'CHAIN')
@@ -1062,7 +1109,7 @@ export class AnalyticHandler {
             let rootSpan: Span | undefined = this.handlers['opik'].rootSpan
 
             if (!parentIds || !Object.keys(parentIds).length) {
-                rootSpan = tracer ? tracer.startSpan('Flowise') : undefined
+                rootSpan = tracer ? tracer.startSpan('Autonomous') : undefined
                 if (rootSpan) {
                     rootSpan.setAttribute('session.id', this.options.chatId)
                     rootSpan.setAttribute('openinference.span.kind', 'CHAIN')
@@ -1774,7 +1821,7 @@ export class AnalyticHandler {
         }
 
         if (Object.prototype.hasOwnProperty.call(this.handlers, 'lunary')) {
-            const toolEventId: string = this.handlers['lunary'].toolEvent[returnIds['lunary'].toolEvent]
+            const toolEventId: string = this.handlers['lunary'].llmEvent[returnIds['lunary'].toolEvent]
             const monitor = this.handlers['lunary'].client
 
             if (monitor && toolEventId) {

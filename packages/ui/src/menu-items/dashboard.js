@@ -1,5 +1,6 @@
 // assets
 import {
+    IconHome,
     IconList,
     IconUsersGroup,
     IconHierarchy,
@@ -8,26 +9,16 @@ import {
     IconTool,
     IconLock,
     IconRobot,
-    IconSettings,
     IconVariable,
     IconFiles,
-    IconTestPipe,
-    IconMicroscope,
-    IconDatabase,
-    IconChartHistogram,
-    IconUserEdit,
-    IconFileUpload,
-    IconClipboardList,
-    IconStack2,
-    IconUsers,
-    IconLockCheck,
-    IconFileDatabase,
-    IconShieldLock,
-    IconListCheck
+    IconListCheck,
+    IconChartBar,
+    IconArrowBack
 } from '@tabler/icons-react'
 
 // constant
 const icons = {
+    IconHome,
     IconHierarchy,
     IconUsersGroup,
     IconBuildingStore,
@@ -36,25 +27,16 @@ const icons = {
     IconTool,
     IconLock,
     IconRobot,
-    IconSettings,
     IconVariable,
     IconFiles,
-    IconTestPipe,
-    IconMicroscope,
-    IconDatabase,
-    IconUserEdit,
-    IconChartHistogram,
-    IconFileUpload,
-    IconClipboardList,
-    IconStack2,
-    IconUsers,
-    IconLockCheck,
-    IconFileDatabase,
-    IconShieldLock,
-    IconListCheck
+    IconListCheck,
+    IconChartBar,
+    IconArrowBack
 }
 
 // ==============================|| DASHBOARD MENU ITEMS ||============================== //
+
+// Check if SKIP_DESIGNER_SERVICE is enabled (true or 'true')
 
 const dashboard = {
     id: 'dashboard',
@@ -67,19 +49,27 @@ const dashboard = {
             type: 'group',
             children: [
                 {
-                    id: 'chatflows',
-                    title: 'Chatflows',
+                    id: 'home',
+                    title: 'Home',
                     type: 'item',
-                    url: '/chatflows',
+                    url: '/home',
+                    icon: icons.IconHome,
+                    breadcrumbs: true
+                },
+                {
+                    id: 'chatflows',
+                    title: 'Agent',
+                    type: 'item',
+                    url: '/agent',
                     icon: icons.IconHierarchy,
                     breadcrumbs: true,
                     permission: 'chatflows:view'
                 },
                 {
                     id: 'agentflows',
-                    title: 'Agentflows',
+                    title: 'Multi-Agent',
                     type: 'item',
-                    url: '/agentflows',
+                    url: '/multiagent',
                     icon: icons.IconUsersGroup,
                     breadcrumbs: true,
                     permission: 'agentflows:view'
@@ -155,100 +145,14 @@ const dashboard = {
                     icon: icons.IconFiles,
                     breadcrumbs: true,
                     permission: 'documentStores:view'
-                }
-            ]
-        },
-        {
-            id: 'evaluations',
-            title: 'Evaluations',
-            type: 'group',
-            children: [
-                {
-                    id: 'datasets',
-                    title: 'Datasets',
-                    type: 'item',
-                    url: '/datasets',
-                    icon: icons.IconDatabase,
-                    breadcrumbs: true,
-                    display: 'feat:datasets',
-                    permission: 'datasets:view'
                 },
                 {
-                    id: 'evaluators',
-                    title: 'Evaluators',
+                    id: 'llm-usage',
+                    title: 'LLM Usage',
                     type: 'item',
-                    url: '/evaluators',
-                    icon: icons.IconTestPipe,
-                    breadcrumbs: true,
-                    display: 'feat:evaluators',
-                    permission: 'evaluators:view'
-                },
-                {
-                    id: 'evaluations',
-                    title: 'Evaluations',
-                    type: 'item',
-                    url: '/evaluations',
-                    icon: icons.IconChartHistogram,
-                    breadcrumbs: true,
-                    display: 'feat:evaluations',
-                    permission: 'evaluations:view'
-                }
-            ]
-        },
-        {
-            id: 'management',
-            title: 'User & Workspace Management',
-            type: 'group',
-            children: [
-                {
-                    id: 'sso',
-                    title: 'SSO Config',
-                    type: 'item',
-                    url: '/sso-config',
-                    icon: icons.IconShieldLock,
-                    breadcrumbs: true,
-                    display: 'feat:sso-config',
-                    permission: 'sso:manage'
-                },
-                {
-                    id: 'roles',
-                    title: 'Roles',
-                    type: 'item',
-                    url: '/roles',
-                    icon: icons.IconLockCheck,
-                    breadcrumbs: true,
-                    display: 'feat:roles',
-                    permission: 'roles:manage'
-                },
-                {
-                    id: 'users',
-                    title: 'Users',
-                    type: 'item',
-                    url: '/users',
-                    icon: icons.IconUsers,
-                    breadcrumbs: true,
-                    display: 'feat:users',
-                    permission: 'users:manage'
-                },
-                {
-                    id: 'workspaces',
-                    title: 'Workspaces',
-                    type: 'item',
-                    url: '/workspaces',
-                    icon: icons.IconStack2,
-                    breadcrumbs: true,
-                    display: 'feat:workspaces',
-                    permission: 'workspace:view'
-                },
-                {
-                    id: 'login-activity',
-                    title: 'Login Activity',
-                    type: 'item',
-                    url: '/login-activity',
-                    icon: icons.IconClipboardList,
-                    breadcrumbs: true,
-                    display: 'feat:login-activity',
-                    permission: 'loginActivity:view'
+                    url: '/llm-usage',
+                    icon: icons.IconChartBar,
+                    breadcrumbs: true
                 }
             ]
         },
@@ -267,6 +171,14 @@ const dashboard = {
                     display: 'feat:logs',
                     permission: 'logs:view'
                 },
+                {
+                    id: 'queues',
+                    title: 'Queues',
+                    type: 'item',
+                    url: '/queues',
+                    icon: icons.IconListCheck,
+                    breadcrumbs: true
+                }
                 // {
                 //     id: 'files',
                 //     title: 'Files',
@@ -275,18 +187,21 @@ const dashboard = {
                 //     icon: icons.IconFileDatabase,
                 //     breadcrumbs: true,
                 //     display: 'feat:files',
-                // },
-                {
-                    id: 'account',
-                    title: 'Account Settings',
-                    type: 'item',
-                    url: '/account',
-                    icon: icons.IconSettings,
-                    breadcrumbs: true,
-                    display: 'feat:account'
-                }
+                // }
             ]
-        }
+        },
+        // Only include 'back' menu item when SKIP_DESIGNER_SERVICE is true
+
+                  {
+                      id: 'back',
+                      title: 'Back',
+                      type: 'item',
+                      url: '/back',
+                      icon: icons.IconArrowBack,
+                      breadcrumbs: false
+                  }
+              
+           
     ]
 }
 

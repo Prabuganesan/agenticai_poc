@@ -183,6 +183,9 @@ const ViewMessagesDialog = ({ show, dialogProps, onCancel }) => {
     useNotifier()
     const enqueueSnackbar = (...args) => dispatch(enqueueSnackbarAction(...args))
     const closeSnackbar = (...args) => dispatch(closeSnackbarAction(...args))
+    
+    // Get chatflow ID with fallback to guid (for backward compatibility)
+    const chatflowId = dialogProps.chatflow?.id || dialogProps.chatflow?.guid
 
     const [chatlogs, setChatLogs] = useState([])
     const [chatMessages, setChatMessages] = useState([])
@@ -197,7 +200,6 @@ const ViewMessagesDialog = ({ show, dialogProps, onCancel }) => {
     const [feedbackTypeFilter, setFeedbackTypeFilter] = useState([])
     const [startDate, setStartDate] = useState(new Date(new Date().setMonth(new Date().getMonth() - 1)))
     const [endDate, setEndDate] = useState(new Date())
-    const [leadEmail, setLeadEmail] = useState('')
     const [anchorEl, setAnchorEl] = useState(null)
     const open = Boolean(anchorEl)
 
@@ -217,7 +219,11 @@ const ViewMessagesDialog = ({ show, dialogProps, onCancel }) => {
     }
 
     const refresh = (page, limit, startDate, endDate, chatTypes, feedbackTypes) => {
-        getChatmessageApi.request(dialogProps.chatflow.id, {
+        if (!chatflowId) {
+            console.error('Chatflow ID is missing')
+            return
+        }
+        getChatmessageApi.request(chatflowId, {
             chatType: chatTypes.length ? chatTypes : undefined,
             feedbackType: feedbackTypes.length ? feedbackTypes : undefined,
             startDate: startDate,
@@ -226,7 +232,7 @@ const ViewMessagesDialog = ({ show, dialogProps, onCancel }) => {
             page: page,
             limit: limit
         })
-        getStatsApi.request(dialogProps.chatflow.id, {
+        getStatsApi.request(chatflowId, {
             chatType: chatTypes.length ? chatTypes : undefined,
             feedbackType: feedbackTypes.length ? feedbackTypes : undefined,
             startDate: startDate,
@@ -286,7 +292,7 @@ const ViewMessagesDialog = ({ show, dialogProps, onCancel }) => {
 
     const deleteMessages = async (hardDelete) => {
         setHardDeleteDialogOpen(false)
-        const chatflowid = dialogProps.chatflow.id
+        const chatflowid = chatflowId
         try {
             const obj = { chatflowid, isClearFromViewMessageDialog: true }
 
@@ -327,7 +333,7 @@ const ViewMessagesDialog = ({ show, dialogProps, onCancel }) => {
         } catch (error) {
             console.error(error)
             enqueueSnackbar({
-                message: typeof error.response.data === 'object' ? error.response.data.message : error.response.data,
+                message: error?.response?.data && typeof error.response.data === 'object' ? error.response.data.message : error?.response?.data || error?.message || 'Unknown error',
                 options: {
                     key: new Date().getTime() + Math.random(),
                     variant: 'error',
@@ -345,8 +351,6 @@ const ViewMessagesDialog = ({ show, dialogProps, onCancel }) => {
     const getChatType = (chatType) => {
         if (chatType === 'INTERNAL') {
             return 'UI'
-        } else if (chatType === 'EVALUATION') {
-            return 'Evaluation'
         }
         return 'API/Embed'
     }
@@ -361,7 +365,7 @@ const ViewMessagesDialog = ({ show, dialogProps, onCancel }) => {
             fileSeparator = '\\'
         }
 
-        const resp = await chatmessageApi.getAllChatmessageFromChatflow(dialogProps.chatflow.id, {
+        const resp = await chatmessageApi.getAllChatmessageFromChatflow(chatflowId, {
             chatType: chatTypeFilter.length ? chatTypeFilter : undefined,
             feedbackType: feedbackTypeFilter.length ? feedbackTypeFilter : undefined,
             startDate: startDate,
@@ -410,7 +414,7 @@ const ViewMessagesDialog = ({ show, dialogProps, onCancel }) => {
                     source: getChatType(chatmsg.chatType),
                     sessionId: chatmsg.sessionId ?? null,
                     memoryType: chatmsg.memoryType ?? null,
-                    email: chatmsg.leadEmail ?? null,
+                    email: null,
                     messages: [msg]
                 }
             } else if (Object.prototype.hasOwnProperty.call(obj, chatPK)) {
@@ -434,7 +438,7 @@ const ViewMessagesDialog = ({ show, dialogProps, onCancel }) => {
         const blob = new Blob([dataStr], { type: 'application/json' })
         const dataUri = URL.createObjectURL(blob)
 
-        const exportFileDefaultName = `${dialogProps.chatflow.id}-Message.json`
+        const exportFileDefaultName = `${chatflowId}-Message.json`
 
         let linkElement = document.createElement('a')
         linkElement.setAttribute('href', dataUri)
@@ -455,7 +459,7 @@ const ViewMessagesDialog = ({ show, dialogProps, onCancel }) => {
         }
         const isConfirmed = await confirm(confirmPayload)
 
-        const chatflowid = dialogProps.chatflow.id
+        const chatflowid = chatflowId
         if (isConfirmed) {
             try {
                 const obj = { chatflowid, isClearFromViewMessageDialog: true }
@@ -517,18 +521,23 @@ const ViewMessagesDialog = ({ show, dialogProps, onCancel }) => {
         for (let i = 0; i < chatmessages.length; i += 1) {
             const chatmsg = chatmessages[i]
             setSelectedChatId(chatmsg.chatId)
+            // Handle numeric timestamp (milliseconds) or ISO string
+            const createdDate = typeof chatmsg.createdDate === 'number' 
+                ? new Date(chatmsg.createdDate).toISOString() 
+                : chatmsg.createdDate
+            const dateStr = createdDate.split('T')[0]
+            
             if (!prevDate) {
-                prevDate = chatmsg.createdDate.split('T')[0]
+                prevDate = dateStr
                 loadedMessages.push({
-                    message: chatmsg.createdDate,
+                    message: createdDate,
                     type: 'timeMessage'
                 })
             } else {
-                const currentDate = chatmsg.createdDate.split('T')[0]
-                if (currentDate !== prevDate) {
-                    prevDate = currentDate
+                if (dateStr !== prevDate) {
+                    prevDate = dateStr
                     loadedMessages.push({
-                        message: chatmsg.createdDate,
+                        message: createdDate,
                         type: 'timeMessage'
                     })
                 }
@@ -639,12 +648,12 @@ const ViewMessagesDialog = ({ show, dialogProps, onCancel }) => {
     const handleItemClick = (idx, chatmsg) => {
         setSelectedMessageIndex(idx)
         if (feedbackTypeFilter.length > 0) {
-            getChatmessageFromPKApi.request(dialogProps.chatflow.id, {
+            getChatmessageFromPKApi.request(chatflowId, {
                 ...transformChatPKToParams(getChatPK(chatmsg)),
                 feedbackType: feedbackTypeFilter
             })
         } else {
-            getChatmessageFromPKApi.request(dialogProps.chatflow.id, transformChatPKToParams(getChatPK(chatmsg)))
+            getChatmessageFromPKApi.request(chatflowId, transformChatPKToParams(getChatPK(chatmsg)))
         }
     }
 
@@ -656,7 +665,7 @@ const ViewMessagesDialog = ({ show, dialogProps, onCancel }) => {
         try {
             const response = await axios.post(
                 `${baseURL}/api/v1/openai-assistants-file/download`,
-                { fileName: fileAnnotation.fileName, chatflowId: dialogProps.chatflow.id, chatId: selectedChatId },
+                { fileName: fileAnnotation.fileName, chatflowId: chatflowId, chatId: selectedChatId },
                 { responseType: 'blob' }
             )
             const blob = new Blob([response.data], { type: response.headers['content-type'] })
@@ -738,12 +747,6 @@ const ViewMessagesDialog = ({ show, dialogProps, onCancel }) => {
         }
     }
 
-    useEffect(() => {
-        const leadEmailFromChatMessages = chatMessages.filter((message) => message.type === 'userMessage' && message.leadEmail)
-        if (leadEmailFromChatMessages.length) {
-            setLeadEmail(leadEmailFromChatMessages[0].leadEmail)
-        }
-    }, [chatMessages, selectedMessageIndex])
 
     useEffect(() => {
         if (getChatmessageFromPKApi.data) {
@@ -761,12 +764,12 @@ const ViewMessagesDialog = ({ show, dialogProps, onCancel }) => {
             setSelectedMessageIndex(0)
             if (chatPK) {
                 if (feedbackTypeFilter.length > 0) {
-                    getChatmessageFromPKApi.request(dialogProps.chatflow.id, {
+                    getChatmessageFromPKApi.request(chatflowId, {
                         ...transformChatPKToParams(chatPK),
                         feedbackType: feedbackTypeFilter
                     })
                 } else {
-                    getChatmessageFromPKApi.request(dialogProps.chatflow.id, transformChatPKToParams(chatPK))
+                    getChatmessageFromPKApi.request(chatflowId, transformChatPKToParams(chatPK))
                 }
             }
         }
@@ -782,9 +785,9 @@ const ViewMessagesDialog = ({ show, dialogProps, onCancel }) => {
     }, [getStatsApi.data])
 
     useEffect(() => {
-        if (dialogProps.chatflow) {
+        if (dialogProps.chatflow && chatflowId) {
             refresh(currentPage, pageLimit, startDate, endDate, chatTypeFilter, feedbackTypeFilter)
-            getStatsApi.request(dialogProps.chatflow.id, {
+            getStatsApi.request(chatflowId, {
                 startDate: startDate,
                 endDate: endDate
             })
@@ -800,7 +803,6 @@ const ViewMessagesDialog = ({ show, dialogProps, onCancel }) => {
             setStartDate(new Date(new Date().setMonth(new Date().getMonth() - 1)))
             setEndDate(new Date())
             setStats([])
-            setLeadEmail('')
             setTotal(0)
             setCurrentPage(1)
             setPageLimit(10)
@@ -832,7 +834,7 @@ const ViewMessagesDialog = ({ show, dialogProps, onCancel }) => {
             if (artifact && (artifact.type === 'png' || artifact.type === 'jpeg')) {
                 const data = artifact.data
                 newArtifacts[i].data = `${baseURL}/api/v1/get-upload-file?chatflowId=${
-                    dialogProps.chatflow.id
+                    chatflowId
                 }&chatId=${selectedChatId}&fileName=${data.replace('FILE-STORAGE::', '')}`
             }
         }
@@ -872,7 +874,7 @@ const ViewMessagesDialog = ({ show, dialogProps, onCancel }) => {
                 </div>
             )
         } else {
-            return <MemoizedReactMarkdown chatflowid={dialogProps.chatflow.id}>{item.data}</MemoizedReactMarkdown>
+            return <MemoizedReactMarkdown chatflowid={chatflowId}>{item.data}</MemoizedReactMarkdown>
         }
     }
 
@@ -942,10 +944,6 @@ const ViewMessagesDialog = ({ show, dialogProps, onCancel }) => {
                                     {
                                         label: 'API/Embed',
                                         name: 'EXTERNAL'
-                                    },
-                                    {
-                                        label: 'Evaluations',
-                                        name: 'EVALUATION'
                                     }
                                 ]}
                                 onSelect={(newValue) => onChatTypeSelected(newValue)}
@@ -1162,11 +1160,6 @@ const ViewMessagesDialog = ({ show, dialogProps, onCancel }) => {
                                                     Memory:&nbsp;<b>{chatMessages[1].memoryType}</b>
                                                 </div>
                                             )}
-                                            {leadEmail && (
-                                                <div>
-                                                    Email:&nbsp;<b>{leadEmail}</b>
-                                                </div>
-                                            )}
                                         </div>
                                         <div
                                             style={{
@@ -1219,40 +1212,159 @@ const ViewMessagesDialog = ({ show, dialogProps, onCancel }) => {
                                                                 background:
                                                                     message.type === 'apiMessage' ? theme.palette.asyncSelect.main : '',
                                                                 py: '1rem',
-                                                                px: '1.5rem'
+                                                                px: '1.5rem',
+                                                                display: 'flex',
+                                                                flexDirection: 'row',
+                                                                justifyContent: message.type === 'userMessage' ? 'flex-end' : 'flex-start',
+                                                                alignItems: 'flex-start'
                                                             }}
                                                             key={index}
-                                                            style={{ display: 'flex', justifyContent: 'center', alignContent: 'center' }}
                                                         >
-                                                            {/* Display the correct icon depending on the message type */}
-                                                            {message.type === 'apiMessage' ? (
-                                                                <img
-                                                                    style={{ marginLeft: '10px' }}
-                                                                    src={robotPNG}
-                                                                    alt='AI'
-                                                                    width='25'
-                                                                    height='25'
-                                                                    className='boticon'
-                                                                />
+                                                            {/* For user messages: content first, then icon on right */}
+                                                            {/* For API messages: icon first, then content on left */}
+                                                            {message.type === 'userMessage' ? (
+                                                                <>
+                                                                    <div
+                                                                        style={{
+                                                                            display: 'flex',
+                                                                            flexDirection: 'column',
+                                                                            maxWidth: 'calc(100% - 40px)',
+                                                                            minWidth: 0,
+                                                                            overflow: 'hidden',
+                                                                            alignItems: 'flex-end',
+                                                                            textAlign: 'right'
+                                                                        }}
+                                                                    >
+                                                                        {message.fileUploads && message.fileUploads.length > 0 && (
+                                                                            <div
+                                                                                style={{
+                                                                                    display: 'flex',
+                                                                                    flexWrap: 'wrap',
+                                                                                    flexDirection: 'column',
+                                                                                    width: '100%',
+                                                                                    gap: '8px'
+                                                                                }}
+                                                                            >
+                                                                                {message.fileUploads.map((item, index) => {
+                                                                                    return <>{renderFileUploads(item, index)}</>
+                                                                                })}
+                                                                            </div>
+                                                                        )}
+                                                                        {message.artifacts && (
+                                                                            <div
+                                                                                style={{
+                                                                                    display: 'flex',
+                                                                                    flexWrap: 'wrap',
+                                                                                    flexDirection: 'column',
+                                                                                    width: '100%'
+                                                                                }}
+                                                                            >
+                                                                                {message.artifacts.map((item, index) => {
+                                                                                    return item !== null ? <>{renderArtifacts(item, index)}</> : null
+                                                                                })}
+                                                                            </div>
+                                                                        )}
+                                                                        <div
+                                                                            className={`markdownanswer ${message.type === 'userMessage' ? 'markdownanswer-right' : ''}`}
+                                                                            style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
+                                                                        >
+                                                                            <MemoizedReactMarkdown chatflowid={chatflowId}>
+                                                                                {message.message}
+                                                                            </MemoizedReactMarkdown>
+                                                                        </div>
+                                                                        {message.fileAnnotations && (
+                                                                            <div style={{ display: 'block', flexDirection: 'row', width: '100%' }}>
+                                                                                {message.fileAnnotations.map((fileAnnotation, index) => {
+                                                                                    return (
+                                                                                        <Button
+                                                                                            sx={{
+                                                                                                fontSize: '0.85rem',
+                                                                                                textTransform: 'none',
+                                                                                                mb: 1,
+                                                                                                mr: 1
+                                                                                            }}
+                                                                                            key={index}
+                                                                                            variant='outlined'
+                                                                                            onClick={() => downloadFile(fileAnnotation)}
+                                                                                            endIcon={
+                                                                                                <IconDownload color={theme.palette.primary.main} />
+                                                                                            }
+                                                                                        >
+                                                                                            {fileAnnotation.fileName}
+                                                                                        </Button>
+                                                                                    )
+                                                                                })}
+                                                                            </div>
+                                                                        )}
+                                                                        {message.sourceDocuments && (
+                                                                            <div style={{ display: 'block', flexDirection: 'row', width: '100%' }}>
+                                                                                {removeDuplicateURL(message).map((source, index) => {
+                                                                                    const URL =
+                                                                                        source.metadata && source.metadata.source
+                                                                                            ? isValidURL(source.metadata.source)
+                                                                                            : undefined
+                                                                                    return (
+                                                                                        <Chip
+                                                                                            size='small'
+                                                                                            key={index}
+                                                                                            label={
+                                                                                                URL
+                                                                                                    ? URL.pathname.substring(0, 15) === '/'
+                                                                                                        ? URL.host
+                                                                                                        : `${URL.pathname.substring(0, 15)}...`
+                                                                                                    : `${source.pageContent.substring(0, 15)}...`
+                                                                                            }
+                                                                                            component='a'
+                                                                                            sx={{ mr: 1, mb: 1 }}
+                                                                                            variant='outlined'
+                                                                                            clickable
+                                                                                            onClick={() =>
+                                                                                                URL
+                                                                                                    ? onURLClick(source.metadata.source)
+                                                                                                    : onSourceDialogClick(source)
+                                                                                            }
+                                                                                        />
+                                                                                    )
+                                                                                })}
+                                                                            </div>
+                                                                        )}
+                                                                        {message.type === 'apiMessage' && message.feedback ? (
+                                                                            <Feedback
+                                                                                content={message.feedback?.content || ''}
+                                                                                rating={message.feedback?.rating}
+                                                                            />
+                                                                        ) : null}
+                                                                    </div>
+                                                                    <img
+                                                                        style={{ marginLeft: '10px', marginRight: '0', marginTop: '1rem' }}
+                                                                        src={userPNG}
+                                                                        alt='Me'
+                                                                        width='25'
+                                                                        height='25'
+                                                                        className='usericon usericon-right'
+                                                                    />
+                                                                </>
                                                             ) : (
-                                                                <img
-                                                                    style={{ marginLeft: '10px' }}
-                                                                    src={userPNG}
-                                                                    alt='Me'
-                                                                    width='25'
-                                                                    height='25'
-                                                                    className='usericon'
-                                                                />
-                                                            )}
-                                                            <div
-                                                                style={{
-                                                                    display: 'flex',
-                                                                    flexDirection: 'column',
-                                                                    width: '100%',
-                                                                    minWidth: 0,
-                                                                    overflow: 'hidden'
-                                                                }}
-                                                            >
+                                                                <>
+                                                                    <img
+                                                                        style={{ marginRight: '10px', marginLeft: '0', marginTop: '1rem' }}
+                                                                        src={robotPNG}
+                                                                        alt='AI'
+                                                                        width='25'
+                                                                        height='25'
+                                                                        className='boticon'
+                                                                    />
+                                                                    <div
+                                                                        style={{
+                                                                            display: 'flex',
+                                                                            flexDirection: 'column',
+                                                                            maxWidth: 'calc(100% - 40px)',
+                                                                            minWidth: 0,
+                                                                            overflow: 'hidden',
+                                                                            alignItems: 'flex-start',
+                                                                            textAlign: 'left'
+                                                                        }}
+                                                                    >
                                                                 {message.fileUploads && message.fileUploads.length > 0 && (
                                                                     <div
                                                                         style={{
@@ -1411,7 +1523,7 @@ const ViewMessagesDialog = ({ show, dialogProps, onCancel }) => {
                                                                                         )}
                                                                                         {agent.messages.length > 0 && (
                                                                                             <MemoizedReactMarkdown
-                                                                                                chatflowid={dialogProps.chatflow.id}
+                                                                                                chatflowid={chatflowId}
                                                                                             >
                                                                                                 {agent.messages.length > 1
                                                                                                     ? agent.messages.join('\\n')
@@ -1538,10 +1650,10 @@ const ViewMessagesDialog = ({ show, dialogProps, onCancel }) => {
                                                                     </div>
                                                                 )}
                                                                 <div
-                                                                    className='markdownanswer'
+                                                                    className={`markdownanswer ${message.type === 'userMessage' ? 'markdownanswer-right' : ''}`}
                                                                     style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
                                                                 >
-                                                                    <MemoizedReactMarkdown chatflowid={dialogProps.chatflow.id}>
+                                                                    <MemoizedReactMarkdown chatflowid={chatflowId}>
                                                                         {message.message}
                                                                     </MemoizedReactMarkdown>
                                                                 </div>
@@ -1607,7 +1719,9 @@ const ViewMessagesDialog = ({ show, dialogProps, onCancel }) => {
                                                                         rating={message.feedback?.rating}
                                                                     />
                                                                 ) : null}
-                                                            </div>
+                                                                    </div>
+                                                                </>
+                                                            )}
                                                         </Box>
                                                     )
                                                 } else {

@@ -168,11 +168,7 @@ class Redis_VectorStores implements INode {
                 }
                 const isIndexExists = await checkIndexExists(redisClient, indexName)
                 if (replaceIndex && isIndexExists) {
-                    let response = await redisClient.ft.dropIndex(indexName)
-                    if (process.env.DEBUG === 'true') {
-                        // eslint-disable-next-line no-console
-                        console.log(`Redis Vector Store :: Dropping index [${indexName}], Received Response [${response}]`)
-                    }
+                    await redisClient.ft.dropIndex(indexName)
                 }
                 const vectorStore = await RedisVectorStore.fromDocuments(finalDocs, embeddings, storeConfig)
 

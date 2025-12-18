@@ -40,7 +40,7 @@ import Storage from '@mui/icons-material/Storage'
 import DynamicFeed from '@mui/icons-material/Filter1'
 
 // utils
-import { initNode, showHideInputParams, getFileName } from '@/utils/genericHelper'
+import { initNode, showHideInputParams } from '@/utils/genericHelper'
 import useNotifier from '@/utils/useNotifier'
 
 // const
@@ -69,7 +69,6 @@ const VectorStoreConfigure = () => {
     const [loading, setLoading] = useState(true)
     const [documentStore, setDocumentStore] = useState({})
     const [dialogProps, setDialogProps] = useState({})
-    const [currentLoader, setCurrentLoader] = useState(null)
 
     const [showEmbeddingsListDialog, setShowEmbeddingsListDialog] = useState(false)
     const [selectedEmbeddingsProvider, setSelectedEmbeddingsProvider] = useState({})
@@ -246,15 +245,14 @@ const VectorStoreConfigure = () => {
     const prepareConfigData = () => {
         const data = {
             storeId: storeId,
-            docId: docId,
-            isStrictSave: true
+            docId: docId
         }
         // Set embedding config
         if (selectedEmbeddingsProvider.inputs) {
             data.embeddingConfig = {}
             data.embeddingName = selectedEmbeddingsProvider.name
             Object.keys(selectedEmbeddingsProvider.inputs).map((key) => {
-                if (key === 'FLOWISE_CREDENTIAL_ID') {
+                if (key === 'AUTONOMOUS_CREDENTIAL_ID') {
                     data.embeddingConfig['credential'] = selectedEmbeddingsProvider.inputs[key]
                 } else {
                     data.embeddingConfig[key] = selectedEmbeddingsProvider.inputs[key]
@@ -270,7 +268,7 @@ const VectorStoreConfigure = () => {
             data.vectorStoreConfig = {}
             data.vectorStoreName = selectedVectorStoreProvider.name
             Object.keys(selectedVectorStoreProvider.inputs).map((key) => {
-                if (key === 'FLOWISE_CREDENTIAL_ID') {
+                if (key === 'AUTONOMOUS_CREDENTIAL_ID') {
                     data.vectorStoreConfig['credential'] = selectedVectorStoreProvider.inputs[key]
                 } else {
                     data.vectorStoreConfig[key] = selectedVectorStoreProvider.inputs[key]
@@ -286,7 +284,7 @@ const VectorStoreConfigure = () => {
             data.recordManagerConfig = {}
             data.recordManagerName = selectedRecordManagerProvider.name
             Object.keys(selectedRecordManagerProvider.inputs).map((key) => {
-                if (key === 'FLOWISE_CREDENTIAL_ID') {
+                if (key === 'AUTONOMOUS_CREDENTIAL_ID') {
                     data.recordManagerConfig['credential'] = selectedRecordManagerProvider.inputs[key]
                 } else {
                     data.recordManagerConfig[key] = selectedRecordManagerProvider.inputs[key]
@@ -355,39 +353,6 @@ const VectorStoreConfigure = () => {
         return Object.keys(selectedEmbeddingsProvider).length === 0
     }
 
-    const getLoaderDisplayName = (loader) => {
-        if (!loader) return ''
-
-        const loaderName = loader.loaderName || 'Unknown'
-        let sourceName = ''
-
-        // Prefer files.name when files array exists and has items
-        if (loader.files && Array.isArray(loader.files) && loader.files.length > 0) {
-            sourceName = loader.files.map((file) => file.name).join(', ')
-        } else if (loader.source) {
-            // Fallback to source logic
-            if (typeof loader.source === 'string' && loader.source.includes('base64')) {
-                sourceName = getFileName(loader.source)
-            } else if (typeof loader.source === 'string' && loader.source.startsWith('[') && loader.source.endsWith(']')) {
-                sourceName = JSON.parse(loader.source).join(', ')
-            } else if (typeof loader.source === 'string') {
-                sourceName = loader.source
-            }
-        }
-
-        // Return format: "LoaderName (sourceName)" or just "LoaderName" if no source
-        return sourceName ? `${loaderName} (${sourceName})` : loaderName
-    }
-
-    const getViewHeaderTitle = () => {
-        const storeName = getSpecificDocumentStoreApi.data?.name || ''
-        if (docId && currentLoader) {
-            const loaderName = getLoaderDisplayName(currentLoader)
-            return `${storeName} / ${loaderName}`
-        }
-        return storeName
-    }
-
     useEffect(() => {
         if (saveVectorStoreConfigApi.data) {
             setLoading(false)
@@ -446,15 +411,6 @@ const VectorStoreConfigure = () => {
                 return
             }
             setDocumentStore(docStore)
-
-            // Find the current loader if docId is provided
-            if (docId && docStore.loaders) {
-                const loader = docStore.loaders.find((l) => l.id === docId)
-                if (loader) {
-                    setCurrentLoader(loader)
-                }
-            }
-
             if (docStore.embeddingConfig) {
                 getEmbeddingNodeDetailsApi.request(docStore.embeddingConfig.name)
             }
@@ -517,7 +473,7 @@ const VectorStoreConfigure = () => {
                                 <ViewHeader
                                     isBackButton={true}
                                     search={false}
-                                    title={getViewHeaderTitle()}
+                                    title={getSpecificDocumentStoreApi.data?.name}
                                     description='Configure Embeddings, Vector Store and Record Manager'
                                     onBack={() => navigate(-1)}
                                 >

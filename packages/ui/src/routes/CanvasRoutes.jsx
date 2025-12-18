@@ -34,22 +34,6 @@ const CanvasRoutes = {
             )
         },
         {
-            path: '/agentcanvas',
-            element: (
-                <RequireAuth permission={'agentflows:view'}>
-                    <Canvas />
-                </RequireAuth>
-            )
-        },
-        {
-            path: '/agentcanvas/:id',
-            element: (
-                <RequireAuth permission={'agentflows:view'}>
-                    <Canvas />
-                </RequireAuth>
-            )
-        },
-        {
             path: '/v2/agentcanvas',
             element: (
                 <RequireAuth permission={'agentflows:view'}>

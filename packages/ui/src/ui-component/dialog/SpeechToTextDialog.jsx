@@ -13,7 +13,7 @@ import useNotifier from '@/utils/useNotifier'
 // Project imports
 import SpeechToText from '@/ui-component/extended/SpeechToText'
 
-const SpeechToTextDialog = ({ show, dialogProps, onCancel, onConfirm }) => {
+const SpeechToTextDialog = ({ show, dialogProps, onCancel }) => {
     const portalElement = document.getElementById('portal')
     const dispatch = useDispatch()
 
@@ -38,7 +38,7 @@ const SpeechToTextDialog = ({ show, dialogProps, onCancel, onConfirm }) => {
                 {dialogProps.title || 'Allowed Domains'}
             </DialogTitle>
             <DialogContent>
-                <SpeechToText dialogProps={dialogProps} onConfirm={onConfirm} />
+                <SpeechToText dialogProps={dialogProps} />
             </DialogContent>
         </Dialog>
     ) : null

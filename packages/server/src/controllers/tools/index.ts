@@ -1,91 +1,100 @@
-import { NextFunction, Request, Response } from 'express'
+import { NextFunction, Response } from 'express'
 import { StatusCodes } from 'http-status-codes'
-import { InternalFlowiseError } from '../../errors/internalFlowiseError'
+import { InternalAutonomousError } from '../../errors/internalAutonomousError'
 import toolsService from '../../services/tools'
 import { getPageAndLimitParams } from '../../utils/pagination'
+import { AuthenticatedRequest } from '../../middlewares/session-validation.middleware'
+import { transformEntityForResponse, transformPaginatedResponse } from '../../utils/responseTransform'
 
-const createTool = async (req: Request, res: Response, next: NextFunction) => {
+const createTool = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         if (!req.body) {
-            throw new InternalFlowiseError(StatusCodes.PRECONDITION_FAILED, `Error: toolsController.createTool - body not provided!`)
+            throw new InternalAutonomousError(StatusCodes.PRECONDITION_FAILED, `Error: toolsController.createTool - body not provided!`)
         }
-        const orgId = req.user?.activeOrganizationId
+        const orgId = req.orgId
         if (!orgId) {
-            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Error: toolsController.createTool - organization ${orgId} not found!`)
-        }
-        const workspaceId = req.user?.activeWorkspaceId
-        if (!workspaceId) {
-            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Error: toolsController.createTool - workspace ${workspaceId} not found!`)
+            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Error: toolsController.createTool - organization ${orgId} not found!`)
         }
         const body = req.body
-        body.workspaceId = workspaceId
+        const userId = req.userId
 
-        const apiResponse = await toolsService.createTool(body, orgId)
-        return res.json(apiResponse)
+        const apiResponse = await toolsService.createTool(body, orgId, userId)
+        return res.json(transformEntityForResponse(apiResponse))
     } catch (error) {
         next(error)
     }
 }
 
-const deleteTool = async (req: Request, res: Response, next: NextFunction) => {
+const deleteTool = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalFlowiseError(StatusCodes.PRECONDITION_FAILED, `Error: toolsController.deleteTool - id not provided!`)
+            throw new InternalAutonomousError(StatusCodes.PRECONDITION_FAILED, `Error: toolsController.deleteTool - id not provided!`)
         }
-        const workspaceId = req.user?.activeWorkspaceId
-        if (!workspaceId) {
-            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Error: toolsController.deleteTool - workspace ${workspaceId} not found!`)
+        const orgId = req.orgId
+        if (!orgId) {
+            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Error: toolsController.deleteTool - organization ${orgId} not found!`)
         }
-        const apiResponse = await toolsService.deleteTool(req.params.id, workspaceId)
+        const userId = req.userId ? parseInt(req.userId) : undefined
+        const apiResponse = await toolsService.deleteTool(req.params.id, orgId, userId)
         return res.json(apiResponse)
     } catch (error) {
         next(error)
     }
 }
 
-const getAllTools = async (req: Request, res: Response, next: NextFunction) => {
+const getAllTools = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-        const { page, limit } = getPageAndLimitParams(req)
-        const apiResponse = await toolsService.getAllTools(req.user?.activeWorkspaceId, page, limit)
-        return res.json(apiResponse)
-    } catch (error) {
-        next(error)
-    }
-}
-
-const getToolById = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalFlowiseError(StatusCodes.PRECONDITION_FAILED, `Error: toolsController.getToolById - id not provided!`)
-        }
-        const workspaceId = req.user?.activeWorkspaceId
-        if (!workspaceId) {
-            throw new InternalFlowiseError(
+        const { page, limit } = getPageAndLimitParams(req as any)
+        const orgId = req.orgId
+        if (!orgId) {
+            throw new InternalAutonomousError(
                 StatusCodes.NOT_FOUND,
-                `Error: toolsController.getToolById - workspace ${workspaceId} not found!`
+                `Error: toolsController.getAllTools - organization ${orgId} not found!`
             )
         }
-        const apiResponse = await toolsService.getToolById(req.params.id, workspaceId)
-        return res.json(apiResponse)
+        const userId = req.userId ? parseInt(req.userId) : undefined
+        const apiResponse = await toolsService.getAllTools(orgId, userId, page, limit)
+        return res.json(transformPaginatedResponse(apiResponse))
     } catch (error) {
         next(error)
     }
 }
 
-const updateTool = async (req: Request, res: Response, next: NextFunction) => {
+const getToolById = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalFlowiseError(StatusCodes.PRECONDITION_FAILED, `Error: toolsController.updateTool - id not provided!`)
+            throw new InternalAutonomousError(StatusCodes.PRECONDITION_FAILED, `Error: toolsController.getToolById - id not provided!`)
+        }
+        const orgId = req.orgId
+        if (!orgId) {
+            throw new InternalAutonomousError(
+                StatusCodes.NOT_FOUND,
+                `Error: toolsController.getToolById - organization ${orgId} not found!`
+            )
+        }
+        const userId = req.userId ? parseInt(req.userId) : undefined
+        const apiResponse = await toolsService.getToolById(req.params.id, orgId, userId)
+        return res.json(transformEntityForResponse(apiResponse))
+    } catch (error) {
+        next(error)
+    }
+}
+
+const updateTool = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+        if (typeof req.params === 'undefined' || !req.params.id) {
+            throw new InternalAutonomousError(StatusCodes.PRECONDITION_FAILED, `Error: toolsController.updateTool - id not provided!`)
         }
         if (!req.body) {
-            throw new InternalFlowiseError(StatusCodes.PRECONDITION_FAILED, `Error: toolsController.deleteTool - body not provided!`)
+            throw new InternalAutonomousError(StatusCodes.PRECONDITION_FAILED, `Error: toolsController.deleteTool - body not provided!`)
         }
-        const workspaceId = req.user?.activeWorkspaceId
-        if (!workspaceId) {
-            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Error: toolsController.updateTool - workspace ${workspaceId} not found!`)
+        const orgId = req.orgId
+        const userId = req.userId
+        if (!orgId) {
+            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Error: toolsController.updateTool - organization ${orgId} not found!`)
         }
-        const apiResponse = await toolsService.updateTool(req.params.id, req.body, workspaceId)
-        return res.json(apiResponse)
+        const apiResponse = await toolsService.updateTool(req.params.id, req.body, orgId, userId)
+        return res.json(transformEntityForResponse(apiResponse))
     } catch (error) {
         next(error)
     }

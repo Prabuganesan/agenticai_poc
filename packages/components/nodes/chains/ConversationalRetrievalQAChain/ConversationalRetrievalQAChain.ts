@@ -14,8 +14,9 @@ import { BufferMemoryInput } from 'langchain/memory'
 import { ConversationalRetrievalQAChain } from 'langchain/chains'
 import { getBaseClasses, mapChatMessageToBaseMessage } from '../../../src/utils'
 import { ConsoleCallbackHandler, additionalCallbacks } from '../../../src/handler'
+import path from 'path'
 import {
-    FlowiseMemory,
+    AutonomousMemory,
     ICommonObject,
     IMessage,
     INode,
@@ -193,7 +194,7 @@ class ConversationalRetrievalQAChain_Chains implements INode {
             customResponsePrompt = `${systemMessagePrompt}\n${QA_TEMPLATE}`
         }
 
-        let memory: FlowiseMemory | undefined = externalMemory
+        let memory: AutonomousMemory | undefined = externalMemory
         const moderations = nodeData.inputs?.inputModeration as Moderation[]
         if (!memory) {
             memory = new BufferMemory({
@@ -230,6 +231,9 @@ class ConversationalRetrievalQAChain_Chains implements INode {
         if (process.env.DEBUG === 'true') {
             callbacks.push(new LCConsoleCallbackHandler())
         }
+
+        // Track start time BEFORE LLM execution
+        const startTime = Date.now()
 
         const stream = answerChain.streamLog(
             { question: input, chat_history: history },
@@ -283,6 +287,61 @@ class ConversationalRetrievalQAChain_Chains implements INode {
                     }
                 }
             }
+        }
+
+        // Track end time AFTER LLM execution
+        const endTime = Date.now()
+        const timeDelta = endTime - startTime
+
+        // Track LLM usage
+        try {
+            if (options.orgId && text) {
+                // Dynamic import from server package
+                const llmUsageTrackerPath = path.resolve(__dirname, '../../../../server/src/utils/llm-usage-tracker')
+                const { trackLLMUsage, extractProviderAndModel, extractUsageMetadata } = await import(llmUsageTrackerPath)
+
+                // Get model from nodeData
+                const { provider, model: modelName } = extractProviderAndModel(nodeData, { model })
+
+                // For ConversationalRetrievalQAChain using streamLog, we need to extract usage from streamedResponse
+                // The usage metadata might be in the final_output or logs
+                const { promptTokens, completionTokens, totalTokens } = extractUsageMetadata({
+                    usageMetadata: streamedResponse?.final_output?.usageMetadata,
+                    usage_metadata: streamedResponse?.final_output?.usage_metadata,
+                    llmOutput: streamedResponse?.final_output?.llmOutput,
+                    tokenUsage: streamedResponse?.final_output?.tokenUsage
+                })
+
+                await trackLLMUsage({
+                    requestId: (options.apiMessageId as string) || (options.chatId as string),
+                    executionId: options.parentExecutionId as string,
+                    orgId: (options.orgId as string) || '',
+                    userId: (options.incomingInput?.userId as string) || (options.userId as string) || '0',
+                    chatflowId: options.chatflowid as string,
+                    chatId: options.chatId as string,
+                    sessionId: options.sessionId as string,
+                    feature: 'chatflow',
+                    nodeId: nodeData.id,
+                    nodeType: 'ConversationalRetrievalQAChain',
+                    nodeName: 'ConversationalRetrievalQAChain',
+                    location: 'main_flow',
+                    provider,
+                    model: modelName,
+                    requestType: 'chat',
+                    promptTokens: promptTokens || 0,
+                    completionTokens: completionTokens || 0,
+                    totalTokens: totalTokens || 0,
+                    processingTimeMs: timeDelta,
+                    responseLength: text.length,
+                    success: true,
+                    cacheHit: false,
+                    metadata: {
+                        sourceDocuments: sourceDocuments.length > 0 ? sourceDocuments.length : undefined
+                    }
+                })
+            }
+        } catch (trackError) {
+            // Silently fail - tracking should not break the main flow
         }
 
         await memory.addChatMessages(
@@ -412,7 +471,7 @@ interface BufferMemoryExtendedInput {
     orgId: string
 }
 
-class BufferMemory extends FlowiseMemory implements MemoryMethods {
+class BufferMemory extends AutonomousMemory implements MemoryMethods {
     appDataSource: DataSource
     databaseEntities: IDatabaseEntity
     chatflowid: string
@@ -439,7 +498,7 @@ class BufferMemory extends FlowiseMemory implements MemoryMethods {
                 chatflowid: this.chatflowid
             },
             order: {
-                createdDate: 'ASC'
+                created_on: 'ASC'
             }
         })
 

@@ -1,23 +1,31 @@
-import { isValidUUID } from 'flowise-components'
-import chatflowsService from '../services/chatflows'
-import logger from './logger'
+import { ChatFlow } from '../database/entities/ChatFlow'
+import { logWarn, logError } from './logger/system-helper'
+import { getDataSource } from '../DataSource'
 
 /**
  * Validates if the origin is allowed for a specific chatflow
  * @param chatflowId - The chatflow ID to validate against
  * @param origin - The origin URL to validate
- * @param workspaceId - Optional workspace ID for enterprise features
+ * @param orgId - Organization ID (required)
  * @returns Promise<boolean> - True if domain is allowed, false otherwise
  */
-async function validateChatflowDomain(chatflowId: string, origin: string, workspaceId?: string): Promise<boolean> {
+async function validateChatflowDomain(chatflowId: string, origin: string, orgId: string): Promise<boolean> {
     try {
-        if (!chatflowId || !isValidUUID(chatflowId)) {
-            throw new Error('Invalid chatflowId format - must be a valid UUID')
+        // Validate GUID format (15 characters) instead of UUID
+        if (!chatflowId || typeof chatflowId !== 'string' || chatflowId.length !== 15) {
+            throw new Error('Invalid chatflowId format - must be a valid 15-character GUID')
         }
 
-        const chatflow = workspaceId
-            ? await chatflowsService.getChatflowById(chatflowId, workspaceId)
-            : await chatflowsService.getChatflowById(chatflowId)
+        if (!orgId) {
+            logWarn(`Domain validation failed: orgId is required for chatflow ${chatflowId}`).catch(() => {})
+            return false
+        }
+
+        // Get chatflow from org-specific database
+        const dataSource = getDataSource(parseInt(orgId))
+        const chatflow = await dataSource.getRepository(ChatFlow).findOneBy({
+            guid: chatflowId
+        })
 
         if (!chatflow?.chatbotConfig) {
             return true
@@ -36,14 +44,17 @@ async function validateChatflowDomain(chatflowId: string, origin: string, worksp
                 const allowedOrigin = new URL(domain).host
                 return originHost === allowedOrigin
             } catch (error) {
-                logger.warn(`Invalid domain format in allowedOrigins: ${domain}`)
+                logWarn(`Invalid domain format in allowedOrigins: ${domain}`).catch(() => {})
                 return false
             }
         })
 
         return isAllowed
     } catch (error) {
-        logger.error(`Error validating domain for chatflow ${chatflowId}:`, error)
+        logError(
+            `Error validating domain for chatflow ${chatflowId}: ${error instanceof Error ? error.message : String(error)}`,
+            error
+        ).catch(() => {})
         return false
     }
 }
@@ -68,7 +79,7 @@ function extractChatflowId(url: string): string | null {
 
         return null
     } catch (error) {
-        logger.error('Error extracting chatflow ID from URL:', error)
+        logError(`Error extracting chatflow ID from URL: ${error instanceof Error ? error.message : String(error)}`, error).catch(() => {})
         return null
     }
 }
@@ -85,14 +96,21 @@ function isPredictionRequest(url: string): boolean {
 /**
  * Get the custom error message for unauthorized origin
  * @param chatflowId - The chatflow ID
- * @param workspaceId - Optional workspace ID
+ * @param orgId - Organization ID (required)
  * @returns Promise<string> - Custom error message or default
  */
-async function getUnauthorizedOriginError(chatflowId: string, workspaceId?: string): Promise<string> {
+async function getUnauthorizedOriginError(chatflowId: string, orgId: string): Promise<string> {
     try {
-        const chatflow = workspaceId
-            ? await chatflowsService.getChatflowById(chatflowId, workspaceId)
-            : await chatflowsService.getChatflowById(chatflowId)
+        if (!orgId) {
+            return 'This site is not allowed to access this chatbot'
+        }
+
+        // Get chatflow from org-specific database
+        const { getDataSource } = await import('../DataSource')
+        const dataSource = getDataSource(parseInt(orgId))
+        const chatflow = await dataSource.getRepository(ChatFlow).findOneBy({
+            guid: chatflowId
+        })
 
         if (chatflow?.chatbotConfig) {
             const config = JSON.parse(chatflow.chatbotConfig)
@@ -101,7 +119,10 @@ async function getUnauthorizedOriginError(chatflowId: string, workspaceId?: stri
 
         return 'This site is not allowed to access this chatbot'
     } catch (error) {
-        logger.error(`Error getting unauthorized origin error for chatflow ${chatflowId}:`, error)
+        logError(
+            `Error getting unauthorized origin error for chatflow ${chatflowId}: ${error instanceof Error ? error.message : String(error)}`,
+            error
+        ).catch(() => {})
         return 'This site is not allowed to access this chatbot'
     }
 }

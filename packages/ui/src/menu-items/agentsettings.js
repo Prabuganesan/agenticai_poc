@@ -7,7 +7,6 @@ import {
     IconMessage,
     IconDatabaseExport,
     IconAdjustmentsHorizontal,
-    IconUsers,
     IconTemplate
 } from '@tabler/icons-react'
 
@@ -20,7 +19,6 @@ const icons = {
     IconMessage,
     IconDatabaseExport,
     IconAdjustmentsHorizontal,
-    IconUsers,
     IconTemplate
 }
 
@@ -38,13 +36,14 @@ const agent_settings = {
             url: '',
             icon: icons.IconMessage
         },
-        {
-            id: 'viewLeads',
-            title: 'View Leads',
-            type: 'item',
-            url: '',
-            icon: icons.IconUsers
-        },
+        // Leads feature removed for autonomous server deployment
+        // {
+        //     id: 'viewLeads',
+        //     title: 'View Leads',
+        //     type: 'item',
+        //     url: '',
+        //     icon: icons.IconUsers
+        // },
         {
             id: 'chatflowConfiguration',
             title: 'Configuration',
@@ -63,7 +62,7 @@ const agent_settings = {
         },
         {
             id: 'duplicateChatflow',
-            title: 'Duplicate Agents',
+            title: 'Duplicate Multi-Agent',
             type: 'item',
             url: '',
             icon: icons.IconCopy,
@@ -71,7 +70,7 @@ const agent_settings = {
         },
         {
             id: 'loadChatflow',
-            title: 'Load Agents',
+            title: 'Load Multi-Agent',
             type: 'item',
             url: '',
             icon: icons.IconFileUpload,
@@ -79,7 +78,7 @@ const agent_settings = {
         },
         {
             id: 'exportChatflow',
-            title: 'Export Agents',
+            title: 'Export Multi-Agent',
             type: 'item',
             url: '',
             icon: icons.IconFileExport,
@@ -87,7 +86,7 @@ const agent_settings = {
         },
         {
             id: 'deleteChatflow',
-            title: 'Delete Agents',
+            title: 'Delete Multi-Agent',
             type: 'item',
             url: '',
             icon: icons.IconTrash,

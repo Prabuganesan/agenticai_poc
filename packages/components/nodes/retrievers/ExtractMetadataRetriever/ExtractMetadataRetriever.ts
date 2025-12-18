@@ -1,9 +1,32 @@
 import { Document } from '@langchain/core/documents'
 import { VectorStore, VectorStoreRetriever, VectorStoreRetrieverInput } from '@langchain/core/vectorstores'
-import { INode, INodeData, INodeParams, INodeOutputsValue } from '../../../src/Interface'
+import { INode, INodeData, INodeParams, INodeOutputsValue, ICommonObject } from '../../../src/Interface'
 import { handleEscapeCharacters } from '../../../src'
 import { z } from 'zod'
-import { convertStructuredSchemaToZod } from '../../sequentialagents/commonUtils'
+
+// Helper function to convert structured schema to Zod (moved from sequentialagents/commonUtils)
+const convertStructuredSchemaToZod = (schema: string | object): ICommonObject => {
+    try {
+        const parsedSchema = typeof schema === 'string' ? JSON.parse(schema) : schema
+        const zodObj: ICommonObject = {}
+        for (const sch of parsedSchema) {
+            if (sch.type === 'String') {
+                zodObj[sch.key] = z.string().describe(sch.description)
+            } else if (sch.type === 'String Array') {
+                zodObj[sch.key] = z.array(z.string()).describe(sch.description)
+            } else if (sch.type === 'Number') {
+                zodObj[sch.key] = z.number().describe(sch.description)
+            } else if (sch.type === 'Boolean') {
+                zodObj[sch.key] = z.boolean().describe(sch.description)
+            } else if (sch.type === 'Enum') {
+                zodObj[sch.key] = z.enum(sch.enumValues.split(',').map((item: string) => item.trim())).describe(sch.description)
+            }
+        }
+        return zodObj
+    } catch (e) {
+        throw new Error(e instanceof Error ? e.message : String(e))
+    }
+}
 
 const queryPrefix = 'query'
 const defaultPrompt = `Extract keywords from the query: {{${queryPrefix}}}`

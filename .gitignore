@@ -48,6 +48,9 @@
 ## compressed
 **/*.tgz
 
+## oclif generated manifest
+**/oclif.manifest.json
+
 ## vscode
 .vscode/*
 !.vscode/settings.json
@@ -104,3 +107,4 @@
 ## S/MIME message
 *.smime
 *.vsix
+/autonomousapp

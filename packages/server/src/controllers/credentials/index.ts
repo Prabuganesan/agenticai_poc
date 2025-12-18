@@ -1,108 +1,80 @@
-import { Request, Response, NextFunction } from 'express'
+import { Response, NextFunction } from 'express'
 import credentialsService from '../../services/credentials'
-import { InternalFlowiseError } from '../../errors/internalFlowiseError'
+import { InternalAutonomousError } from '../../errors/internalAutonomousError'
 import { StatusCodes } from 'http-status-codes'
+import { AuthenticatedRequest } from '../../middlewares/session-validation.middleware'
+import { transformEntityForResponse, transformEntitiesForResponse } from '../../utils/responseTransform'
 
-const createCredential = async (req: Request, res: Response, next: NextFunction) => {
+const createCredential = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         if (!req.body) {
-            throw new InternalFlowiseError(
+            throw new InternalAutonomousError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: credentialsController.createCredential - body not provided!`
             )
         }
-        const body = req.body
-        body.workspaceId = req.user?.activeWorkspaceId
-        const apiResponse = await credentialsService.createCredential(body)
-        return res.json(apiResponse)
+        const apiResponse = await credentialsService.createCredential(req, req.body)
+        return res.json(transformEntityForResponse(apiResponse))
     } catch (error) {
         next(error)
     }
 }
 
-const deleteCredentials = async (req: Request, res: Response, next: NextFunction) => {
+const deleteCredentials = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalFlowiseError(
+            throw new InternalAutonomousError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: credentialsController.deleteCredentials - id not provided!`
             )
         }
-        const workspaceId = req.user?.activeWorkspaceId
-        if (!workspaceId) {
-            throw new InternalFlowiseError(
-                StatusCodes.NOT_FOUND,
-                `Error: credentialsController.deleteCredentials - workspace ${workspaceId} not found!`
-            )
-        }
-        const apiResponse = await credentialsService.deleteCredentials(req.params.id, workspaceId)
+        const apiResponse = await credentialsService.deleteCredentials(req, req.params.id)
         return res.json(apiResponse)
     } catch (error) {
         next(error)
     }
 }
 
-const getAllCredentials = async (req: Request, res: Response, next: NextFunction) => {
+const getAllCredentials = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-        const workspaceId = req.user?.activeWorkspaceId
-        if (!workspaceId) {
-            throw new InternalFlowiseError(
-                StatusCodes.NOT_FOUND,
-                `Error: credentialsController.getAllCredentials - workspace ${workspaceId} not found!`
-            )
-        }
-        const apiResponse = await credentialsService.getAllCredentials(req.query.credentialName, workspaceId)
-        return res.json(apiResponse)
+        const apiResponse = await credentialsService.getAllCredentials(req, req.query.credentialName)
+        return res.json(transformEntitiesForResponse(apiResponse))
     } catch (error) {
         next(error)
     }
 }
 
-const getCredentialById = async (req: Request, res: Response, next: NextFunction) => {
+const getCredentialById = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalFlowiseError(
+            throw new InternalAutonomousError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: credentialsController.getCredentialById - id not provided!`
             )
         }
-        const workspaceId = req.user?.activeWorkspaceId
-        if (!workspaceId) {
-            throw new InternalFlowiseError(
-                StatusCodes.NOT_FOUND,
-                `Error: credentialsController.getCredentialById - workspace ${workspaceId} not found!`
-            )
-        }
-        const apiResponse = await credentialsService.getCredentialById(req.params.id, workspaceId)
-        return res.json(apiResponse)
+        const apiResponse = await credentialsService.getCredentialById(req, req.params.id)
+        return res.json(transformEntityForResponse(apiResponse))
     } catch (error) {
         next(error)
     }
 }
 
-const updateCredential = async (req: Request, res: Response, next: NextFunction) => {
+const updateCredential = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalFlowiseError(
+            throw new InternalAutonomousError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: credentialsController.updateCredential - id not provided!`
             )
         }
         if (!req.body) {
-            throw new InternalFlowiseError(
+            throw new InternalAutonomousError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: credentialsController.updateCredential - body not provided!`
             )
         }
-        const workspaceId = req.user?.activeWorkspaceId
-        if (!workspaceId) {
-            throw new InternalFlowiseError(
-                StatusCodes.NOT_FOUND,
-                `Error: credentialsController.updateCredential - workspace ${workspaceId} not found!`
-            )
-        }
-        const apiResponse = await credentialsService.updateCredential(req.params.id, req.body, workspaceId)
-        return res.json(apiResponse)
+        const apiResponse = await credentialsService.updateCredential(req, req.params.id, req.body)
+        return res.json(transformEntityForResponse(apiResponse))
     } catch (error) {
         next(error)
     }

@@ -1,11 +1,12 @@
 import { NextFunction, Request, Response } from 'express'
-import { convertTextToSpeechStream } from 'flowise-components'
+import { convertTextToSpeechStream } from 'kodivian-components'
 import { StatusCodes } from 'http-status-codes'
-import { InternalFlowiseError } from '../../errors/internalFlowiseError'
+import { InternalAutonomousError } from '../../errors/internalAutonomousError'
 import chatflowsService from '../../services/chatflows'
 import textToSpeechService from '../../services/text-to-speech'
 import { databaseEntities } from '../../utils'
 import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
+import { getDataSource } from '../../DataSource'
 
 const generateTextToSpeech = async (req: Request, res: Response) => {
     try {
@@ -21,30 +22,33 @@ const generateTextToSpeech = async (req: Request, res: Response) => {
         } = req.body
 
         if (!text) {
-            throw new InternalFlowiseError(
+            throw new InternalAutonomousError(
                 StatusCodes.BAD_REQUEST,
                 `Error: textToSpeechController.generateTextToSpeech - text not provided!`
             )
         }
 
-        let provider: string, credentialId: string, voice: string, model: string
+        let provider: string
+        let credentialId: string
+        let voice: string
+        let model: string
 
         if (chatflowId) {
-            const workspaceId = req.user?.activeWorkspaceId
-            if (!workspaceId) {
-                throw new InternalFlowiseError(
+            const orgId = (req as any).orgId || req.user?.orgId
+            if (!orgId) {
+                throw new InternalAutonomousError(
                     StatusCodes.NOT_FOUND,
-                    `Error: textToSpeechController.generateTextToSpeech - workspace ${workspaceId} not found!`
+                    `Error: textToSpeechController.generateTextToSpeech - organization ${orgId} not found!`
                 )
             }
             // Get TTS config from chatflow
-            const chatflow = await chatflowsService.getChatflowById(chatflowId, workspaceId)
+            const chatflow = await chatflowsService.getChatflowById(chatflowId, orgId)
             const ttsConfig = JSON.parse(chatflow.textToSpeech)
 
             // Find the provider with status: true
             const activeProviderKey = Object.keys(ttsConfig).find((key) => ttsConfig[key].status === true)
             if (!activeProviderKey) {
-                throw new InternalFlowiseError(
+                throw new InternalAutonomousError(
                     StatusCodes.BAD_REQUEST,
                     `Error: textToSpeechController.generateTextToSpeech - no active TTS provider configured in chatflow!`
                 )
@@ -64,14 +68,14 @@ const generateTextToSpeech = async (req: Request, res: Response) => {
         }
 
         if (!provider) {
-            throw new InternalFlowiseError(
+            throw new InternalAutonomousError(
                 StatusCodes.BAD_REQUEST,
                 `Error: textToSpeechController.generateTextToSpeech - provider not provided!`
             )
         }
 
         if (!credentialId) {
-            throw new InternalFlowiseError(
+            throw new InternalAutonomousError(
                 StatusCodes.BAD_REQUEST,
                 `Error: textToSpeechController.generateTextToSpeech - credentialId not provided!`
             )
@@ -84,11 +88,16 @@ const generateTextToSpeech = async (req: Request, res: Response) => {
         res.setHeader('Access-Control-Allow-Headers', 'Cache-Control')
 
         const appServer = getRunningExpressApp()
+        const orgId = (req as any).orgId || req.user?.orgId
+        if (!orgId) {
+            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+        }
+        const appDataSource = getDataSource(parseInt(orgId))
         const options = {
-            orgId: '',
+            orgId,
             chatflowid: chatflowId || '',
             chatId: chatId || '',
-            appDataSource: appServer.AppDataSource,
+            appDataSource,
             databaseEntities: databaseEntities
         }
 
@@ -166,21 +175,21 @@ const abortTextToSpeech = async (req: Request, res: Response) => {
         const { chatId, chatMessageId, chatflowId } = req.body
 
         if (!chatId) {
-            throw new InternalFlowiseError(
+            throw new InternalAutonomousError(
                 StatusCodes.BAD_REQUEST,
                 `Error: textToSpeechController.abortTextToSpeech - chatId not provided!`
             )
         }
 
         if (!chatMessageId) {
-            throw new InternalFlowiseError(
+            throw new InternalAutonomousError(
                 StatusCodes.BAD_REQUEST,
                 `Error: textToSpeechController.abortTextToSpeech - chatMessageId not provided!`
             )
         }
 
         if (!chatflowId) {
-            throw new InternalFlowiseError(
+            throw new InternalAutonomousError(
                 StatusCodes.BAD_REQUEST,
                 `Error: textToSpeechController.abortTextToSpeech - chatflowId not provided!`
             )
@@ -215,10 +224,11 @@ const getVoices = async (req: Request, res: Response, next: NextFunction) => {
         const { provider, credentialId } = req.query
 
         if (!provider) {
-            throw new InternalFlowiseError(StatusCodes.BAD_REQUEST, `Error: textToSpeechController.getVoices - provider not provided!`)
+            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, `Error: textToSpeechController.getVoices - provider not provided!`)
         }
 
-        const voices = await textToSpeechService.getVoices(provider as any, credentialId as string)
+        const orgId = (req as any).orgId || req.user?.orgId
+        const voices = await textToSpeechService.getVoices(provider as any, credentialId as string, orgId)
 
         return res.json(voices)
     } catch (error) {

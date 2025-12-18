@@ -1,10 +1,11 @@
 import { StatusCodes } from 'http-status-codes'
-import { InternalFlowiseError } from '../../errors/internalFlowiseError'
+import { InternalAutonomousError } from '../../errors/internalAutonomousError'
 import { getErrorMessage } from '../../errors/utils'
 import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
 import { ChatFlow } from '../../database/entities/ChatFlow'
-import { INodeParams } from 'flowise-components'
+import { INodeParams } from 'kodivian-components'
 import { IReactFlowEdge, IReactFlowNode } from '../../Interface'
+import { getDataSource } from '../../DataSource'
 
 interface IValidationResult {
     id: string
@@ -13,22 +14,22 @@ interface IValidationResult {
     issues: string[]
 }
 
-const checkFlowValidation = async (flowId: string, workspaceId?: string): Promise<IValidationResult[]> => {
+const checkFlowValidation = async (flowId: string, orgId?: string): Promise<IValidationResult[]> => {
     try {
         const appServer = getRunningExpressApp()
 
         const componentNodes = appServer.nodesPool.componentNodes
 
-        // Create query conditions with workspace filtering if provided
-        const whereCondition: any = { id: flowId }
-        if (workspaceId) whereCondition.workspaceId = workspaceId
-
-        const flow = await appServer.AppDataSource.getRepository(ChatFlow).findOne({
-            where: whereCondition
+        if (!orgId) {
+            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+        }
+        const dataSource = getDataSource(parseInt(orgId))
+        const flow = await dataSource.getRepository(ChatFlow).findOne({
+            where: { guid: flowId }
         })
 
         if (!flow) {
-            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Error: validationService.checkFlowValidation - flow not found!`)
+            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Error: validationService.checkFlowValidation - flow not found!`)
         }
 
         const flowData = JSON.parse(flow.flowData)
@@ -241,7 +242,7 @@ const checkFlowValidation = async (flowId: string, workspaceId?: string): Promis
 
                             // Check for credential requirement in the component
                             if (componentNodes[componentName].credential && !componentNodes[componentName].credential.optional) {
-                                if (!configValue.FLOWISE_CREDENTIAL_ID && !configValue.credential) {
+                                if (!configValue.AUTONOMOUS_CREDENTIAL_ID && !configValue.credential) {
                                     nodeIssues.push(`${param.label} requires a credential`)
                                 }
                             }
@@ -316,7 +317,7 @@ const checkFlowValidation = async (flowId: string, workspaceId?: string): Promis
 
         return validationResults
     } catch (error) {
-        throw new InternalFlowiseError(
+        throw new InternalAutonomousError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: validationService.checkFlowValidation - ${getErrorMessage(error)}`
         )

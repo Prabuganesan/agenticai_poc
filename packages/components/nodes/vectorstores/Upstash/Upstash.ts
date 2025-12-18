@@ -1,6 +1,6 @@
 import { flatten } from 'lodash'
 import { IndexingResult, INode, INodeOutputsValue, INodeParams, INodeData, ICommonObject } from '../../../src/Interface'
-import { FLOWISE_CHATID, getBaseClasses, getCredentialData, getCredentialParam } from '../../../src/utils'
+import { AUTONOMOUS_CHATID, getBaseClasses, getCredentialData, getCredentialParam } from '../../../src/utils'
 import { Embeddings } from '@langchain/core/embeddings'
 import { Document } from '@langchain/core/documents'
 import { UpstashVectorStore } from '@langchain/community/vectorstores/upstash'
@@ -129,7 +129,7 @@ class Upstash_VectorStores implements INode {
             for (let i = 0; i < flattenDocs.length; i += 1) {
                 if (flattenDocs[i] && flattenDocs[i].pageContent) {
                     if (isFileUploadEnabled && options.chatId) {
-                        flattenDocs[i].metadata = { ...flattenDocs[i].metadata, [FLOWISE_CHATID]: options.chatId }
+                        flattenDocs[i].metadata = { ...flattenDocs[i].metadata, [AUTONOMOUS_CHATID]: options.chatId }
                     }
                     finalDocs.push(new Document(flattenDocs[i]))
                 }
@@ -187,11 +187,7 @@ class Upstash_VectorStores implements INode {
                     const vectorStoreName = UPSTASH_VECTOR_REST_URL
                     await recordManager.createSchema()
                     ;(recordManager as any).namespace = (recordManager as any).namespace + '_' + vectorStoreName
-                    const filterKeys: ICommonObject = {}
-                    if (options.docId) {
-                        filterKeys.docId = options.docId
-                    }
-                    const keys: string[] = await recordManager.listKeys(filterKeys)
+                    const keys: string[] = await recordManager.listKeys({})
 
                     await upstashStore.delete({ ids: keys })
                     await recordManager.deleteKeys(keys)
@@ -226,8 +222,8 @@ class Upstash_VectorStores implements INode {
             obj.filter = upstashMetadataFilter
         }
         if (isFileUploadEnabled && options.chatId) {
-            if (upstashMetadataFilter) obj.filter += ` OR ${FLOWISE_CHATID} = "${options.chatId}" OR HAS NOT FIELD ${FLOWISE_CHATID}`
-            else obj.filter = `${FLOWISE_CHATID} = "${options.chatId}" OR HAS NOT FIELD ${FLOWISE_CHATID}`
+            if (upstashMetadataFilter) obj.filter += ` OR ${AUTONOMOUS_CHATID} = "${options.chatId}" OR HAS NOT FIELD ${AUTONOMOUS_CHATID}`
+            else obj.filter = `${AUTONOMOUS_CHATID} = "${options.chatId}" OR HAS NOT FIELD ${AUTONOMOUS_CHATID}`
         }
 
         const vectorStore = await UpstashVectorStore.fromExistingIndex(embeddings, obj)

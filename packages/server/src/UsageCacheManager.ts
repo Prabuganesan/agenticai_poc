@@ -3,31 +3,26 @@ import KeyvRedis from '@keyv/redis'
 import { Cache, createCache } from 'cache-manager'
 import { MODE } from './Interface'
 import { LICENSE_QUOTAS } from './utils/constants'
-import { StripeManager } from './StripeManager'
-
-const DISABLED_QUOTAS = {
-    [LICENSE_QUOTAS.PREDICTIONS_LIMIT]: 0,
-    [LICENSE_QUOTAS.STORAGE_LIMIT]: 0, // in MB
-    [LICENSE_QUOTAS.FLOWS_LIMIT]: 0,
-    [LICENSE_QUOTAS.USERS_LIMIT]: 0,
-    [LICENSE_QUOTAS.ADDITIONAL_SEATS_LIMIT]: 0
-}
+import { OrganizationConfigService } from './services/org-config.service'
+import { logInfo, logWarn } from './utils/logger/system-helper'
+// Subscription-related code removed - autonomous server has unlimited quotas
+// StripeManager removed - Stripe/Pricing removed for autonomous server deployment
 
 const UNLIMITED_QUOTAS = {
     [LICENSE_QUOTAS.PREDICTIONS_LIMIT]: -1,
     [LICENSE_QUOTAS.STORAGE_LIMIT]: -1,
-    [LICENSE_QUOTAS.FLOWS_LIMIT]: -1,
-    [LICENSE_QUOTAS.USERS_LIMIT]: -1,
-    [LICENSE_QUOTAS.ADDITIONAL_SEATS_LIMIT]: -1
+    [LICENSE_QUOTAS.FLOWS_LIMIT]: -1
 }
 
 export class UsageCacheManager {
     private cache: Cache
     private static instance: UsageCacheManager
+    private orgConfigService?: OrganizationConfigService
 
-    public static async getInstance(): Promise<UsageCacheManager> {
+    public static async getInstance(orgConfigService?: OrganizationConfigService): Promise<UsageCacheManager> {
         if (!UsageCacheManager.instance) {
             UsageCacheManager.instance = new UsageCacheManager()
+            UsageCacheManager.instance.orgConfigService = orgConfigService
             await UsageCacheManager.instance.initialize()
         }
         return UsageCacheManager.instance
@@ -35,152 +30,69 @@ export class UsageCacheManager {
 
     private async initialize(): Promise<void> {
         if (process.env.MODE === MODE.QUEUE) {
-            let redisConfig: string | Record<string, any>
-            if (process.env.REDIS_URL) {
-                redisConfig = {
-                    url: process.env.REDIS_URL,
-                    socket: {
-                        keepAlive:
-                            process.env.REDIS_KEEP_ALIVE && !isNaN(parseInt(process.env.REDIS_KEEP_ALIVE, 10))
-                                ? parseInt(process.env.REDIS_KEEP_ALIVE, 10)
-                                : undefined
-                    },
-                    pingInterval:
-                        process.env.REDIS_KEEP_ALIVE && !isNaN(parseInt(process.env.REDIS_KEEP_ALIVE, 10))
-                            ? parseInt(process.env.REDIS_KEEP_ALIVE, 10)
-                            : undefined
-                }
-            } else {
-                redisConfig = {
-                    username: process.env.REDIS_USERNAME || undefined,
-                    password: process.env.REDIS_PASSWORD || undefined,
-                    socket: {
-                        host: process.env.REDIS_HOST || 'localhost',
-                        port: parseInt(process.env.REDIS_PORT || '6379'),
-                        tls: process.env.REDIS_TLS === 'true',
-                        cert: process.env.REDIS_CERT ? Buffer.from(process.env.REDIS_CERT, 'base64') : undefined,
-                        key: process.env.REDIS_KEY ? Buffer.from(process.env.REDIS_KEY, 'base64') : undefined,
-                        ca: process.env.REDIS_CA ? Buffer.from(process.env.REDIS_CA, 'base64') : undefined,
-                        keepAlive:
-                            process.env.REDIS_KEEP_ALIVE && !isNaN(parseInt(process.env.REDIS_KEEP_ALIVE, 10))
-                                ? parseInt(process.env.REDIS_KEEP_ALIVE, 10)
-                                : undefined
-                    },
-                    pingInterval:
-                        process.env.REDIS_KEEP_ALIVE && !isNaN(parseInt(process.env.REDIS_KEEP_ALIVE, 10))
-                            ? parseInt(process.env.REDIS_KEEP_ALIVE, 10)
-                            : undefined
+            // Get Redis config from first org's config (loaded from main database)
+            let redisConfig: string | Record<string, any> | undefined
+
+            if (this.orgConfigService) {
+                const orgIds = this.orgConfigService.getAllOrgIds()
+                if (orgIds.length > 0) {
+                    const firstOrgId = orgIds[0]
+                    const orgConfig = this.orgConfigService.getOrgConfig(firstOrgId)
+                    const redisConfigData = orgConfig?.redis
+
+                    if (redisConfigData) {
+                        redisConfig = {
+                            username: undefined, // Redis doesn't use username in this config
+                            password:
+                                redisConfigData.password && redisConfigData.password.trim().length > 0
+                                    ? redisConfigData.password.trim()
+                                    : undefined,
+                            socket: {
+                                host: redisConfigData.host,
+                                port: redisConfigData.port,
+                                keepAlive:
+                                    process.env.REDIS_KEEP_ALIVE && !isNaN(parseInt(process.env.REDIS_KEEP_ALIVE, 10))
+                                        ? parseInt(process.env.REDIS_KEEP_ALIVE, 10)
+                                        : undefined
+                            },
+                            pingInterval:
+                                process.env.REDIS_KEEP_ALIVE && !isNaN(parseInt(process.env.REDIS_KEEP_ALIVE, 10))
+                                    ? parseInt(process.env.REDIS_KEEP_ALIVE, 10)
+                                    : undefined
+                        }
+                        logInfo(
+                            `[UsageCacheManager] Using Redis config from orgId ${firstOrgId}: ${redisConfigData.host}:${redisConfigData.port}`
+                        ).catch(() => {})
+                    }
                 }
             }
-            this.cache = createCache({
-                stores: [
-                    new Keyv({
-                        store: new KeyvRedis(redisConfig)
-                    })
-                ]
-            })
+
+            // Fallback: if no org config available, use in-memory cache (shouldn't happen in production)
+            if (!redisConfig) {
+                logWarn('[UsageCacheManager] No Redis config found from org configs, using in-memory cache').catch(() => {})
+                this.cache = createCache()
+            } else {
+                this.cache = createCache({
+                    stores: [
+                        new Keyv({
+                            store: new KeyvRedis(redisConfig)
+                        })
+                    ]
+                })
+            }
         } else {
             this.cache = createCache()
         }
     }
 
-    public async getSubscriptionDetails(subscriptionId: string, withoutCache: boolean = false): Promise<Record<string, any>> {
-        const stripeManager = await StripeManager.getInstance()
-        if (!stripeManager || !subscriptionId) {
-            return UNLIMITED_QUOTAS
-        }
+    // getSubscriptionDetails removed - not used in autonomous server
 
-        // Skip cache if withoutCache is true
-        if (!withoutCache) {
-            const subscriptionData = await this.getSubscriptionDataFromCache(subscriptionId)
-            if (subscriptionData?.subsriptionDetails) {
-                return subscriptionData.subsriptionDetails
-            }
-        }
-
-        // If not in cache, retrieve from Stripe
-        const subscription = await stripeManager.getStripe().subscriptions.retrieve(subscriptionId)
-
-        // Update subscription data cache
-        await this.updateSubscriptionDataToCache(subscriptionId, { subsriptionDetails: stripeManager.getSubscriptionObject(subscription) })
-
-        return stripeManager.getSubscriptionObject(subscription)
+    public async getQuotas(_subscriptionId?: string, withoutCache: boolean = false): Promise<Record<string, number>> {
+        // No subscription concept in autonomous server - always return unlimited quotas
+        return UNLIMITED_QUOTAS
     }
 
-    public async getQuotas(subscriptionId: string, withoutCache: boolean = false): Promise<Record<string, number>> {
-        const stripeManager = await StripeManager.getInstance()
-        if (!stripeManager || !subscriptionId) {
-            return UNLIMITED_QUOTAS
-        }
-
-        // Skip cache if withoutCache is true
-        if (!withoutCache) {
-            const subscriptionData = await this.getSubscriptionDataFromCache(subscriptionId)
-            if (subscriptionData?.quotas) {
-                return subscriptionData.quotas
-            }
-        }
-
-        // If not in cache, retrieve from Stripe
-        const subscription = await stripeManager.getStripe().subscriptions.retrieve(subscriptionId)
-        const items = subscription.items.data
-        if (items.length === 0) {
-            return DISABLED_QUOTAS
-        }
-
-        const productId = items[0].price.product as string
-        const product = await stripeManager.getStripe().products.retrieve(productId)
-        const productMetadata = product.metadata
-
-        if (!productMetadata || Object.keys(productMetadata).length === 0) {
-            return DISABLED_QUOTAS
-        }
-
-        const quotas: Record<string, number> = {}
-        for (const key in productMetadata) {
-            if (key.startsWith('quota:')) {
-                quotas[key] = parseInt(productMetadata[key])
-            }
-        }
-
-        const additionalSeatsItem = subscription.items.data.find(
-            (item) => (item.price.product as string) === process.env.ADDITIONAL_SEAT_ID
-        )
-        quotas[LICENSE_QUOTAS.ADDITIONAL_SEATS_LIMIT] = additionalSeatsItem?.quantity || 0
-
-        // Update subscription data cache with quotas
-        await this.updateSubscriptionDataToCache(subscriptionId, {
-            quotas,
-            subsriptionDetails: stripeManager.getSubscriptionObject(subscription)
-        })
-
-        return quotas
-    }
-
-    public async getSubscriptionDataFromCache(subscriptionId: string) {
-        const cacheKey = `subscription:${subscriptionId}`
-        return await this.get<{
-            quotas?: Record<string, number>
-            productId?: string
-            features?: Record<string, string>
-            subsriptionDetails?: Record<string, any>
-        }>(cacheKey)
-    }
-
-    public async updateSubscriptionDataToCache(
-        subscriptionId: string,
-        data: Partial<{
-            quotas: Record<string, number>
-            productId: string
-            features: Record<string, string>
-            subsriptionDetails: Record<string, any>
-        }>
-    ) {
-        const cacheKey = `subscription:${subscriptionId}`
-        const existingData = (await this.getSubscriptionDataFromCache(subscriptionId)) || {}
-        const updatedData = { ...existingData, ...data }
-        this.set(cacheKey, updatedData, 3600000) // Cache for 1 hour
-    }
+    // getSubscriptionDataFromCache and updateSubscriptionDataToCache removed - not used in autonomous server
 
     public async get<T>(key: string): Promise<T | null> {
         if (!this.cache) await this.initialize()

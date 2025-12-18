@@ -1,5 +1,5 @@
 {
-    "description": "Documents QnA using Retrieval Augmented Generation (RAG) with Mistral and FAISS for similarity search",
+    "description": "Documents QnA using Retrieval Augmented Generation (RAG) with Mistral and Chroma for similarity search",
     "usecases": ["Documents QnA"],
     "framework": ["Langchain"],
     "nodes": [
@@ -342,7 +342,7 @@
                 "inputs": {
                     "inputModeration": "",
                     "model": "{{chatMistralAI_0.data.instance}}",
-                    "vectorStoreRetriever": "{{faiss_0.data.instance}}",
+                    "vectorStoreRetriever": "{{chroma_0.data.instance}}",
                     "memory": "",
                     "rephrasePrompt": "Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question.\n\nChat History:\n{chat_history}\nFollow Up Input: {question}\nStandalone Question:",
                     "responsePrompt": "You are a helpful assistant. Using the provided context, answer the user's question to the best of your ability using the resources provided.\nIf there is nothing in the context relevant to the question at hand, just say \"Hmm, I'm not sure.\" Don't try to make up an answer.\n------------\n{context}\n------------\nREMEMBER: If there is no relevant information within the context, just say \"Hmm, I'm not sure.\" Don't try to make up an answer."
@@ -366,29 +366,28 @@
             "dragging": false
         },
         {
-            "id": "faiss_0",
+            "id": "chroma_0",
             "position": {
                 "x": 1193.61786387649,
                 "y": 559.055052045731
             },
             "type": "customNode",
             "data": {
-                "id": "faiss_0",
-                "label": "Faiss",
-                "version": 1,
-                "name": "faiss",
-                "type": "Faiss",
-                "baseClasses": ["Faiss", "VectorStoreRetriever", "BaseRetriever"],
+                "id": "chroma_0",
+                "label": "Chroma",
+                "version": 2,
+                "name": "chroma",
+                "type": "Chroma",
+                "baseClasses": ["Chroma", "VectorStoreRetriever", "BaseRetriever"],
                 "category": "Vector Stores",
-                "description": "Upsert embedded data and perform similarity search upon query using Faiss library from Meta",
+                "description": "Upsert embedded data and perform similarity search upon query using Chroma, an open-source embedding database",
                 "inputParams": [
                     {
-                        "label": "Base Path to load",
-                        "name": "basePath",
-                        "description": "Path to load faiss.index file",
-                        "placeholder": "C:\\Users\\User\\Desktop",
+                        "label": "Collection Name",
+                        "name": "collectionName",
                         "type": "string",
-                        "id": "faiss_0-input-basePath-string"
+                        "placeholder": "my-collection",
+                        "id": "chroma_0-input-collectionName-string"
                     },
                     {
                         "label": "Top K",
@@ -398,7 +397,7 @@
                         "type": "number",
                         "additionalParams": true,
                         "optional": true,
-                        "id": "faiss_0-input-topK-number"
+                        "id": "chroma_0-input-topK-number"
                     }
                 ],
                 "inputAnchors": [
@@ -408,19 +407,19 @@
                         "type": "Document",
                         "list": true,
                         "optional": true,
-                        "id": "faiss_0-input-document-Document"
+                        "id": "chroma_0-input-document-Document"
                     },
                     {
                         "label": "Embeddings",
                         "name": "embeddings",
                         "type": "Embeddings",
-                        "id": "faiss_0-input-embeddings-Embeddings"
+                        "id": "chroma_0-input-embeddings-Embeddings"
                     }
                 ],
                 "inputs": {
                     "document": ["{{textFile_0.data.instance}}", "{{documentStore_0.data.instance}}"],
                     "embeddings": "{{openAIEmbeddings_0.data.instance}}",
-                    "basePath": "",
+                    "collectionName": "qa-collection",
                     "topK": ""
                 },
                 "outputAnchors": [
@@ -431,18 +430,18 @@
                         "description": "",
                         "options": [
                             {
-                                "id": "faiss_0-output-retriever-Faiss|VectorStoreRetriever|BaseRetriever",
+                                "id": "chroma_0-output-retriever-Chroma|VectorStoreRetriever|BaseRetriever",
                                 "name": "retriever",
-                                "label": "Faiss Retriever",
+                                "label": "Chroma Retriever",
                                 "description": "",
-                                "type": "Faiss | VectorStoreRetriever | BaseRetriever"
+                                "type": "Chroma | VectorStoreRetriever | BaseRetriever"
                             },
                             {
-                                "id": "faiss_0-output-vectorStore-Faiss|SaveableVectorStore|VectorStore",
+                                "id": "chroma_0-output-vectorStore-Chroma|SaveableVectorStore|VectorStore",
                                 "name": "vectorStore",
-                                "label": "Faiss Vector Store",
+                                "label": "Chroma Vector Store",
                                 "description": "",
-                                "type": "Faiss | SaveableVectorStore | VectorStore"
+                                "type": "Chroma | SaveableVectorStore | VectorStore"
                             }
                         ],
                         "default": "retriever"
@@ -729,34 +728,34 @@
         {
             "source": "textFile_0",
             "sourceHandle": "textFile_0-output-document-Document|json",
-            "target": "faiss_0",
-            "targetHandle": "faiss_0-input-document-Document",
+            "target": "chroma_0",
+            "targetHandle": "chroma_0-input-document-Document",
             "type": "buttonedge",
-            "id": "textFile_0-textFile_0-output-document-Document|json-faiss_0-faiss_0-input-document-Document"
+            "id": "textFile_0-textFile_0-output-document-Document|json-chroma_0-chroma_0-input-document-Document"
         },
         {
             "source": "openAIEmbeddings_0",
             "sourceHandle": "openAIEmbeddings_0-output-openAIEmbeddings-OpenAIEmbeddings|Embeddings",
-            "target": "faiss_0",
-            "targetHandle": "faiss_0-input-embeddings-Embeddings",
+            "target": "chroma_0",
+            "targetHandle": "chroma_0-input-embeddings-Embeddings",
             "type": "buttonedge",
-            "id": "openAIEmbeddings_0-openAIEmbeddings_0-output-openAIEmbeddings-OpenAIEmbeddings|Embeddings-faiss_0-faiss_0-input-embeddings-Embeddings"
+            "id": "openAIEmbeddings_0-openAIEmbeddings_0-output-openAIEmbeddings-OpenAIEmbeddings|Embeddings-chroma_0-chroma_0-input-embeddings-Embeddings"
         },
         {
             "source": "documentStore_0",
             "sourceHandle": "documentStore_0-output-document-Document|json",
-            "target": "faiss_0",
-            "targetHandle": "faiss_0-input-document-Document",
+            "target": "chroma_0",
+            "targetHandle": "chroma_0-input-document-Document",
             "type": "buttonedge",
-            "id": "documentStore_0-documentStore_0-output-document-Document|json-faiss_0-faiss_0-input-document-Document"
+            "id": "documentStore_0-documentStore_0-output-document-Document|json-chroma_0-chroma_0-input-document-Document"
         },
         {
-            "source": "faiss_0",
-            "sourceHandle": "faiss_0-output-retriever-Faiss|VectorStoreRetriever|BaseRetriever",
+            "source": "chroma_0",
+            "sourceHandle": "chroma_0-output-retriever-Chroma|VectorStoreRetriever|BaseRetriever",
             "target": "conversationalRetrievalQAChain_0",
             "targetHandle": "conversationalRetrievalQAChain_0-input-vectorStoreRetriever-BaseRetriever",
             "type": "buttonedge",
-            "id": "faiss_0-faiss_0-output-retriever-Faiss|VectorStoreRetriever|BaseRetriever-conversationalRetrievalQAChain_0-conversationalRetrievalQAChain_0-input-vectorStoreRetriever-BaseRetriever"
+            "id": "chroma_0-chroma_0-output-retriever-Chroma|VectorStoreRetriever|BaseRetriever-conversationalRetrievalQAChain_0-conversationalRetrievalQAChain_0-input-vectorStoreRetriever-BaseRetriever"
         },
         {
             "source": "chatMistralAI_0",

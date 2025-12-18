@@ -239,7 +239,7 @@ const speechToTextProviders = {
     }
 }
 
-const SpeechToText = ({ dialogProps, onConfirm }) => {
+const SpeechToText = ({ dialogProps }) => {
     const dispatch = useDispatch()
 
     useNotifier()
@@ -271,7 +271,6 @@ const SpeechToText = ({ dialogProps, onConfirm }) => {
                     }
                 })
                 dispatch({ type: SET_CHATFLOW, chatflow: saveResp.data })
-                onConfirm?.()
             }
         } catch (error) {
             enqueueSnackbar({
@@ -491,8 +490,7 @@ const SpeechToText = ({ dialogProps, onConfirm }) => {
 }
 
 SpeechToText.propTypes = {
-    dialogProps: PropTypes.object,
-    onConfirm: PropTypes.func
+    dialogProps: PropTypes.object
 }
 
 export default SpeechToText

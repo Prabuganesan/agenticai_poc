@@ -2,10 +2,12 @@ import { ICommonObject, INode, INodeData, INodeParams, INodeOutputsValue, IServe
 import { FromLLMInput, GraphCypherQAChain } from '@langchain/community/chains/graph_qa/cypher'
 import { getBaseClasses } from '../../../src/utils'
 import { BasePromptTemplate, PromptTemplate, FewShotPromptTemplate } from '@langchain/core/prompts'
+import { BaseLanguageModel } from '@langchain/core/language_models/base'
 import { ConsoleCallbackHandler, CustomChainHandler, additionalCallbacks } from '../../../src/handler'
 import { ConsoleCallbackHandler as LCConsoleCallbackHandler } from '@langchain/core/tracers/console'
 import { checkInputs, Moderation, streamResponse } from '../../moderation/Moderation'
 import { formatResponse } from '../../outputparsers/OutputParserHelpers'
+import path from 'path'
 
 class GraphCypherQA_Chain implements INode {
     label: string
@@ -224,6 +226,9 @@ class GraphCypherQA_Chain implements INode {
         }
 
         try {
+            // Track start time BEFORE LLM execution
+            const startTime = Date.now()
+
             let response
             if (shouldStreamResponse) {
                 if (returnDirect) {
@@ -242,6 +247,64 @@ class GraphCypherQA_Chain implements INode {
                 }
             } else {
                 response = await chain.invoke(obj, { callbacks })
+            }
+
+            // Track end time AFTER LLM execution
+            const endTime = Date.now()
+            const timeDelta = endTime - startTime
+
+            // Track LLM usage
+            try {
+                if (options.orgId && response) {
+                    // Dynamic import from server package
+                    const llmUsageTrackerPath = path.resolve(__dirname, '../../../../server/src/utils/llm-usage-tracker')
+                    const { trackLLMUsage, extractProviderAndModel, extractUsageMetadata } = await import(llmUsageTrackerPath)
+
+                    // Get model from nodeData
+                    const model = nodeData.inputs?.model as BaseLanguageModel
+                    const { provider, model: modelName } = extractProviderAndModel(nodeData, { model })
+
+                    // Extract usage metadata from result
+                    const { promptTokens, completionTokens, totalTokens } = extractUsageMetadata({
+                        usageMetadata: response?.usageMetadata,
+                        usage_metadata: response?.usage_metadata,
+                        llmOutput: response?.llmOutput,
+                        tokenUsage: response?.tokenUsage
+                    })
+
+                    await trackLLMUsage({
+                        requestId: (options.apiMessageId as string) || (options.chatId as string),
+                        executionId: options.parentExecutionId as string,
+                        orgId: (options.orgId as string) || '',
+                        userId: (options.incomingInput?.userId as string) || (options.userId as string) || '0',
+                        chatflowId: options.chatflowid as string,
+                        chatId: options.chatId as string,
+                        sessionId: options.sessionId as string,
+                        feature: 'chatflow',
+                        nodeId: nodeData.id,
+                        nodeType: 'GraphCypherQAChain',
+                        nodeName: 'GraphCypherQAChain',
+                        location: 'main_flow',
+                        provider,
+                        model: modelName,
+                        requestType: 'chat',
+                        promptTokens: promptTokens || 0,
+                        completionTokens: completionTokens || 0,
+                        totalTokens: totalTokens || 0,
+                        processingTimeMs: timeDelta,
+                        responseLength:
+                            typeof response?.result === 'string'
+                                ? response.result.length
+                                : typeof response?.result === 'object'
+                                ? JSON.stringify(response.result).length
+                                : 0,
+                        success: true,
+                        cacheHit: false,
+                        metadata: {}
+                    })
+                }
+            } catch (trackError) {
+                // Silently fail - tracking should not break the main flow
             }
 
             return formatResponse(response?.result)

@@ -4,7 +4,7 @@ import { BaseCache } from '@langchain/core/caches'
 import { ICommonObject, IMultiModalOption, INode, INodeData, INodeOptionsValue, INodeParams } from '../../../src/Interface'
 import { getBaseClasses, getCredentialData, getCredentialParam } from '../../../src/utils'
 import { getModels, MODEL_TYPE } from '../../../src/modelLoader'
-import { ChatGoogleGenerativeAI, GoogleGenerativeAIChatInput } from './FlowiseChatGoogleGenerativeAI'
+import { ChatGoogleGenerativeAI, GoogleGenerativeAIChatInput } from './AutonomousChatGoogleGenerativeAI'
 
 class GoogleGenerativeAI_ChatModels implements INode {
     label: string
@@ -199,7 +199,7 @@ class GoogleGenerativeAI_ChatModels implements INode {
                 name: 'allowImageUploads',
                 type: 'boolean',
                 description:
-                    'Allow image input. Refer to the <a href="https://docs.flowiseai.com/using-flowise/uploads#image" target="_blank">docs</a> for more details.',
+                    'Allow image input. Refer to the <a href="[AUTONOMOUS_DOCS]/using-autonomous/uploads#image" target="_blank">docs</a> for more details.',
                 default: false,
                 optional: true
             }
@@ -214,8 +214,23 @@ class GoogleGenerativeAI_ChatModels implements INode {
     }
 
     async init(nodeData: INodeData, _: string, options: ICommonObject): Promise<any> {
-        const credentialData = await getCredentialData(nodeData.credential ?? '', options)
+        // Credential can be in nodeData.credential or nodeData.inputs['AUTONOMOUS_CREDENTIAL_ID']
+        const credentialId = nodeData.credential || nodeData.inputs?.['AUTONOMOUS_CREDENTIAL_ID'] || ''
+        const credentialData = await getCredentialData(credentialId, options)
         const apiKey = getCredentialParam('googleGenerativeAPIKey', credentialData, nodeData)
+
+        // Debug logging
+        if (!apiKey) {
+            console.error('[ChatGoogleGenerativeAI] API key not found.')
+            console.error('[ChatGoogleGenerativeAI] Credential ID from nodeData.credential:', nodeData.credential)
+            console.error(
+                '[ChatGoogleGenerativeAI] Credential ID from inputs[AUTONOMOUS_CREDENTIAL_ID]:',
+                nodeData.inputs?.['AUTONOMOUS_CREDENTIAL_ID']
+            )
+            console.error('[ChatGoogleGenerativeAI] Final credential ID used:', credentialId)
+            console.error('[ChatGoogleGenerativeAI] Credential data keys:', Object.keys(credentialData))
+            console.error('[ChatGoogleGenerativeAI] Credential data:', credentialData)
+        }
 
         const temperature = nodeData.inputs?.temperature as string
         const modelName = nodeData.inputs?.modelName as string

@@ -1,17 +1,16 @@
 <!-- markdownlint-disable MD030 -->
 
-# Flowise Components
+# Autonomous Components
 
-English | [中文](./README-ZH.md)
 
-Apps integration for Flowise. Contain Nodes and Credentials.
+Apps integration for Autonomous. Contain Nodes and Credentials.
 
-![Flowise](https://github.com/FlowiseAI/Flowise/blob/main/images/flowise_agentflow.gif?raw=true)
+![Autonomous](https://github.com/FlowiseAI/Flowise/blob/main/images/flowise_agentflow.gif?raw=true)
 
 Install:
 
 ```bash
-npm i flowise-components
+npm i autonomous-components
 ```
 
 ## License

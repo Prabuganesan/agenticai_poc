@@ -19,6 +19,7 @@ import { Moderation, checkInputs, streamResponse } from '../../moderation/Modera
 import { formatResponse } from '../../outputparsers/OutputParserHelpers'
 import { addSingleFileToStorage } from '../../../src/storageUtils'
 import { DynamicStructuredTool } from '../../tools/OpenAPIToolkit/core'
+import path from 'path'
 
 const lenticularBracketRegex = /【[^】]*】/g
 const imageRegex = /<img[^>]*\/>/g
@@ -117,7 +118,7 @@ class OpenAIAssistant_Agents implements INode {
                 const assistantDetails = JSON.parse(assistants[i].details)
                 const data = {
                     label: assistantDetails.name,
-                    name: assistants[i].id,
+                    name: assistants[i].guid,
                     description: assistantDetails.instructions
                 } as INodeOptionsValue
                 returnData.push(data)
@@ -137,7 +138,7 @@ class OpenAIAssistant_Agents implements INode {
         const orgId = options.orgId
 
         const assistant = await appDataSource.getRepository(databaseEntities['Assistant']).findOneBy({
-            id: selectedAssistantId
+            guid: selectedAssistantId
         })
 
         if (!assistant) {
@@ -228,7 +229,7 @@ class OpenAIAssistant_Agents implements INode {
         const artifacts = []
 
         const assistant = await appDataSource.getRepository(databaseEntities['Assistant']).findOneBy({
-            id: selectedAssistantId
+            guid: selectedAssistantId
         })
 
         if (!assistant) throw new Error(`Assistant ${selectedAssistantId} not found`)
@@ -345,6 +346,9 @@ class OpenAIAssistant_Agents implements INode {
 
             // Run assistant thread
             const llmIds = await analyticHandlers.onLLMStart('ChatOpenAI', input, parentIds)
+
+            // Track start time BEFORE LLM execution
+            const startTime = Date.now()
 
             let text = ''
             let runThreadId = ''
@@ -561,12 +565,91 @@ class OpenAIAssistant_Agents implements INode {
                                 // Start tool analytics
                                 const toolIds = await analyticHandlers.onToolStart(tool.name, actions[i].toolInput, parentIds)
 
+                                const toolStartTime = Date.now()
+                                const orgId = options?.orgId?.toString() || 'unknown'
+                                const userId = (options as any)?.userId?.toString() || 'anonymous'
+
+                                // Log tool execution start
+                                try {
+                                    // Dynamic import with path resolution - components package cannot directly import from server
+                                    const path = require('path')
+                                    const fs = require('fs')
+                                    const possiblePaths = [
+                                        path.resolve(__dirname, '../../../../server/src/utils/logger/module-methods'),
+                                        path.resolve(process.cwd(), 'packages/server/src/utils/logger/module-methods'),
+                                        path.resolve(process.cwd(), 'autonomous/packages/server/src/utils/logger/module-methods')
+                                    ]
+                                    let serverPath: string | null = null
+                                    for (const p of possiblePaths) {
+                                        if (fs.existsSync(p + '.ts') || fs.existsSync(p + '.js')) {
+                                            serverPath = p
+                                            break
+                                        }
+                                    }
+                                    if (serverPath) {
+                                        const { toolLog } = await import(serverPath)
+                                        await toolLog('info', 'Tool execution started (OpenAI Assistant)', {
+                                            userId: userId,
+                                            orgId: orgId,
+                                            toolName: tool.name,
+                                            toolInput:
+                                                typeof actions[i].toolInput === 'string'
+                                                    ? actions[i].toolInput.substring(0, 200)
+                                                    : JSON.stringify(actions[i].toolInput).substring(0, 200),
+                                            sessionId: threadId,
+                                            chatId: options.chatId
+                                        }).catch(() => {})
+                                    }
+                                } catch (logError) {
+                                    // Silently fail
+                                }
+
                                 try {
                                     const toolOutput = await tool.call(actions[i].toolInput, undefined, undefined, {
                                         sessionId: threadId,
                                         chatId: options.chatId,
                                         input
                                     })
+
+                                    const toolEndTime = Date.now()
+                                    const toolDuration = toolEndTime - toolStartTime
+
+                                    // Log tool execution success
+                                    try {
+                                        const path = require('path')
+                                        const fs = require('fs')
+                                        const possiblePaths = [
+                                            path.resolve(__dirname, '../../../../server/src/utils/logger/module-methods'),
+                                            path.resolve(process.cwd(), 'packages/server/src/utils/logger/module-methods'),
+                                            path.resolve(process.cwd(), 'autonomous/packages/server/src/utils/logger/module-methods')
+                                        ]
+                                        let serverPath: string | null = null
+                                        for (const p of possiblePaths) {
+                                            if (fs.existsSync(p + '.ts') || fs.existsSync(p + '.js')) {
+                                                serverPath = p
+                                                break
+                                            }
+                                        }
+                                        if (serverPath) {
+                                            const { toolLog } = await import(serverPath)
+                                            await toolLog('info', 'Tool execution completed (OpenAI Assistant)', {
+                                                userId: userId,
+                                                orgId: orgId,
+                                                toolName: tool.name,
+                                                toolOutput:
+                                                    typeof toolOutput === 'string'
+                                                        ? toolOutput.substring(0, 200)
+                                                        : JSON.stringify(toolOutput).substring(0, 200),
+                                                sessionId: threadId,
+                                                chatId: options.chatId,
+                                                durationMs: toolDuration,
+                                                status: 'success'
+                                            }).catch(() => {})
+                                        }
+                                    } catch (logError) {
+                                        // Silently fail
+                                    }
+
                                     await analyticHandlers.onToolEnd(toolIds, toolOutput)
                                     submitToolOutputs.push({
                                         tool_call_id: actions[i].toolCallId,
@@ -578,6 +661,42 @@ class OpenAIAssistant_Agents implements INode {
                                         toolOutput
                                     })
                                 } catch (e) {
+                                    const toolEndTime = Date.now()
+                                    const toolDuration = toolEndTime - toolStartTime
+
+                                    // Log tool execution failure
+                                    try {
+                                        const path = require('path')
+                                        const fs = require('fs')
+                                        const possiblePaths = [
+                                            path.resolve(__dirname, '../../../../server/src/utils/logger/module-methods'),
+                                            path.resolve(process.cwd(), 'packages/server/src/utils/logger/module-methods'),
+                                            path.resolve(process.cwd(), 'autonomous/packages/server/src/utils/logger/module-methods')
+                                        ]
+                                        let serverPath: string | null = null
+                                        for (const p of possiblePaths) {
+                                            if (fs.existsSync(p + '.ts') || fs.existsSync(p + '.js')) {
+                                                serverPath = p
+                                                break
+                                            }
+                                        }
+                                        if (serverPath) {
+                                            const { toolLog } = await import(serverPath)
+                                            await toolLog('error', 'Tool execution failed (OpenAI Assistant)', {
+                                                userId: userId,
+                                                orgId: orgId,
+                                                toolName: tool.name,
+                                                sessionId: threadId,
+                                                chatId: options.chatId,
+                                                durationMs: toolDuration,
+                                                status: 'failed',
+                                                error: e instanceof Error ? e.message : String(e)
+                                            }).catch(() => {})
+                                        }
+                                    } catch (logError) {
+                                        // Silently fail
+                                    }
+
                                     await analyticHandlers.onToolError(toolIds, e)
                                     console.error('Error executing tool', e)
                                     throw new Error(
@@ -918,6 +1037,62 @@ class OpenAIAssistant_Agents implements INode {
 
             let llmOutput = returnVal.replace(imageRegex, '')
             llmOutput = llmOutput.replace('<br/>', '')
+
+            // Track end time AFTER LLM execution
+            const endTime = Date.now()
+            const timeDelta = endTime - startTime
+
+            // Track LLM usage - OpenAI Assistant API provides usage in the run object
+            try {
+                if (options.orgId && runThreadId) {
+                    // Retrieve the run to get usage information
+                    const run = await openai.beta.threads.runs.retrieve(threadId, runThreadId)
+
+                    if (run.usage) {
+                        // Dynamic import from server package
+                        const llmUsageTrackerPath = path.resolve(__dirname, '../../../../server/src/utils/llm-usage-tracker')
+                        const { trackLLMUsage, extractProviderAndModel } = await import(llmUsageTrackerPath)
+
+                        // Get model from assistant
+                        const { provider, model: modelName } = extractProviderAndModel(nodeData, {})
+
+                        await trackLLMUsage({
+                            requestId: (options.apiMessageId as string) || (options.chatId as string),
+                            executionId: options.parentExecutionId as string,
+                            orgId: (options.orgId as string) || '',
+                            userId: (options.incomingInput?.userId as string) || (options.userId as string) || '0',
+                            chatflowId: options.chatflowid as string,
+                            chatId: options.chatId as string,
+                            sessionId: options.sessionId as string,
+                            feature: 'chatflow',
+                            nodeId: nodeData.id,
+                            nodeType: 'OpenAIAssistant',
+                            nodeName: 'OpenAIAssistant',
+                            location: 'main_flow',
+                            provider: provider || 'openai',
+                            model: modelName || retrievedAssistant.model || 'gpt-4',
+                            requestType: 'chat',
+                            promptTokens: run.usage.prompt_tokens || 0,
+                            completionTokens: run.usage.completion_tokens || 0,
+                            totalTokens: run.usage.total_tokens || 0,
+                            processingTimeMs: timeDelta,
+                            responseLength: returnVal.length,
+                            success: true,
+                            cacheHit: false,
+                            metadata: {
+                                assistantId: openAIAssistantId,
+                                threadId,
+                                runId: runThreadId,
+                                usedTools: usedTools.length > 0 ? usedTools : undefined,
+                                artifacts: artifacts.length > 0 ? artifacts.length : undefined,
+                                fileAnnotations: fileAnnotations.length > 0 ? fileAnnotations.length : undefined
+                            }
+                        })
+                    }
+                }
+            } catch (trackError) {
+                // Silently fail - tracking should not break the main flow
+            }
 
             await analyticHandlers.onLLMEnd(llmIds, llmOutput)
             await analyticHandlers.onChainEnd(parentIds, messageData, true)

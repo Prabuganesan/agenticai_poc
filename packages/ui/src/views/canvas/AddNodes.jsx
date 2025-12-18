@@ -39,7 +39,6 @@ import AgentflowGeneratorDialog from '@/ui-component/dialog/AgentflowGeneratorDi
 
 // icons
 import { IconPlus, IconSearch, IconMinus, IconX, IconSparkles } from '@tabler/icons-react'
-import LlamaindexPNG from '@/assets/images/llamaindex.png'
 import LangChainPNG from '@/assets/images/langchain.png'
 import utilNodesPNG from '@/assets/images/utilNodes.png'
 
@@ -57,7 +56,7 @@ function a11yProps(index) {
 
 const blacklistCategoriesForAgentCanvas = ['Agents', 'Memory', 'Record Manager', 'Utilities']
 
-const agentMemoryNodes = ['agentMemory', 'sqliteAgentMemory', 'postgresAgentMemory', 'mySQLAgentMemory']
+const agentMemoryNodes = ['sqliteAgentMemory', 'postgresAgentMemory', 'mySQLAgentMemory']
 
 // Show blacklisted nodes (exceptions) for agent canvas
 const exceptionsForAgentCanvas = {
@@ -248,12 +247,9 @@ const AddNodes = ({ nodesData, node, isAgentCanvas, isAgentflowv2, onFlowGenerat
 
     const groupByTags = (nodes, newTabValue = 0) => {
         const langchainNodes = nodes.filter((nd) => !nd.tags)
-        const llmaindexNodes = nodes.filter((nd) => nd.tags && nd.tags.includes('LlamaIndex'))
         const utilitiesNodes = nodes.filter((nd) => nd.tags && nd.tags.includes('Utilities'))
         if (newTabValue === 0) {
             return langchainNodes
-        } else if (newTabValue === 1) {
-            return llmaindexNodes
         } else {
             return utilitiesNodes
         }
@@ -282,8 +278,7 @@ const AddNodes = ({ nodesData, node, isAgentCanvas, isAgentflowv2, onFlowGenerat
                 }
                 // Filter out blacklisted categories
                 if (!blacklistCategoriesForAgentCanvas.includes(category)) {
-                    // Filter out LlamaIndex nodes
-                    const nodes = result[category].filter((nd) => !nd.tags || !nd.tags.includes('LlamaIndex'))
+                    const nodes = result[category]
                     if (!nodes.length) continue
 
                     filteredResult[category] = nodes
@@ -352,8 +347,6 @@ const AddNodes = ({ nodesData, node, isAgentCanvas, isAgentflowv2, onFlowGenerat
     const getImage = (tabValue) => {
         if (tabValue === 0) {
             return LangChainPNG
-        } else if (tabValue === 1) {
-            return LlamaindexPNG
         } else {
             return utilNodesPNG
         }
@@ -433,7 +426,7 @@ const AddNodes = ({ nodesData, node, isAgentCanvas, isAgentflowv2, onFlowGenerat
                     size='small'
                     color='primary'
                     aria-label='generate'
-                    title='Generate Agentflow'
+                    title='Generate Multi-Agent'
                 >
                     <IconSparkles />
                 </StyledFab>
@@ -522,7 +515,7 @@ const AddNodes = ({ nodesData, node, isAgentCanvas, isAgentflowv2, onFlowGenerat
                                                 onChange={handleTabChange}
                                                 aria-label='tabs'
                                             >
-                                                {['LangChain', 'LlamaIndex', 'Utilities'].map((item, index) => (
+                                                {['LangChain', 'Utilities'].map((item, index) => (
                                                     <Tab
                                                         icon={
                                                             <div

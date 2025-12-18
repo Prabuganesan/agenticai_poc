@@ -1,18 +1,15 @@
 import { useSelector } from 'react-redux'
-import { useConfig } from '@/store/context/ConfigContext'
 
 export const useAuth = () => {
-    const { isOpenSource } = useConfig()
+    // For autonomous server, always allow all features (no license/platform restrictions)
     const permissions = useSelector((state) => state.auth.permissions)
-    const features = useSelector((state) => state.auth.features)
     const isGlobal = useSelector((state) => state.auth.isGlobal)
-    const currentUser = useSelector((state) => state.auth.user)
 
     const hasPermission = (permissionId) => {
-        if (isOpenSource || isGlobal) {
+        // For autonomous server, always allow if global admin or no permission required
+        if (isGlobal || !permissionId) {
             return true
         }
-        if (!permissionId) return false
         const permissionIds = permissionId.split(',')
         if (permissions && permissions.length) {
             return permissionIds.some((permissionId) => permissions.includes(permissionId))
@@ -20,34 +17,19 @@ export const useAuth = () => {
         return false
     }
 
-    const hasAssignedWorkspace = (workspaceId) => {
-        if (isOpenSource || isGlobal) {
-            return true
-        }
-        const activeWorkspaceId = currentUser?.activeWorkspaceId || ''
-        if (workspaceId === activeWorkspaceId) {
-            return true
-        }
-        return false
+    const hasAssignedWorkspace = (_workspaceId) => {
+        // For autonomous server, always allow (no workspace restrictions)
+        // Since autonomous server uses orgId instead of workspaceId, always return true
+        return true
     }
 
     const hasDisplay = (display) => {
+        // For autonomous server, all features are enabled (no feature flag checks)
         if (!display) {
             return true
         }
-
-        // if it has display flag, but user has no features, then it should not be displayed
-        if (!features || Array.isArray(features) || Object.keys(features).length === 0) {
-            return false
-        }
-
-        // check if the display flag is in the features
-        if (Object.hasOwnProperty.call(features, display)) {
-            const flag = features[display] === 'true' || features[display] === true
-            return flag
-        }
-
-        return false
+        // Always return true for autonomous server - all features available
+        return true
     }
 
     return { hasPermission, hasAssignedWorkspace, hasDisplay }

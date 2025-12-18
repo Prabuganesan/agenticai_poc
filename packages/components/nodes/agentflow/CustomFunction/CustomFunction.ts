@@ -17,7 +17,7 @@ interface ICustomFunctionInputVariables {
 }
 
 const exampleFunc = `/*
-* You can use any libraries imported in Flowise
+* You can use any libraries imported in Autonomous
 * You can use properties specified in Input Variables with the prefix $. For example: $foo
 * You can get default flow config: $flow.sessionId, $flow.chatId, $flow.chatflowId, $flow.input, $flow.state
 * You can get global variables: $vars.<variable-name>
@@ -60,7 +60,7 @@ class CustomFunction_Agentflow implements INode {
     constructor() {
         this.label = 'Custom Function'
         this.name = 'customFunctionAgentflow'
-        this.version = 1.1
+        this.version = 1.0
         this.type = 'CustomFunction'
         this.category = 'Agent Flows'
         this.description = 'Execute custom function'
@@ -133,7 +133,7 @@ class CustomFunction_Agentflow implements INode {
 
     async run(nodeData: INodeData, input: string, options: ICommonObject): Promise<any> {
         const javascriptFunction = nodeData.inputs?.customFunctionJavascriptFunction as string
-        const functionInputVariables = (nodeData.inputs?.customFunctionInputVariables as ICustomFunctionInputVariables[]) ?? []
+        const functionInputVariables = nodeData.inputs?.customFunctionInputVariables as ICustomFunctionInputVariables[]
         const _customFunctionUpdateState = nodeData.inputs?.customFunctionUpdateState
 
         const state = options.agentflowRuntime?.state as ICommonObject
@@ -146,17 +146,11 @@ class CustomFunction_Agentflow implements INode {
 
         const variables = await getVars(appDataSource, databaseEntities, nodeData, options)
         const flow = {
-            input,
-            state,
             chatflowId: options.chatflowid,
             sessionId: options.sessionId,
             chatId: options.chatId,
-            rawOutput: options.postProcessing?.rawOutput || '',
-            chatHistory: options.postProcessing?.chatHistory || [],
-            sourceDocuments: options.postProcessing?.sourceDocuments,
-            usedTools: options.postProcessing?.usedTools,
-            artifacts: options.postProcessing?.artifacts,
-            fileAnnotations: options.postProcessing?.fileAnnotations
+            input,
+            state
         }
 
         // Create additional sandbox variables for custom function inputs
@@ -178,8 +172,28 @@ class CustomFunction_Agentflow implements INode {
             : undefined
 
         try {
+            // Auto-detect required libraries from code
+            const requiredLibraries: string[] = ['axios']
+
+            // Check if code uses typeorm (various import patterns)
+            const typeormPatterns = [
+                /require\s*\(\s*['"]typeorm['"]/i,
+                /require\s*\(\s*['"]typeorm\//i,
+                /from\s+['"]typeorm['"]/i,
+                /from\s+['"]typeorm\//i,
+                /import\s+.*\s+from\s+['"]typeorm['"]/i,
+                /import\s+.*\s+from\s+['"]typeorm\//i,
+                /\btypeorm\b/i,
+                /\bTypeORM\b/
+            ]
+
+            const usesTypeorm = typeormPatterns.some((pattern) => pattern.test(javascriptFunction))
+            if (usesTypeorm) {
+                requiredLibraries.push('typeorm')
+            }
+
             const response = await executeJavaScriptCode(javascriptFunction, sandbox, {
-                libraries: ['axios'],
+                libraries: requiredLibraries,
                 streamOutput
             })
 

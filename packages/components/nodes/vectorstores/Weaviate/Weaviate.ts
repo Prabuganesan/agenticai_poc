@@ -252,11 +252,7 @@ class Weaviate_VectorStores implements INode {
                     const vectorStoreName = weaviateTextKey ? weaviateIndex + '_' + weaviateTextKey : weaviateIndex
                     await recordManager.createSchema()
                     ;(recordManager as any).namespace = (recordManager as any).namespace + '_' + vectorStoreName
-                    const filterKeys: ICommonObject = {}
-                    if (options.docId) {
-                        filterKeys.docId = options.docId
-                    }
-                    const keys: string[] = await recordManager.listKeys(filterKeys)
+                    const keys: string[] = await recordManager.listKeys({})
 
                     await weaviateStore.delete({ ids: keys })
                     await recordManager.deleteKeys(keys)

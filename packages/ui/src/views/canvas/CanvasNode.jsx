@@ -19,7 +19,6 @@ import NodeInfoDialog from '@/ui-component/dialog/NodeInfoDialog'
 import { baseURL } from '@/store/constant'
 import { IconTrash, IconCopy, IconInfoCircle, IconAlertTriangle } from '@tabler/icons-react'
 import { flowContext } from '@/store/context/ReactFlowContext'
-import LlamaindexPNG from '@/assets/images/llamaindex.png'
 
 // ===========================|| CANVAS NODE ||=========================== //
 
@@ -181,22 +180,6 @@ const CanvasNode = ({ data }) => {
                                 </Typography>
                             </Box>
                             <div style={{ flexGrow: 1 }}></div>
-                            {data.tags && data.tags.includes('LlamaIndex') && (
-                                <>
-                                    <div
-                                        style={{
-                                            borderRadius: '50%',
-                                            padding: 15
-                                        }}
-                                    >
-                                        <img
-                                            style={{ width: '25px', height: '25px', borderRadius: '50%', objectFit: 'contain' }}
-                                            src={LlamaindexPNG}
-                                            alt='LlamaIndex'
-                                        />
-                                    </div>
-                                </>
-                            )}
                             {warningMessage && (
                                 <>
                                     <Tooltip title={<span style={{ whiteSpace: 'pre-line' }}>{warningMessage}</span>} placement='top'>

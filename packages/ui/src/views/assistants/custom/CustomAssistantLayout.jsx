@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 
 // material-ui
-import { Box, Stack, Skeleton } from '@mui/material'
+import { Box, Stack, Skeleton, Typography, Collapse, IconButton } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 
 // project imports
 import ViewHeader from '@/layout/MainLayout/ViewHeader'
@@ -21,12 +23,14 @@ import assistantsApi from '@/api/assistants'
 import useApi from '@/hooks/useApi'
 
 // icons
-import { IconPlus } from '@tabler/icons-react'
+import { IconPlus, IconChevronDown, IconChevronRight } from '@tabler/icons-react'
 
 // ==============================|| CustomAssistantLayout ||============================== //
 
 const CustomAssistantLayout = () => {
     const navigate = useNavigate()
+    const theme = useTheme()
+    const currentUser = useSelector((state) => state.auth.user)
 
     const getAllAssistantsApi = useApi(assistantsApi.getAllAssistants)
 
@@ -34,6 +38,10 @@ const CustomAssistantLayout = () => {
     const [error, setError] = useState(null)
     const [showDialog, setShowDialog] = useState(false)
     const [dialogProps, setDialogProps] = useState({})
+
+    // Section collapse states
+    const [myAssistantsOpen, setMyAssistantsOpen] = useState(true)
+    const [sharedAssistantsOpen, setSharedAssistantsOpen] = useState(true)
 
     const [search, setSearch] = useState('')
     const onSearchChange = (event) => {
@@ -61,6 +69,21 @@ const CustomAssistantLayout = () => {
         return parsedData && parsedData.name && parsedData.name.toLowerCase().indexOf(search.toLowerCase()) > -1
     }
 
+    // Split assistants into my creation and others creation
+    const getMyAssistants = (data) => {
+        if (!data || !currentUser) return []
+        const currentUserId = Number(currentUser.id)
+        const myAssistants = data.filter((assistant) => Number(assistant.created_by) === currentUserId)
+        return search ? myAssistants.filter(filterAssistants) : myAssistants
+    }
+
+    const getSharedAssistants = (data) => {
+        if (!data || !currentUser) return []
+        const currentUserId = Number(currentUser.id)
+        const sharedAssistants = data.filter((assistant) => Number(assistant.created_by) !== currentUserId)
+        return search ? sharedAssistants.filter(filterAssistants) : sharedAssistants
+    }
+
     const getImages = (details) => {
         const images = []
         if (details && details.chatModel && details.chatModel.name) {
@@ -86,6 +109,74 @@ const CustomAssistantLayout = () => {
             setError(getAllAssistantsApi.error)
         }
     }, [getAllAssistantsApi.error])
+
+    // Section header component
+    const SectionHeader = ({ title, count, isOpen, onToggle }) => (
+        <Box
+            onClick={onToggle}
+            sx={{
+                display: 'flex',
+                alignItems: 'center',
+                cursor: 'pointer',
+                py: 1.5,
+                px: 2.5,
+                mb: 2,
+                borderRadius: 1.5,
+                backgroundColor: theme.palette.mode === 'dark' ? theme.palette.grey[800] : theme.palette.grey[50],
+                border: `1px solid ${theme.palette.mode === 'dark' ? theme.palette.grey[700] : theme.palette.grey[200]}`,
+                transition: 'all 0.2s ease-in-out',
+                '&:hover': {
+                    backgroundColor: theme.palette.mode === 'dark' ? theme.palette.grey[700] : theme.palette.grey[100],
+                    borderColor: theme.palette.mode === 'dark' ? theme.palette.grey[600] : theme.palette.grey[300]
+                }
+            }}
+        >
+            <IconButton 
+                size="small" 
+                sx={{ 
+                    mr: 1.5, 
+                    p: 0.5,
+                    color: theme.palette.text.secondary,
+                    '&:hover': {
+                        backgroundColor: 'transparent'
+                    }
+                }}
+            >
+                {isOpen ? <IconChevronDown size={18} /> : <IconChevronRight size={18} />}
+            </IconButton>
+            <Typography 
+                variant="h5" 
+                sx={{ 
+                    fontWeight: 600, 
+                    flex: 1,
+                    color: theme.palette.text.primary
+                }}
+            >
+                {title}
+            </Typography>
+            <Box
+                sx={{
+                    px: 1.5,
+                    py: 0.5,
+                    borderRadius: 1,
+                    backgroundColor: theme.palette.primary.main,
+                    color: theme.palette.primary.contrastText,
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    minWidth: '32px',
+                    textAlign: 'center'
+                }}
+            >
+                {count}
+            </Box>
+        </Box>
+    )
+
+    // Get filtered and split data
+    const allData = getAllAssistantsApi.data || []
+    const myAssistants = getMyAssistants(allData)
+    const sharedAssistants = getSharedAssistants(allData)
+    const hasResults = myAssistants.length > 0 || sharedAssistants.length > 0
 
     return (
         <>
@@ -120,20 +211,96 @@ const CustomAssistantLayout = () => {
                                 <Skeleton variant='rounded' height={160} />
                             </Box>
                         ) : (
+                            <>
+                                {/* My Creation Section */}
+                                {(myAssistants.length > 0 || !search) && (
+                                    <Box>
+                                        <SectionHeader
+                                            title="My Creation"
+                                            count={myAssistants.length}
+                                            isOpen={myAssistantsOpen}
+                                            onToggle={() => setMyAssistantsOpen(!myAssistantsOpen)}
+                                        />
+                                        <Collapse in={myAssistantsOpen}>
+                                            {myAssistants.length > 0 ? (
                             <Box display='grid' gridTemplateColumns='repeat(3, 1fr)' gap={gridSpacing}>
-                                {getAllAssistantsApi.data &&
-                                    getAllAssistantsApi.data?.filter(filterAssistants).map((data, index) => (
+                                                    {myAssistants.map((data, index) => (
                                         <ItemCard
+                                                            key={data.id || index}
                                             data={{
                                                 name: JSON.parse(data.details)?.name,
                                                 description: JSON.parse(data.details)?.instruction
                                             }}
                                             images={getImages(JSON.parse(data.details))}
-                                            key={index}
                                             onClick={() => navigate('/assistants/custom/' + data.id)}
                                         />
                                     ))}
                             </Box>
+                                            ) : (
+                                                <Typography 
+                                                    sx={{ 
+                                                        color: theme.palette.text.secondary, 
+                                                        pl: 2, 
+                                                        pb: 2,
+                                                        fontStyle: 'italic'
+                                                    }}
+                                                >
+                                                    {search ? 'No matching assistants found in your creations' : 'No assistants created by you yet'}
+                                                </Typography>
+                                            )}
+                                        </Collapse>
+                                    </Box>
+                                )}
+
+                                {/* Others Creation Section */}
+                                {(sharedAssistants.length > 0 || !search) && (
+                                    <Box>
+                                        <SectionHeader
+                                            title="Others Creation"
+                                            count={sharedAssistants.length}
+                                            isOpen={sharedAssistantsOpen}
+                                            onToggle={() => setSharedAssistantsOpen(!sharedAssistantsOpen)}
+                                        />
+                                        <Collapse in={sharedAssistantsOpen}>
+                                            {sharedAssistants.length > 0 ? (
+                                                <Box display='grid' gridTemplateColumns='repeat(3, 1fr)' gap={gridSpacing}>
+                                                    {sharedAssistants.map((data, index) => (
+                                                        <ItemCard
+                                                            key={data.id || index}
+                                                            data={{
+                                                                name: JSON.parse(data.details)?.name,
+                                                                description: JSON.parse(data.details)?.instruction
+                                                            }}
+                                                            images={getImages(JSON.parse(data.details))}
+                                                            onClick={() => navigate('/assistants/custom/' + data.id)}
+                                                        />
+                                                    ))}
+                                                </Box>
+                                            ) : (
+                                                <Typography 
+                                                    sx={{ 
+                                                        color: theme.palette.text.secondary, 
+                                                        pl: 2, 
+                                                        pb: 2,
+                                                        fontStyle: 'italic'
+                                                    }}
+                                                >
+                                                    {search ? 'No matching shared assistants found' : 'No shared assistants available'}
+                                                </Typography>
+                                            )}
+                                        </Collapse>
+                                    </Box>
+                                )}
+
+                                {/* Show message when search has no results */}
+                                {search && !hasResults && allData.length > 0 && (
+                                    <Box sx={{ textAlign: 'center', py: 4 }}>
+                                        <Typography sx={{ color: theme.palette.text.secondary }}>
+                                            No results found matching "{search}"
+                                        </Typography>
+                                    </Box>
+                                )}
+                            </>
                         )}
                         {!isLoading && (!getAllAssistantsApi.data || getAllAssistantsApi.data.length === 0) && (
                             <Stack sx={{ alignItems: 'center', justifyContent: 'center' }} flexDirection='column'>

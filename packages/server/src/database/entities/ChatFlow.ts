@@ -1,66 +1,75 @@
 /* eslint-disable */
-import { Entity, Column, CreateDateColumn, UpdateDateColumn, PrimaryGeneratedColumn } from 'typeorm'
+import { Entity, Column, PrimaryGeneratedColumn, Unique, Index } from 'typeorm'
 import { ChatflowType, IChatFlow } from '../../Interface'
+import { getBooleanColumnOptions, getTextColumnType } from '../utils/column-types'
 
 export enum EnumChatflowType {
     CHATFLOW = 'CHATFLOW',
     AGENTFLOW = 'AGENTFLOW',
-    MULTIAGENT = 'MULTIAGENT',
     ASSISTANT = 'ASSISTANT'
 }
 
-@Entity()
+@Entity('auto_chat_flow')
+@Unique(['name'])
 export class ChatFlow implements IChatFlow {
-    @PrimaryGeneratedColumn('uuid')
-    id: string
+    @PrimaryGeneratedColumn({ type: 'numeric', name: 'id' })
+    id: number
 
-    @Column()
+    @Column({ type: 'varchar', length: 15, name: 'guid' })
+    guid: string
+
+    @Column({ name: 'name' })
     name: string
 
-    @Column({ type: 'text' })
+    @Column({ nullable: true, length: 50, name: 'display_name' })
+    display_name?: string
+
+    @Column({ type: getTextColumnType(), name: 'flowdata' })
     flowData: string
 
-    @Column({ nullable: true })
+    @Column({ ...getBooleanColumnOptions(false), nullable: true, name: 'deployed' })
     deployed?: boolean
 
-    @Column({ nullable: true })
+    @Column({ ...getBooleanColumnOptions(false), nullable: true, name: 'ispublic' })
     isPublic?: boolean
 
-    @Column({ nullable: true })
+    @Column({ nullable: true, name: 'apikeyid' })
     apikeyid?: string
 
-    @Column({ nullable: true, type: 'text' })
+    @Column({ nullable: true, type: getTextColumnType(), name: 'chatbotconfig' })
     chatbotConfig?: string
 
-    @Column({ nullable: true, type: 'text' })
+    @Column({ nullable: true, type: getTextColumnType(), name: 'apiconfig' })
     apiConfig?: string
 
-    @Column({ nullable: true, type: 'text' })
+    @Column({ nullable: true, type: getTextColumnType(), name: 'analytic' })
     analytic?: string
 
-    @Column({ nullable: true, type: 'text' })
+    @Column({ nullable: true, type: getTextColumnType(), name: 'speechtotext' })
     speechToText?: string
 
-    @Column({ nullable: true, type: 'text' })
+    @Column({ nullable: true, type: getTextColumnType(), name: 'texttospeech' })
     textToSpeech?: string
 
-    @Column({ nullable: true, type: 'text' })
+    @Column({ nullable: true, type: getTextColumnType(), name: 'followupprompts' })
     followUpPrompts?: string
 
-    @Column({ nullable: true, type: 'text' })
+    @Column({ nullable: true, type: getTextColumnType(), name: 'category' })
     category?: string
 
-    @Column({ type: 'varchar', length: 20, default: EnumChatflowType.CHATFLOW })
+    @Column({ type: 'varchar', length: 20, default: EnumChatflowType.CHATFLOW, name: 'type' })
     type?: ChatflowType
 
-    @Column({ type: 'timestamp' })
-    @CreateDateColumn()
-    createdDate: Date
+    @Index()
+    @Column({ type: 'numeric', name: 'created_by' })
+    created_by: number
 
-    @Column({ type: 'timestamp' })
-    @UpdateDateColumn()
-    updatedDate: Date
+    @Column({ type: 'numeric', precision: 25, scale: 0, name: 'created_on' })
+    created_on: number
 
-    @Column({ nullable: false, type: 'text' })
-    workspaceId: string
+    @Column({ nullable: true, type: 'numeric', name: 'last_modified_by' })
+    last_modified_by?: number
+
+    @Column({ nullable: true, type: 'numeric', precision: 25, scale: 0, name: 'last_modified_on' })
+    last_modified_on?: number
 }

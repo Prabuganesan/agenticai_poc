@@ -1,21 +1,19 @@
-import { DataSource } from 'typeorm'
 import { executeFlow } from '../utils/buildChatflow'
 import { IComponentNodes, IExecuteFlowParams } from '../Interface'
-import { Telemetry } from '../utils/telemetry'
 import { CachePool } from '../CachePool'
 import { RedisEventPublisher } from './RedisEventPublisher'
 import { AbortControllerPool } from '../AbortControllerPool'
 import { BaseQueue } from './BaseQueue'
 import { RedisOptions } from 'bullmq'
 import { UsageCacheManager } from '../UsageCacheManager'
-import logger from '../utils/logger'
-import { generateAgentflowv2 as generateAgentflowv2_json } from 'flowise-components'
+import { logInfo, logError } from '../utils/logger/system-helper'
+import { generateAgentflowv2 as generateAgentflowv2_json } from 'kodivian-components'
 import { databaseEntities } from '../utils'
 import { executeCustomNodeFunction } from '../utils/executeCustomNodeFunction'
+import { getDataSource } from '../DataSource'
+import { getDataSourceManager } from '../DataSourceManager'
 
 interface PredictionQueueOptions {
-    appDataSource: DataSource
-    telemetry: Telemetry
     cachePool: CachePool
     componentNodes: IComponentNodes
     abortControllerPool: AbortControllerPool
@@ -33,25 +31,30 @@ interface IGenerateAgentflowv2Params extends IExecuteFlowParams {
 
 export class PredictionQueue extends BaseQueue {
     private componentNodes: IComponentNodes
-    private telemetry: Telemetry
     private cachePool: CachePool
-    private appDataSource: DataSource
     private abortControllerPool: AbortControllerPool
     private usageCacheManager: UsageCacheManager
     private redisPublisher: RedisEventPublisher
     private queueName: string
+    protected orgId: number
 
-    constructor(name: string, connection: RedisOptions, options: PredictionQueueOptions) {
-        super(name, connection)
+    constructor(orgId: number, name: string, connection: RedisOptions, options: PredictionQueueOptions & { orgConfigService?: any }) {
+        super(orgId, name, connection)
+        this.orgId = orgId
         this.queueName = name
         this.componentNodes = options.componentNodes || {}
-        this.telemetry = options.telemetry
         this.cachePool = options.cachePool
-        this.appDataSource = options.appDataSource
         this.abortControllerPool = options.abortControllerPool
         this.usageCacheManager = options.usageCacheManager
-        this.redisPublisher = new RedisEventPublisher()
-        this.redisPublisher.connect()
+        // RedisEventPublisher will be initialized per-org at server startup
+        // Pass orgId to RedisEventPublisher so it can use it as fallback when data doesn't have orgId
+        this.redisPublisher = new RedisEventPublisher(options.orgConfigService, orgId)
+        // Connect to Redis for this org (async, don't block)
+        if (options.orgConfigService) {
+            this.redisPublisher.connect(orgId).catch((error) => {
+                logError(`[PredictionQueue] Failed to connect RedisEventPublisher for orgId ${orgId}:`, error).catch(() => {})
+            })
+        }
     }
 
     public getQueueName() {
@@ -63,38 +66,45 @@ export class PredictionQueue extends BaseQueue {
     }
 
     async processJob(data: IExecuteFlowParams | IGenerateAgentflowv2Params) {
-        if (this.appDataSource) data.appDataSource = this.appDataSource
-        if (this.telemetry) data.telemetry = this.telemetry
+        // Use per-org DataSource dynamically based on orgId from job data or queue's orgId
+        const rawOrgId = (data as any).orgId || this.orgId
+        const jobOrgId = typeof rawOrgId === 'string' ? parseInt(rawOrgId, 10) : rawOrgId
+
+        // Ensure DataSource is initialized (in case it wasn't loaded at startup)
+        const dataSourceManager = getDataSourceManager()
+        await dataSourceManager.ensureDataSourceInitialized(jobOrgId)
+
+        const appDataSource = getDataSource(jobOrgId)
+        data.appDataSource = appDataSource
         if (this.cachePool) data.cachePool = this.cachePool
         if (this.usageCacheManager) data.usageCacheManager = this.usageCacheManager
         if (this.componentNodes) data.componentNodes = this.componentNodes
         if (this.redisPublisher) data.sseStreamer = this.redisPublisher
 
         if (Object.prototype.hasOwnProperty.call(data, 'isAgentFlowGenerator')) {
-            logger.info(`Generating Agentflow...`)
+            logInfo(`Generating Agentflow...`).catch(() => {})
             const { prompt, componentNodes, toolNodes, selectedChatModel, question } = data as IGenerateAgentflowv2Params
             const options: Record<string, any> = {
-                appDataSource: this.appDataSource,
-                databaseEntities: databaseEntities,
-                logger: logger
+                appDataSource: appDataSource,
+                databaseEntities: databaseEntities
+                // logger removed - generateAgentflowv2_json should use new logging system internally
             }
             return await generateAgentflowv2_json({ prompt, componentNodes, toolNodes, selectedChatModel }, question, options)
         }
 
         if (Object.prototype.hasOwnProperty.call(data, 'isExecuteCustomFunction')) {
             const executeCustomFunctionData = data as any
-            logger.info(`[${executeCustomFunctionData.orgId}]: Executing Custom Function...`)
+            logInfo(`[${executeCustomFunctionData.orgId}]: Executing Custom Function...`).catch(() => {})
             return await executeCustomNodeFunction({
-                appDataSource: this.appDataSource,
+                appDataSource: appDataSource,
                 componentNodes: this.componentNodes,
                 data: executeCustomFunctionData.data,
-                workspaceId: executeCustomFunctionData.workspaceId,
                 orgId: executeCustomFunctionData.orgId
             })
         }
 
         if (this.abortControllerPool) {
-            const abortControllerId = `${data.chatflow.id}_${data.chatId}`
+            const abortControllerId = `${data.chatflow.guid}_${data.chatId}`
             const signal = new AbortController()
             this.abortControllerPool.add(abortControllerId, signal)
             data.signal = signal

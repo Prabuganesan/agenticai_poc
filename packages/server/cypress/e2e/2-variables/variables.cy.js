@@ -3,7 +3,7 @@
 *
 describe('E2E suite for api/v1/variables API endpoint', () => {
     beforeEach(() => {
-        cy.visit('http://localhost:3000/variables')
+        cy.visit('http://localhost:3030/variables')
     })
 
     // DEFAULT TEST ON PAGE LOAD

@@ -4,13 +4,6 @@
             "name": "awsChatBedrock",
             "models": [
                 {
-                    "label": "anthropic.claude-opus-4-5-20251101-v1:0",
-                    "name": "anthropic.claude-opus-4-5-20251101-v1:0",
-                    "description": "Claude 4.5 Opus",
-                    "input_cost": 0.000005,
-                    "output_cost": 0.000025
-                },
-                {
                     "label": "anthropic.claude-sonnet-4-5-20250929-v1:0",
                     "name": "anthropic.claude-sonnet-4-5-20250929-v1:0",
                     "description": "Claude 4.5 Sonnet",
@@ -439,86 +432,8 @@
             ]
         },
         {
-            "name": "azureChatOpenAI_LlamaIndex",
-            "models": [
-                {
-                    "label": "gpt-4o-mini",
-                    "name": "gpt-4o-mini",
-                    "input_cost": 1.5e-7,
-                    "output_cost": 6e-7
-                },
-                {
-                    "label": "gpt-4o",
-                    "name": "gpt-4o",
-                    "input_cost": 2.5e-6,
-                    "output_cost": 0.00001
-                },
-                {
-                    "label": "gpt-4",
-                    "name": "gpt-4",
-                    "input_cost": 0.00003,
-                    "output_cost": 0.00006
-                },
-                {
-                    "label": "gpt-4-turbo",
-                    "name": "gpt-4-turbo",
-                    "input_cost": 0.00001,
-                    "output_cost": 0.00003
-                },
-                {
-                    "label": "gpt-4-32k",
-                    "name": "gpt-4-32k",
-                    "input_cost": 0.00006,
-                    "output_cost": 0.00012
-                },
-                {
-                    "label": "gpt-35-turbo",
-                    "name": "gpt-35-turbo",
-                    "input_cost": 1.5e-6,
-                    "output_cost": 2e-6
-                },
-                {
-                    "label": "gpt-35-turbo-16k",
-                    "name": "gpt-35-turbo-16k",
-                    "input_cost": 5e-7,
-                    "output_cost": 0.0000015
-                },
-                {
-                    "label": "gpt-4-vision-preview",
-                    "name": "gpt-4-vision-preview",
-                    "input_cost": 0.00001,
-                    "output_cost": 0.00003
-                },
-                {
-                    "label": "gpt-4-1106-preview",
-                    "name": "gpt-4-1106-preview",
-                    "input_cost": 0.00001,
-                    "output_cost": 0.00003
-                },
-                {
-                    "label": "gpt-4.1-mini",
-                    "name": "gpt-4.1-mini",
-                    "input_cost": 0.0000004,
-                    "output_cost": 0.0000016
-                },
-                {
-                    "label": "gpt-5-chat-latest",
-                    "name": "gpt-5-chat-latest",
-                    "input_cost": 0.00000125,
-                    "output_cost": 0.00001
-                }
-            ]
-        },
-        {
             "name": "chatAnthropic",
             "models": [
-                {
-                    "label": "claude-opus-4-5",
-                    "name": "claude-opus-4-5",
-                    "description": "Claude 4.5 Opus",
-                    "input_cost": 0.000005,
-                    "output_cost": 0.000025
-                },
                 {
                     "label": "claude-sonnet-4-5",
                     "name": "claude-sonnet-4-5",
@@ -599,57 +514,11 @@
             ]
         },
         {
-            "name": "chatAnthropic_LlamaIndex",
-            "models": [
-                {
-                    "label": "claude-3-haiku",
-                    "name": "claude-3-haiku",
-                    "description": "Fastest and most compact model, designed for near-instant responsiveness",
-                    "input_cost": 2.5e-7,
-                    "output_cost": 1.25e-6
-                },
-                {
-                    "label": "claude-3-opus",
-                    "name": "claude-3-opus",
-                    "description": "Most powerful model for highly complex tasks",
-                    "input_cost": 0.000015,
-                    "output_cost": 0.000075
-                },
-                {
-                    "label": "claude-3-sonnet",
-                    "name": "claude-3-sonnet",
-                    "description": "Ideal balance of intelligence and speed for enterprise workloads",
-                    "input_cost": 0.000003,
-                    "output_cost": 0.000015
-                },
-                {
-                    "label": "claude-2.1 (legacy)",
-                    "name": "claude-2.1",
-                    "description": "Claude 2 latest major version, automatically get updates to the model as they are released",
-                    "input_cost": 0.000008,
-                    "output_cost": 0.000024
-                },
-                {
-                    "label": "claude-instant-1.2 (legacy)",
-                    "name": "claude-instant-1.2",
-                    "description": "Claude Instant latest major version, automatically get updates to the model as they are released",
-                    "input_cost": 0.000008,
-                    "output_cost": 0.000024
-                }
-            ]
-        },
-        {
             "name": "chatGoogleGenerativeAI",
             "models": [
                 {
                     "label": "gemini-3-pro-preview",
                     "name": "gemini-3-pro-preview",
-                    "input_cost": 0.00002,
-                    "output_cost": 0.00012
-                },
-                {
-                    "label": "gemini-3-pro-image-preview",
-                    "name": "gemini-3-pro-image-preview",
                     "input_cost": 0.00002,
                     "output_cost": 0.00012
                 },
@@ -662,12 +531,6 @@
                 {
                     "label": "gemini-2.5-flash",
                     "name": "gemini-2.5-flash",
-                    "input_cost": 1.25e-6,
-                    "output_cost": 0.00001
-                },
-                {
-                    "label": "gemini-2.5-flash-image",
-                    "name": "gemini-2.5-flash-image",
                     "input_cost": 1.25e-6,
                     "output_cost": 0.00001
                 },
@@ -796,13 +659,6 @@
                     "output_cost": 3.75e-7
                 },
                 {
-                    "label": "claude-opus-4-5@20251101",
-                    "name": "claude-opus-4-5@20251101",
-                    "description": "Claude 4.5 Opus",
-                    "input_cost": 0.000005,
-                    "output_cost": 0.000025
-                },
-                {
                     "label": "claude-sonnet-4-5@20250929",
                     "name": "claude-sonnet-4-5@20250929",
                     "description": "Claude 4.5 Sonnet",
@@ -881,48 +737,174 @@
                 }
             ],
             "regions": [
-                { "label": "us-east1", "name": "us-east1" },
-                { "label": "us-east4", "name": "us-east4" },
-                { "label": "us-central1", "name": "us-central1" },
-                { "label": "us-west1", "name": "us-west1" },
-                { "label": "europe-west4", "name": "europe-west4" },
-                { "label": "europe-west1", "name": "europe-west1" },
-                { "label": "europe-west3", "name": "europe-west3" },
-                { "label": "europe-west2", "name": "europe-west2" },
-                { "label": "asia-east1", "name": "asia-east1" },
-                { "label": "asia-southeast1", "name": "asia-southeast1" },
-                { "label": "asia-northeast1", "name": "asia-northeast1" },
-                { "label": "asia-south1", "name": "asia-south1" },
-                { "label": "australia-southeast1", "name": "australia-southeast1" },
-                { "label": "southamerica-east1", "name": "southamerica-east1" },
-                { "label": "africa-south1", "name": "africa-south1" },
-                { "label": "asia-east2", "name": "asia-east2" },
-                { "label": "asia-northeast2", "name": "asia-northeast2" },
-                { "label": "asia-northeast3", "name": "asia-northeast3" },
-                { "label": "asia-south2", "name": "asia-south2" },
-                { "label": "asia-southeast2", "name": "asia-southeast2" },
-                { "label": "australia-southeast2", "name": "australia-southeast2" },
-                { "label": "europe-central2", "name": "europe-central2" },
-                { "label": "europe-north1", "name": "europe-north1" },
-                { "label": "europe-north2", "name": "europe-north2" },
-                { "label": "europe-southwest1", "name": "europe-southwest1" },
-                { "label": "europe-west10", "name": "europe-west10" },
-                { "label": "europe-west12", "name": "europe-west12" },
-                { "label": "europe-west6", "name": "europe-west6" },
-                { "label": "europe-west8", "name": "europe-west8" },
-                { "label": "europe-west9", "name": "europe-west9" },
-                { "label": "me-central1", "name": "me-central1" },
-                { "label": "me-central2", "name": "me-central2" },
-                { "label": "me-west1", "name": "me-west1" },
-                { "label": "northamerica-northeast1", "name": "northamerica-northeast1" },
-                { "label": "northamerica-northeast2", "name": "northamerica-northeast2" },
-                { "label": "northamerica-south1", "name": "northamerica-south1" },
-                { "label": "southamerica-west1", "name": "southamerica-west1" },
-                { "label": "us-east5", "name": "us-east5" },
-                { "label": "us-south1", "name": "us-south1" },
-                { "label": "us-west2", "name": "us-west2" },
-                { "label": "us-west3", "name": "us-west3" },
-                { "label": "us-west4", "name": "us-west4" }
+                {
+                    "label": "us-east1",
+                    "name": "us-east1"
+                },
+                {
+                    "label": "us-east4",
+                    "name": "us-east4"
+                },
+                {
+                    "label": "us-central1",
+                    "name": "us-central1"
+                },
+                {
+                    "label": "us-west1",
+                    "name": "us-west1"
+                },
+                {
+                    "label": "europe-west4",
+                    "name": "europe-west4"
+                },
+                {
+                    "label": "europe-west1",
+                    "name": "europe-west1"
+                },
+                {
+                    "label": "europe-west3",
+                    "name": "europe-west3"
+                },
+                {
+                    "label": "europe-west2",
+                    "name": "europe-west2"
+                },
+                {
+                    "label": "asia-east1",
+                    "name": "asia-east1"
+                },
+                {
+                    "label": "asia-southeast1",
+                    "name": "asia-southeast1"
+                },
+                {
+                    "label": "asia-northeast1",
+                    "name": "asia-northeast1"
+                },
+                {
+                    "label": "asia-south1",
+                    "name": "asia-south1"
+                },
+                {
+                    "label": "australia-southeast1",
+                    "name": "australia-southeast1"
+                },
+                {
+                    "label": "southamerica-east1",
+                    "name": "southamerica-east1"
+                },
+                {
+                    "label": "africa-south1",
+                    "name": "africa-south1"
+                },
+                {
+                    "label": "asia-east2",
+                    "name": "asia-east2"
+                },
+                {
+                    "label": "asia-northeast2",
+                    "name": "asia-northeast2"
+                },
+                {
+                    "label": "asia-northeast3",
+                    "name": "asia-northeast3"
+                },
+                {
+                    "label": "asia-south2",
+                    "name": "asia-south2"
+                },
+                {
+                    "label": "asia-southeast2",
+                    "name": "asia-southeast2"
+                },
+                {
+                    "label": "australia-southeast2",
+                    "name": "australia-southeast2"
+                },
+                {
+                    "label": "europe-central2",
+                    "name": "europe-central2"
+                },
+                {
+                    "label": "europe-north1",
+                    "name": "europe-north1"
+                },
+                {
+                    "label": "europe-north2",
+                    "name": "europe-north2"
+                },
+                {
+                    "label": "europe-southwest1",
+                    "name": "europe-southwest1"
+                },
+                {
+                    "label": "europe-west10",
+                    "name": "europe-west10"
+                },
+                {
+                    "label": "europe-west12",
+                    "name": "europe-west12"
+                },
+                {
+                    "label": "europe-west6",
+                    "name": "europe-west6"
+                },
+                {
+                    "label": "europe-west8",
+                    "name": "europe-west8"
+                },
+                {
+                    "label": "europe-west9",
+                    "name": "europe-west9"
+                },
+                {
+                    "label": "me-central1",
+                    "name": "me-central1"
+                },
+                {
+                    "label": "me-central2",
+                    "name": "me-central2"
+                },
+                {
+                    "label": "me-west1",
+                    "name": "me-west1"
+                },
+                {
+                    "label": "northamerica-northeast1",
+                    "name": "northamerica-northeast1"
+                },
+                {
+                    "label": "northamerica-northeast2",
+                    "name": "northamerica-northeast2"
+                },
+                {
+                    "label": "northamerica-south1",
+                    "name": "northamerica-south1"
+                },
+                {
+                    "label": "southamerica-west1",
+                    "name": "southamerica-west1"
+                },
+                {
+                    "label": "us-east5",
+                    "name": "us-east5"
+                },
+                {
+                    "label": "us-south1",
+                    "name": "us-south1"
+                },
+                {
+                    "label": "us-west2",
+                    "name": "us-west2"
+                },
+                {
+                    "label": "us-west3",
+                    "name": "us-west3"
+                },
+                {
+                    "label": "us-west4",
+                    "name": "us-west4"
+                }
             ]
         },
         {
@@ -1014,17 +996,18 @@
             "name": "chatCohere",
             "models": [
                 {
-                    "label": "command-a",
-                    "name": "command-a",
+                    "label": "Command A Reasoning",
+                    "name": "command-a-reasoning-08-2025",
                     "input_cost": 0.0025,
                     "output_cost": 0.01
                 },
                 {
-                    "label": "command-r-plus",
-                    "name": "command-r-plus",
-                    "input_cost": 0.0025,
-                    "output_cost": 0.01
+                    "label": "Command R Stable",
+                    "name": "command-r-08-2024",
+                    "input_cost": 0.002,
+                    "output_cost": 0.008
                 }
+               
             ]
         },
         {
@@ -1272,101 +1255,6 @@
             ]
         },
         {
-            "name": "chatOpenAI_LlamaIndex",
-            "models": [
-                {
-                    "label": "gpt-4o",
-                    "name": "gpt-4o",
-                    "input_cost": 2.5e-6,
-                    "output_cost": 0.00001
-                },
-                {
-                    "label": "gpt-4",
-                    "name": "gpt-4",
-                    "input_cost": 0.00003,
-                    "output_cost": 0.00006
-                },
-                {
-                    "label": "gpt-4-turbo",
-                    "name": "gpt-4-turbo",
-                    "input_cost": 0.00001,
-                    "output_cost": 0.00003
-                },
-                {
-                    "label": "gpt-4-turbo-preview",
-                    "name": "gpt-4-turbo-preview",
-                    "input_cost": 0.00001,
-                    "output_cost": 0.00003
-                },
-                {
-                    "label": "gpt-4-0125-preview",
-                    "name": "gpt-4-0125-preview",
-                    "input_cost": 0.00001,
-                    "output_cost": 0.00003
-                },
-                {
-                    "label": "gpt-4-1106-preview",
-                    "name": "gpt-4-1106-preview",
-                    "input_cost": 0.00001,
-                    "output_cost": 0.00003
-                },
-                {
-                    "label": "gpt-4-vision-preview",
-                    "name": "gpt-4-vision-preview",
-                    "input_cost": 0.00001,
-                    "output_cost": 0.00003
-                },
-                {
-                    "label": "gpt-4-0613",
-                    "name": "gpt-4-0613",
-                    "input_cost": 0.00003,
-                    "output_cost": 0.00006
-                },
-                {
-                    "label": "gpt-4-32k",
-                    "name": "gpt-4-32k",
-                    "input_cost": 0.00006,
-                    "output_cost": 0.00012
-                },
-                {
-                    "label": "gpt-4-32k-0613",
-                    "name": "gpt-4-32k-0613",
-                    "input_cost": 0.00006,
-                    "output_cost": 0.00012
-                },
-                {
-                    "label": "gpt-3.5-turbo",
-                    "name": "gpt-3.5-turbo",
-                    "input_cost": 1.5e-6,
-                    "output_cost": 2e-6
-                },
-                {
-                    "label": "gpt-3.5-turbo-1106",
-                    "name": "gpt-3.5-turbo-1106",
-                    "input_cost": 0.000001,
-                    "output_cost": 0.000002
-                },
-                {
-                    "label": "gpt-3.5-turbo-0613",
-                    "name": "gpt-3.5-turbo-0613",
-                    "input_cost": 0.0000015,
-                    "output_cost": 0.000002
-                },
-                {
-                    "label": "gpt-3.5-turbo-16k",
-                    "name": "gpt-3.5-turbo-16k",
-                    "input_cost": 5e-7,
-                    "output_cost": 0.0000015
-                },
-                {
-                    "label": "gpt-3.5-turbo-16k-0613",
-                    "name": "gpt-3.5-turbo-16k-0613",
-                    "input_cost": 0.000003,
-                    "output_cost": 0.000004
-                }
-            ]
-        },
-        {
             "name": "chatPerplexity",
             "models": [
                 {
@@ -1511,29 +1399,6 @@
                     "name": "devstral-small-2505",
                     "input_cost": 0.0001,
                     "output_cost": 0.0003
-                }
-            ]
-        },
-        {
-            "name": "chatMistral_LlamaIndex",
-            "models": [
-                {
-                    "label": "mistral-tiny",
-                    "name": "mistral-tiny",
-                    "input_cost": 0.0007,
-                    "output_cost": 0.0007
-                },
-                {
-                    "label": "mistral-small",
-                    "name": "mistral-small",
-                    "input_cost": 0.0001,
-                    "output_cost": 0.0003
-                },
-                {
-                    "label": "mistral-medium",
-                    "name": "mistral-medium",
-                    "input_cost": 0.001,
-                    "output_cost": 0.003
                 }
             ]
         }
@@ -1824,29 +1689,14 @@
             "name": "cohere",
             "models": [
                 {
-                    "label": "command",
-                    "name": "command"
+                    "label": "Command A Reasoning",
+                    "name": "command-a-reasoning-08-2025"
                 },
                 {
-                    "label": "command-light",
-                    "name": "command-light"
-                },
-                {
-                    "label": "command-nightly",
-                    "name": "command-nightly"
-                },
-                {
-                    "label": "command-light-nightly",
-                    "name": "command-light-nightly"
-                },
-                {
-                    "label": "base",
-                    "name": "base"
-                },
-                {
-                    "label": "base-light",
-                    "name": "base-light"
+                    "label": "Command R Stable",
+                    "name": "command-r-08-2024"
                 }
+                
             ]
         },
         {
@@ -1917,23 +1767,6 @@
     "embedding": [
         {
             "name": "openAIEmbeddings",
-            "models": [
-                {
-                    "label": "text-embedding-3-large",
-                    "name": "text-embedding-3-large"
-                },
-                {
-                    "label": "text-embedding-3-small",
-                    "name": "text-embedding-3-small"
-                },
-                {
-                    "label": "text-embedding-ada-002",
-                    "name": "text-embedding-ada-002"
-                }
-            ]
-        },
-        {
-            "name": "openAIEmbedding_LlamaIndex",
             "models": [
                 {
                     "label": "text-embedding-3-large",
@@ -2034,48 +1867,174 @@
                 }
             ],
             "regions": [
-                { "label": "us-east1", "name": "us-east1" },
-                { "label": "us-east4", "name": "us-east4" },
-                { "label": "us-central1", "name": "us-central1" },
-                { "label": "us-west1", "name": "us-west1" },
-                { "label": "europe-west4", "name": "europe-west4" },
-                { "label": "europe-west1", "name": "europe-west1" },
-                { "label": "europe-west3", "name": "europe-west3" },
-                { "label": "europe-west2", "name": "europe-west2" },
-                { "label": "asia-east1", "name": "asia-east1" },
-                { "label": "asia-southeast1", "name": "asia-southeast1" },
-                { "label": "asia-northeast1", "name": "asia-northeast1" },
-                { "label": "asia-south1", "name": "asia-south1" },
-                { "label": "australia-southeast1", "name": "australia-southeast1" },
-                { "label": "southamerica-east1", "name": "southamerica-east1" },
-                { "label": "africa-south1", "name": "africa-south1" },
-                { "label": "asia-east2", "name": "asia-east2" },
-                { "label": "asia-northeast2", "name": "asia-northeast2" },
-                { "label": "asia-northeast3", "name": "asia-northeast3" },
-                { "label": "asia-south2", "name": "asia-south2" },
-                { "label": "asia-southeast2", "name": "asia-southeast2" },
-                { "label": "australia-southeast2", "name": "australia-southeast2" },
-                { "label": "europe-central2", "name": "europe-central2" },
-                { "label": "europe-north1", "name": "europe-north1" },
-                { "label": "europe-north2", "name": "europe-north2" },
-                { "label": "europe-southwest1", "name": "europe-southwest1" },
-                { "label": "europe-west10", "name": "europe-west10" },
-                { "label": "europe-west12", "name": "europe-west12" },
-                { "label": "europe-west6", "name": "europe-west6" },
-                { "label": "europe-west8", "name": "europe-west8" },
-                { "label": "europe-west9", "name": "europe-west9" },
-                { "label": "me-central1", "name": "me-central1" },
-                { "label": "me-central2", "name": "me-central2" },
-                { "label": "me-west1", "name": "me-west1" },
-                { "label": "northamerica-northeast1", "name": "northamerica-northeast1" },
-                { "label": "northamerica-northeast2", "name": "northamerica-northeast2" },
-                { "label": "northamerica-south1", "name": "northamerica-south1" },
-                { "label": "southamerica-west1", "name": "southamerica-west1" },
-                { "label": "us-east5", "name": "us-east5" },
-                { "label": "us-south1", "name": "us-south1" },
-                { "label": "us-west2", "name": "us-west2" },
-                { "label": "us-west3", "name": "us-west3" },
-                { "label": "us-west4", "name": "us-west4" }
+                {
+                    "label": "us-east1",
+                    "name": "us-east1"
+                },
+                {
+                    "label": "us-east4",
+                    "name": "us-east4"
+                },
+                {
+                    "label": "us-central1",
+                    "name": "us-central1"
+                },
+                {
+                    "label": "us-west1",
+                    "name": "us-west1"
+                },
+                {
+                    "label": "europe-west4",
+                    "name": "europe-west4"
+                },
+                {
+                    "label": "europe-west1",
+                    "name": "europe-west1"
+                },
+                {
+                    "label": "europe-west3",
+                    "name": "europe-west3"
+                },
+                {
+                    "label": "europe-west2",
+                    "name": "europe-west2"
+                },
+                {
+                    "label": "asia-east1",
+                    "name": "asia-east1"
+                },
+                {
+                    "label": "asia-southeast1",
+                    "name": "asia-southeast1"
+                },
+                {
+                    "label": "asia-northeast1",
+                    "name": "asia-northeast1"
+                },
+                {
+                    "label": "asia-south1",
+                    "name": "asia-south1"
+                },
+                {
+                    "label": "australia-southeast1",
+                    "name": "australia-southeast1"
+                },
+                {
+                    "label": "southamerica-east1",
+                    "name": "southamerica-east1"
+                },
+                {
+                    "label": "africa-south1",
+                    "name": "africa-south1"
+                },
+                {
+                    "label": "asia-east2",
+                    "name": "asia-east2"
+                },
+                {
+                    "label": "asia-northeast2",
+                    "name": "asia-northeast2"
+                },
+                {
+                    "label": "asia-northeast3",
+                    "name": "asia-northeast3"
+                },
+                {
+                    "label": "asia-south2",
+                    "name": "asia-south2"
+                },
+                {
+                    "label": "asia-southeast2",
+                    "name": "asia-southeast2"
+                },
+                {
+                    "label": "australia-southeast2",
+                    "name": "australia-southeast2"
+                },
+                {
+                    "label": "europe-central2",
+                    "name": "europe-central2"
+                },
+                {
+                    "label": "europe-north1",
+                    "name": "europe-north1"
+                },
+                {
+                    "label": "europe-north2",
+                    "name": "europe-north2"
+                },
+                {
+                    "label": "europe-southwest1",
+                    "name": "europe-southwest1"
+                },
+                {
+                    "label": "europe-west10",
+                    "name": "europe-west10"
+                },
+                {
+                    "label": "europe-west12",
+                    "name": "europe-west12"
+                },
+                {
+                    "label": "europe-west6",
+                    "name": "europe-west6"
+                },
+                {
+                    "label": "europe-west8",
+                    "name": "europe-west8"
+                },
+                {
+                    "label": "europe-west9",
+                    "name": "europe-west9"
+                },
+                {
+                    "label": "me-central1",
+                    "name": "me-central1"
+                },
+                {
+                    "label": "me-central2",
+                    "name": "me-central2"
+                },
+                {
+                    "label": "me-west1",
+                    "name": "me-west1"
+                },
+                {
+                    "label": "northamerica-northeast1",
+                    "name": "northamerica-northeast1"
+                },
+                {
+                    "label": "northamerica-northeast2",
+                    "name": "northamerica-northeast2"
+                },
+                {
+                    "label": "northamerica-south1",
+                    "name": "northamerica-south1"
+                },
+                {
+                    "label": "southamerica-west1",
+                    "name": "southamerica-west1"
+                },
+                {
+                    "label": "us-east5",
+                    "name": "us-east5"
+                },
+                {
+                    "label": "us-south1",
+                    "name": "us-south1"
+                },
+                {
+                    "label": "us-west2",
+                    "name": "us-west2"
+                },
+                {
+                    "label": "us-west3",
+                    "name": "us-west3"
+                },
+                {
+                    "label": "us-west4",
+                    "name": "us-west4"
+                }
             ]
         },
         {
@@ -2099,37 +2058,22 @@
             "name": "cohereEmbeddings",
             "models": [
                 {
-                    "label": "embed-english-v3.0",
+                    "label": "Embed v4 (Recommended)",
+                    "name": "embed-v4.0",
+                    "description": "Embedding Dimensions: 1024"
+                },
+                {
+                    "label": "Embed English v3",
                     "name": "embed-english-v3.0",
                     "description": "Embedding Dimensions: 1024"
                 },
                 {
-                    "label": "embed-english-light-v3.0",
+                    "label": "Embed English Light v3",
                     "name": "embed-english-light-v3.0",
                     "description": "Embedding Dimensions: 384"
                 },
                 {
-                    "label": "embed-multilingual-v3.0",
-                    "name": "embed-multilingual-v3.0",
-                    "description": "Embedding Dimensions: 1024"
-                },
-                {
-                    "label": "embed-multilingual-light-v3.0",
-                    "name": "embed-multilingual-light-v3.0",
-                    "description": "Embedding Dimensions: 384"
-                },
-                {
-                    "label": "embed-english-v2.0",
-                    "name": "embed-english-v2.0",
-                    "description": "Embedding Dimensions: 4096"
-                },
-                {
-                    "label": "embed-english-light-v2.0",
-                    "name": "embed-english-light-v2.0",
-                    "description": "Embedding Dimensions: 1024"
-                },
-                {
-                    "label": "embed-multilingual-v2.0",
+                    "label": "Embed Multilingual v2",
                     "name": "embed-multilingual-v2.0",
                     "description": "Embedding Dimensions: 768"
                 }

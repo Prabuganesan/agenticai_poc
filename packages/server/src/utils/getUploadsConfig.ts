@@ -1,9 +1,9 @@
 import { StatusCodes } from 'http-status-codes'
-import { INodeParams } from 'flowise-components'
+import { INodeParams } from 'kodivian-components'
 import { ChatFlow } from '../database/entities/ChatFlow'
-import { getRunningExpressApp } from '../utils/getRunningExpressApp'
 import { IUploadFileSizeAndTypes, IReactFlowNode, IReactFlowEdge } from '../Interface'
-import { InternalFlowiseError } from '../errors/internalFlowiseError'
+import { InternalAutonomousError } from '../errors/internalAutonomousError'
+import { getDataSource } from '../DataSource'
 
 type IUploadConfig = {
     isSpeechToTextEnabled: boolean
@@ -16,14 +16,15 @@ type IUploadConfig = {
 /**
  * Method that checks if uploads are enabled in the chatflow
  * @param {string} chatflowid
+ * @param {string} orgId
  */
-export const utilGetUploadsConfig = async (chatflowid: string): Promise<IUploadConfig> => {
-    const appServer = getRunningExpressApp()
-    const chatflow = await appServer.AppDataSource.getRepository(ChatFlow).findOneBy({
-        id: chatflowid
+export const utilGetUploadsConfig = async (chatflowid: string, orgId: string): Promise<IUploadConfig> => {
+    const dataSource = getDataSource(parseInt(orgId))
+    const chatflow = await dataSource.getRepository(ChatFlow).findOneBy({
+        guid: chatflowid
     })
     if (!chatflow) {
-        throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowid} not found`)
+        throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowid} not found`)
     }
 
     const flowObj = JSON.parse(chatflow.flowData)

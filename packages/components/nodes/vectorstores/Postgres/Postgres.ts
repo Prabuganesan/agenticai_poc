@@ -1,7 +1,7 @@
 import { flatten } from 'lodash'
 import { Document } from '@langchain/core/documents'
 import { ICommonObject, INode, INodeData, INodeOutputsValue, INodeParams, IndexingResult } from '../../../src/Interface'
-import { FLOWISE_CHATID, getBaseClasses, parseJsonBody } from '../../../src/utils'
+import { AUTONOMOUS_CHATID, getBaseClasses, parseJsonBody } from '../../../src/utils'
 import { index } from '../../../src/indexing'
 import { howToUseFileUpload } from '../VectorStoreUtils'
 import { VectorStore } from '@langchain/core/vectorstores'
@@ -49,7 +49,7 @@ class Postgres_VectorStores implements INode {
     constructor() {
         this.label = 'Postgres'
         this.name = 'postgres'
-        this.version = 7.1
+        this.version = 7.0
         this.type = 'Postgres'
         this.icon = 'postgres.svg'
         this.category = 'Vector Stores'
@@ -174,15 +174,6 @@ class Postgres_VectorStores implements INode {
                 optional: true
             },
             {
-                label: 'Upsert Batch Size',
-                name: 'batchSize',
-                type: 'number',
-                step: 1,
-                description: 'Upsert in batches of size N',
-                additionalParams: true,
-                optional: true
-            },
-            {
                 label: 'Additional Configuration',
                 name: 'additionalConfig',
                 type: 'json',
@@ -241,7 +232,6 @@ class Postgres_VectorStores implements INode {
             const docs = nodeData.inputs?.document as Document[]
             const recordManager = nodeData.inputs?.recordManager
             const isFileUploadEnabled = nodeData.inputs?.fileUpload as boolean
-            const _batchSize = nodeData.inputs?.batchSize
             const vectorStoreDriver: VectorStoreDriver = Postgres_VectorStores.getDriverFromConfig(nodeData, options)
 
             const flattenDocs = docs && docs.length ? flatten(docs) : []
@@ -250,7 +240,7 @@ class Postgres_VectorStores implements INode {
             for (let i = 0; i < flattenDocs.length; i += 1) {
                 if (flattenDocs[i] && flattenDocs[i].pageContent) {
                     if (isFileUploadEnabled && options.chatId) {
-                        flattenDocs[i].metadata = { ...flattenDocs[i].metadata, [FLOWISE_CHATID]: options.chatId }
+                        flattenDocs[i].metadata = { ...flattenDocs[i].metadata, [AUTONOMOUS_CHATID]: options.chatId }
                     }
                     finalDocs.push(new Document(flattenDocs[i]))
                 }
@@ -275,15 +265,7 @@ class Postgres_VectorStores implements INode {
 
                     return res
                 } else {
-                    if (_batchSize) {
-                        const batchSize = parseInt(_batchSize, 10)
-                        for (let i = 0; i < finalDocs.length; i += batchSize) {
-                            const batch = finalDocs.slice(i, i + batchSize)
-                            await vectorStoreDriver.fromDocuments(batch)
-                        }
-                    } else {
-                        await vectorStoreDriver.fromDocuments(finalDocs)
-                    }
+                    await vectorStoreDriver.fromDocuments(finalDocs)
 
                     return { numAdded: finalDocs.length, addedDocs: finalDocs }
                 }
@@ -303,11 +285,7 @@ class Postgres_VectorStores implements INode {
                     const vectorStoreName = tableName
                     await recordManager.createSchema()
                     ;(recordManager as any).namespace = (recordManager as any).namespace + '_' + vectorStoreName
-                    const filterKeys: ICommonObject = {}
-                    if (options.docId) {
-                        filterKeys.docId = options.docId
-                    }
-                    const keys: string[] = await recordManager.listKeys(filterKeys)
+                    const keys: string[] = await recordManager.listKeys({})
 
                     await vectorStore.delete({ ids: keys })
                     await recordManager.deleteKeys(keys)
@@ -335,7 +313,7 @@ class Postgres_VectorStores implements INode {
         if (isFileUploadEnabled && options.chatId) {
             pgMetadataFilter = {
                 ...(pgMetadataFilter || {}),
-                [FLOWISE_CHATID]: options.chatId
+                [AUTONOMOUS_CHATID]: options.chatId
             }
         }
 

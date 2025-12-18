@@ -2,28 +2,47 @@ import { StatusCodes } from 'http-status-codes'
 import { omit } from 'lodash'
 import { ICredentialReturnResponse } from '../../Interface'
 import { Credential } from '../../database/entities/Credential'
-import { WorkspaceShared } from '../../enterprise/database/entities/EnterpriseEntities'
-import { WorkspaceService } from '../../enterprise/services/workspace.service'
-import { getWorkspaceSearchOptions } from '../../enterprise/utils/ControllerServiceUtils'
-import { InternalFlowiseError } from '../../errors/internalFlowiseError'
+import { InternalAutonomousError } from '../../errors/internalAutonomousError'
 import { getErrorMessage } from '../../errors/utils'
-import { decryptCredentialData, transformToCredentialEntity } from '../../utils'
+import { decryptCredentialData, transformToCredentialEntity, REDACTED_CREDENTIAL_VALUE } from '../../utils'
 import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
+import { AuthenticatedRequest } from '../../middlewares/session-validation.middleware'
+import { getDataSource } from '../../DataSource'
+import { generateGuid } from '../../utils/guidGenerator'
 
-const createCredential = async (requestBody: any) => {
+const createCredential = async (req: AuthenticatedRequest, requestBody: any) => {
     try {
         const appServer = getRunningExpressApp()
-        const newCredential = await transformToCredentialEntity(requestBody)
+        const orgId = req.orgId
+        const userId = req.userId
 
-        if (requestBody.id) {
-            newCredential.id = requestBody.id
+        if (!orgId) {
+            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
 
-        const credential = await appServer.AppDataSource.getRepository(Credential).create(newCredential)
-        const dbResponse = await appServer.AppDataSource.getRepository(Credential).save(credential)
+        const newCredential = await transformToCredentialEntity(requestBody)
+
+        // Generate GUID if not provided
+        if (requestBody.guid) {
+            newCredential.guid = requestBody.guid
+        } else {
+            newCredential.guid = generateGuid()
+        }
+
+        // Set created_by and created_on
+        const userIdNum = userId ? parseInt(userId) : undefined
+        if (userIdNum === undefined) {
+            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'User ID is required')
+        }
+        newCredential.created_by = userIdNum
+        newCredential.created_on = Date.now()
+
+        const dataSource = getDataSource(parseInt(orgId))
+        const credential = await dataSource.getRepository(Credential).create(newCredential)
+        const dbResponse = await dataSource.getRepository(Credential).save(credential)
         return dbResponse
     } catch (error) {
-        throw new InternalFlowiseError(
+        throw new InternalAutonomousError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: credentialsService.createCredential - ${getErrorMessage(error)}`
         )
@@ -31,108 +50,94 @@ const createCredential = async (requestBody: any) => {
 }
 
 // Delete all credentials from chatflowid
-const deleteCredentials = async (credentialId: string, workspaceId: string): Promise<any> => {
+const deleteCredentials = async (req: AuthenticatedRequest, credentialId: string): Promise<any> => {
     try {
         const appServer = getRunningExpressApp()
-        const dbResponse = await appServer.AppDataSource.getRepository(Credential).delete({ id: credentialId, workspaceId: workspaceId })
-        if (!dbResponse) {
-            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Credential ${credentialId} not found`)
+        const orgId = req.orgId
+        if (!orgId) {
+            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+        }
+
+        const dataSource = getDataSource(parseInt(orgId))
+        const userId = req.userId ? parseInt(req.userId) : undefined
+        const whereClause: any = {
+            guid: credentialId
+        }
+        // User-based isolation: only allow deletion of own credentials
+        if (userId !== undefined) {
+            whereClause.created_by = userId
+        }
+        const dbResponse = await dataSource.getRepository(Credential).delete(whereClause)
+        if (!dbResponse || dbResponse.affected === 0) {
+            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Credential ${credentialId} not found`)
         }
         return dbResponse
     } catch (error) {
-        throw new InternalFlowiseError(
+        throw new InternalAutonomousError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: credentialsService.deleteCredential - ${getErrorMessage(error)}`
         )
     }
 }
 
-const getAllCredentials = async (paramCredentialName: any, workspaceId: string) => {
+const getAllCredentials = async (req: AuthenticatedRequest, paramCredentialName?: any) => {
     try {
         const appServer = getRunningExpressApp()
+        const orgId = req.orgId
+        if (!orgId) {
+            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+        }
+
+        const dataSource = getDataSource(parseInt(orgId))
         let dbResponse: any[] = []
+        const whereClause: any = {}
         if (paramCredentialName) {
             if (Array.isArray(paramCredentialName)) {
                 for (let i = 0; i < paramCredentialName.length; i += 1) {
                     const name = paramCredentialName[i] as string
-                    const searchOptions = {
+                    const credentials = await dataSource.getRepository(Credential).findBy({
                         credentialName: name,
-                        ...getWorkspaceSearchOptions(workspaceId)
-                    }
-                    const credentials = await appServer.AppDataSource.getRepository(Credential).findBy(searchOptions)
+                        ...whereClause
+                    })
                     dbResponse.push(...credentials)
                 }
             } else {
-                const searchOptions = {
+                const credentials = await dataSource.getRepository(Credential).findBy({
                     credentialName: paramCredentialName,
-                    ...getWorkspaceSearchOptions(workspaceId)
-                }
-                const credentials = await appServer.AppDataSource.getRepository(Credential).findBy(searchOptions)
+                    ...whereClause
+                })
                 dbResponse = [...credentials]
             }
-            // get shared credentials
-            if (workspaceId) {
-                const workspaceService = new WorkspaceService()
-                const sharedItems = (await workspaceService.getSharedItemsForWorkspace(workspaceId, 'credential')) as Credential[]
-                if (sharedItems.length) {
-                    for (const sharedItem of sharedItems) {
-                        // Check if paramCredentialName is array
-                        if (Array.isArray(paramCredentialName)) {
-                            for (let i = 0; i < paramCredentialName.length; i += 1) {
-                                const name = paramCredentialName[i] as string
-                                if (sharedItem.credentialName === name) {
-                                    // @ts-ignore
-                                    sharedItem.shared = true
-                                    dbResponse.push(omit(sharedItem, ['encryptedData']))
-                                }
-                            }
-                        } else {
-                            if (sharedItem.credentialName === paramCredentialName) {
-                                // @ts-ignore
-                                sharedItem.shared = true
-                                dbResponse.push(omit(sharedItem, ['encryptedData']))
-                            }
-                        }
-                    }
-                }
-            }
         } else {
-            const credentials = await appServer.AppDataSource.getRepository(Credential).findBy(getWorkspaceSearchOptions(workspaceId))
+            const credentials = await dataSource.getRepository(Credential).findBy(whereClause)
             for (const credential of credentials) {
                 dbResponse.push(omit(credential, ['encryptedData']))
-            }
-
-            // get shared credentials
-            if (workspaceId) {
-                const workspaceService = new WorkspaceService()
-                const sharedItems = (await workspaceService.getSharedItemsForWorkspace(workspaceId, 'credential')) as Credential[]
-                if (sharedItems.length) {
-                    for (const sharedItem of sharedItems) {
-                        // @ts-ignore
-                        sharedItem.shared = true
-                        dbResponse.push(omit(sharedItem, ['encryptedData']))
-                    }
-                }
             }
         }
         return dbResponse
     } catch (error) {
-        throw new InternalFlowiseError(
+        throw new InternalAutonomousError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: credentialsService.getAllCredentials - ${getErrorMessage(error)}`
         )
     }
 }
 
-const getCredentialById = async (credentialId: string, workspaceId: string): Promise<any> => {
+const getCredentialById = async (req: AuthenticatedRequest, credentialId: string): Promise<any> => {
     try {
         const appServer = getRunningExpressApp()
-        const credential = await appServer.AppDataSource.getRepository(Credential).findOneBy({
-            id: credentialId,
-            workspaceId: workspaceId
-        })
+        const orgId = req.orgId
+        if (!orgId) {
+            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+        }
+
+        const dataSource = getDataSource(parseInt(orgId))
+        const whereClause: any = {
+            guid: credentialId
+        }
+        const credential = await dataSource.getRepository(Credential).findOneBy(whereClause)
         if (!credential) {
-            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Credential ${credentialId} not found`)
+            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Credential ${credentialId} not found`)
         }
         // Decrpyt credentialData
         const decryptedCredentialData = await decryptCredentialData(
@@ -145,46 +150,57 @@ const getCredentialById = async (credentialId: string, workspaceId: string): Pro
             plainDataObj: decryptedCredentialData
         }
         const dbResponse: any = omit(returnCredential, ['encryptedData'])
-        if (workspaceId) {
-            const shared = await appServer.AppDataSource.getRepository(WorkspaceShared).count({
-                where: {
-                    workspaceId: workspaceId,
-                    sharedItemId: credentialId,
-                    itemType: 'credential'
-                }
-            })
-            if (shared > 0) {
-                dbResponse.shared = true
-            }
-        }
         return dbResponse
     } catch (error) {
-        throw new InternalFlowiseError(
+        throw new InternalAutonomousError(
             StatusCodes.INTERNAL_SERVER_ERROR,
-            `Error: credentialsService.createCredential - ${getErrorMessage(error)}`
+            `Error: credentialsService.getCredentialById - ${getErrorMessage(error)}`
         )
     }
 }
 
-const updateCredential = async (credentialId: string, requestBody: any, workspaceId: string): Promise<any> => {
+const updateCredential = async (req: AuthenticatedRequest, credentialId: string, requestBody: any): Promise<any> => {
     try {
         const appServer = getRunningExpressApp()
-        const credential = await appServer.AppDataSource.getRepository(Credential).findOneBy({
-            id: credentialId,
-            workspaceId: workspaceId
-        })
+        const orgId = req.orgId
+        if (!orgId) {
+            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+        }
+
+        const dataSource = getDataSource(parseInt(orgId))
+        const userId = req.userId ? parseInt(req.userId) : undefined
+        const whereClause: any = {
+            guid: credentialId
+        }
+        // User-based isolation: only allow update of own credentials
+        if (userId !== undefined) {
+            whereClause.created_by = userId
+        }
+        const credential = await dataSource.getRepository(Credential).findOneBy(whereClause)
         if (!credential) {
-            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Credential ${credentialId} not found`)
+            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Credential ${credentialId} not found`)
         }
         const decryptedCredentialData = await decryptCredentialData(credential.encryptedData)
+
+        // Fix: If the new value is the redacted string, keep the old value
+        for (const key in requestBody.plainDataObj) {
+            if (requestBody.plainDataObj[key] === REDACTED_CREDENTIAL_VALUE) {
+                requestBody.plainDataObj[key] = decryptedCredentialData[key]
+            }
+        }
+
         requestBody.plainDataObj = { ...decryptedCredentialData, ...requestBody.plainDataObj }
         const updateCredential = await transformToCredentialEntity(requestBody)
-        updateCredential.workspaceId = workspaceId
-        await appServer.AppDataSource.getRepository(Credential).merge(credential, updateCredential)
-        const dbResponse = await appServer.AppDataSource.getRepository(Credential).save(credential)
+        // Set last_modified_by and last_modified_on
+        if (userId !== undefined) {
+            updateCredential.last_modified_by = userId
+            updateCredential.last_modified_on = Date.now()
+        }
+        await dataSource.getRepository(Credential).merge(credential, updateCredential)
+        const dbResponse = await dataSource.getRepository(Credential).save(credential)
         return dbResponse
     } catch (error) {
-        throw new InternalFlowiseError(
+        throw new InternalAutonomousError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: credentialsService.updateCredential - ${getErrorMessage(error)}`
         )

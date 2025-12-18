@@ -15,6 +15,10 @@ import { SET_MENU } from '@/store/actions'
 // styles
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(({ theme, open }) => ({
     ...theme.typography.mainContent,
+    height: `calc(100vh - ${headerHeight}px)`,
+    overflowY: 'auto',
+    overflowX: 'hidden',
+    paddingTop: `${headerHeight}px`,
     ...(!open && {
         backgroundColor: 'transparent',
         borderBottomLeftRadius: 0,
@@ -31,12 +35,14 @@ const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(({
         [theme.breakpoints.down('md')]: {
             marginLeft: '20px',
             width: `calc(100% - ${drawerWidth}px)`,
-            padding: '16px'
+            padding: '16px',
+            paddingTop: `calc(${headerHeight}px + 16px)`
         },
         [theme.breakpoints.down('sm')]: {
             marginLeft: '10px',
             width: `calc(100% - ${drawerWidth}px)`,
             padding: '16px',
+            paddingTop: `calc(${headerHeight}px + 16px)`,
             marginRight: '10px'
         }
     }),
@@ -67,10 +73,12 @@ const MainLayout = () => {
         dispatch({ type: SET_MENU, opened: !leftDrawerOpened })
     }
 
-    useEffect(() => {
-        setTimeout(() => dispatch({ type: SET_MENU, opened: !matchDownMd }), 0)
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [matchDownMd])
+    // Close sidebar when clicking in main content area (if sidebar is open)
+    const handleMainContentClick = () => {
+        if (leftDrawerOpened) {
+            dispatch({ type: SET_MENU, opened: false })
+        }
+    }
 
     return (
         <Box sx={{ display: 'flex' }}>
@@ -96,7 +104,15 @@ const MainLayout = () => {
 
             {/* main content */}
             <Main theme={theme} open={leftDrawerOpened}>
-                <Outlet />
+                <Box
+                    onClick={handleMainContentClick}
+                    sx={{
+                        width: '100%',
+                        height: '100%'
+                    }}
+                >
+                    <Outlet />
+                </Box>
             </Main>
         </Box>
     )

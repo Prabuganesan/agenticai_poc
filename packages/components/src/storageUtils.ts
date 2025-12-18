@@ -13,7 +13,7 @@ import { Readable } from 'node:stream'
 import path from 'path'
 import sanitize from 'sanitize-filename'
 import { getUserHome } from './utils'
-import { isPathTraversal, isValidUUID } from './validator'
+import { isPathTraversal, isValidUUID, isValidGuid } from './validator'
 
 const dirSize = async (directoryPath: string) => {
     let totalSize = 0
@@ -41,9 +41,9 @@ export const addBase64FilesToStorage = async (
     fileNames: string[],
     orgId: string
 ): Promise<{ path: string; totalSize: number }> => {
-    // Validate chatflowid
-    if (!chatflowid || !isValidUUID(chatflowid)) {
-        throw new Error('Invalid chatflowId format - must be a valid UUID')
+    // Validate chatflowid - must be a valid 15-character GUID format
+    if (!chatflowid || !isValidGuid(chatflowid)) {
+        throw new Error('Invalid chatflowId format - must be a valid 15-character GUID')
     }
 
     // Check for path traversal attempts
@@ -190,6 +190,25 @@ export const addSingleFileToStorage = async (
     const storageType = getStorageType()
     const sanitizedFilename = _sanitizeFilename(fileName)
 
+    // Extract orgId from paths if available (first path is usually orgId)
+    const orgId = paths.length > 0 ? paths[0] : 'unknown'
+    const fileSize = bf.length
+
+    // Log file upload start
+    try {
+        const { fileLog } = await import('../../server/src/utils/logger/module-methods')
+        await fileLog('info', 'File upload started', {
+            userId: 'system',
+            orgId: orgId,
+            fileName: sanitizedFilename,
+            fileSize: fileSize,
+            mimeType: mime,
+            storageType: storageType
+        }).catch(() => {})
+    } catch (logError) {
+        // Silently fail - logging should not break file operations
+    }
+
     if (storageType === 's3') {
         const { s3Client, Bucket } = getS3Config()
 
@@ -209,6 +228,23 @@ export const addSingleFileToStorage = async (
 
         const totalSize = await getS3StorageSize(paths[0])
 
+        // Log file upload success
+        try {
+            const { fileLog } = await import('../../server/src/utils/logger/module-methods')
+            await fileLog('info', 'File upload completed (S3)', {
+                userId: 'system',
+                orgId: orgId,
+                fileName: sanitizedFilename,
+                fileSize: fileSize,
+                mimeType: mime,
+                storageType: 's3',
+                storagePath: 'FILE-STORAGE::' + sanitizedFilename,
+                totalSizeMB: totalSize / 1024 / 1024
+            }).catch(() => {})
+        } catch (logError) {
+            // Silently fail
+        }
+
         return { path: 'FILE-STORAGE::' + sanitizedFilename, totalSize: totalSize / 1024 / 1024 }
     } else if (storageType === 'gcs') {
         const { bucket } = getGcsClient()
@@ -225,6 +261,23 @@ export const addSingleFileToStorage = async (
 
         const totalSize = await getGCSStorageSize(paths[0])
 
+        // Log file upload success
+        try {
+            const { fileLog } = await import('../../server/src/utils/logger/module-methods')
+            await fileLog('info', 'File upload completed (GCS)', {
+                userId: 'system',
+                orgId: orgId,
+                fileName: sanitizedFilename,
+                fileSize: fileSize,
+                mimeType: mime,
+                storageType: 'gcs',
+                storagePath: 'FILE-STORAGE::' + sanitizedFilename,
+                totalSizeMB: totalSize / 1024 / 1024
+            }).catch(() => {})
+        } catch (logError) {
+            // Silently fail
+        }
+
         return { path: 'FILE-STORAGE::' + sanitizedFilename, totalSize: totalSize / 1024 / 1024 }
     } else {
         const dir = path.join(getStoragePath(), ...paths.map(_sanitizeFilename))
@@ -235,6 +288,24 @@ export const addSingleFileToStorage = async (
         fs.writeFileSync(filePath, bf)
 
         const totalSize = await dirSize(path.join(getStoragePath(), paths[0]))
+
+        // Log file upload success
+        try {
+            const { fileLog } = await import('../../server/src/utils/logger/module-methods')
+            await fileLog('info', 'File upload completed (local)', {
+                userId: 'system',
+                orgId: orgId,
+                fileName: sanitizedFilename,
+                fileSize: fileSize,
+                mimeType: mime,
+                storageType: 'local',
+                storagePath: 'FILE-STORAGE::' + sanitizedFilename,
+                totalSizeMB: totalSize / 1024 / 1024
+            }).catch(() => {})
+        } catch (logError) {
+            // Silently fail
+        }
+
         return { path: 'FILE-STORAGE::' + sanitizedFilename, totalSize: totalSize / 1024 / 1024 }
     }
 }
@@ -531,9 +602,21 @@ function getFilePaths(dir: string): FileInfo[] {
  * Prepare storage path
  */
 export const getStoragePath = (): string => {
+    // Import getAutonomousDataPath from utils to avoid circular dependency
+    const utils = require('./utils')
+    const getAutonomousDataPath =
+        utils.getAutonomousDataPath ||
+        (() => {
+            // Fallback if not available
+            if (process.env.AUTONOMOUS_DATA_PATH) {
+                return path.join(process.env.AUTONOMOUS_DATA_PATH, '.autonomous')
+            }
+            return path.join(getUserHome(), '.autonomous')
+        })
+
     const storagePath = process.env.BLOB_STORAGE_PATH
         ? path.join(process.env.BLOB_STORAGE_PATH)
-        : path.join(getUserHome(), '.flowise', 'storage')
+        : path.join(getAutonomousDataPath(), 'storage')
     if (!fs.existsSync(storagePath)) {
         fs.mkdirSync(storagePath, { recursive: true })
     }
@@ -747,9 +830,14 @@ export const streamStorageFile = async (
     fileName: string,
     orgId: string
 ): Promise<fs.ReadStream | Buffer | undefined> => {
-    // Validate chatflowId
-    if (!chatflowId || !isValidUUID(chatflowId)) {
-        throw new Error('Invalid chatflowId format - must be a valid UUID')
+    // Validate chatflowId - must be a valid 15-character GUID format
+    if (!chatflowId || !isValidGuid(chatflowId)) {
+        throw new Error('Invalid chatflowId format - must be a valid 15-character GUID')
+    }
+
+    // Validate chatId - must be a valid UUID format
+    if (!chatId || !isValidUUID(chatId)) {
+        throw new Error('Invalid chatId format - must be a valid UUID')
     }
 
     // Check for path traversal attempts

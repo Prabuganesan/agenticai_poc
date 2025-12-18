@@ -1,27 +1,33 @@
 import { NextFunction, Request, Response } from 'express'
 import { StatusCodes } from 'http-status-codes'
-import { InternalFlowiseError } from '../../errors/internalFlowiseError'
+import { InternalAutonomousError } from '../../errors/internalAutonomousError'
 import { getErrorMessage } from '../../errors/utils'
 import { MODE } from '../../Interface'
 import chatflowService from '../../services/chatflows'
 import { utilBuildChatflow } from '../../utils/buildChatflow'
 import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
+import { AuthenticatedRequest } from '../../middlewares/session-validation.middleware'
+import { logWarn } from '../../utils/logger/system-helper'
+import { v4 as uuidv4 } from 'uuid'
 
 // Send input message and get prediction result (Internal)
-const createInternalPrediction = async (req: Request, res: Response, next: NextFunction) => {
+const createInternalPrediction = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-        const workspaceId = req.user?.activeWorkspaceId
+        const orgId = req.orgId
+        if (!orgId) {
+            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+        }
 
-        const chatflow = await chatflowService.getChatflowById(req.params.id, workspaceId)
+        const chatflow = await chatflowService.getChatflowById(req.params.id, orgId)
         if (!chatflow) {
-            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Chatflow ${req.params.id} not found`)
+            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Chatflow ${req.params.id} not found`)
         }
 
         if (req.body.streaming || req.body.streaming === 'true') {
-            createAndStreamInternalPrediction(req, res, next)
+            createAndStreamInternalPrediction(req as any, res, next)
             return
         } else {
-            const apiResponse = await utilBuildChatflow(req, true)
+            const apiResponse = await utilBuildChatflow(req as any, true)
             if (apiResponse) return res.json(apiResponse)
         }
     } catch (error) {
@@ -31,11 +37,20 @@ const createInternalPrediction = async (req: Request, res: Response, next: NextF
 
 // Send input message and stream prediction result using SSE (Internal)
 const createAndStreamInternalPrediction = async (req: Request, res: Response, next: NextFunction) => {
-    const chatId = req.body.chatId
+    // Auto-generate chatId if not provided (same as external predictions)
+    let chatId = req.body.chatId ?? req.body.overrideConfig?.sessionId ?? uuidv4()
+    if (!chatId || typeof chatId !== 'string') {
+        chatId = uuidv4()
+    }
+    // Set chatId in request body so utilBuildChatflow can use it
+    req.body.chatId = chatId
+    
     const sseStreamer = getRunningExpressApp().sseStreamer
 
     try {
-        sseStreamer.addClient(chatId, res)
+        const orgId = (req as any).orgId
+        const userId = (req as any).userId
+        sseStreamer.addClient(chatId, res, orgId, userId)
         res.setHeader('Content-Type', 'text/event-stream')
         res.setHeader('Cache-Control', 'no-cache')
         res.setHeader('Connection', 'keep-alive')
@@ -43,7 +58,17 @@ const createAndStreamInternalPrediction = async (req: Request, res: Response, ne
         res.flushHeaders()
 
         if (process.env.MODE === MODE.QUEUE) {
-            getRunningExpressApp().redisSubscriber.subscribe(chatId)
+            const orgId = (req as any).orgId
+            if (orgId !== undefined && orgId !== null) {
+                const orgIdNum = typeof orgId === 'number' ? orgId : parseInt(String(orgId), 10)
+                if (!isNaN(orgIdNum)) {
+                    getRunningExpressApp().redisSubscriber.subscribe(chatId, orgIdNum)
+                } else {
+                    logWarn(`[createAndStreamInternalPrediction] Invalid orgId: ${orgId}, skipping Redis subscription`).catch(() => {})
+                }
+            } else {
+                logWarn(`[createAndStreamInternalPrediction] orgId is undefined, skipping Redis subscription`).catch(() => {})
+            }
         }
 
         const apiResponse = await utilBuildChatflow(req, true)

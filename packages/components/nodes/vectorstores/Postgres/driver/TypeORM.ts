@@ -1,15 +1,10 @@
 import { DataSourceOptions } from 'typeorm'
 import { VectorStoreDriver } from './Base'
-import { FLOWISE_CHATID, ICommonObject } from '../../../../src'
+import { AUTONOMOUS_CHATID, ICommonObject } from '../../../../src'
 import { TypeORMVectorStore, TypeORMVectorStoreArgs, TypeORMVectorStoreDocument } from '@langchain/community/vectorstores/typeorm'
 import { VectorStore } from '@langchain/core/vectorstores'
 import { Document } from '@langchain/core/documents'
 import { Pool } from 'pg'
-import { v4 as uuid } from 'uuid'
-
-type TypeORMAddDocumentOptions = {
-    ids?: string[]
-}
 
 export class TypeORMDriver extends VectorStoreDriver {
     protected _postgresConnectionOptions: DataSourceOptions
@@ -52,25 +47,16 @@ export class TypeORMDriver extends VectorStoreDriver {
     async getArgs(): Promise<TypeORMVectorStoreArgs> {
         return {
             postgresConnectionOptions: await this.getPostgresConnectionOptions(),
-            tableName: this.getTableName(),
-            schemaName: this.getSchemaName()
+            tableName: this.getTableName()
         }
     }
 
     async instanciate(metadataFilters?: any) {
-        return this.adaptInstance(
-            await TypeORMVectorStore.fromDataSource(this.getEmbeddings(), await this.getArgs()),
-            metadataFilters,
-            this.getTablePath()
-        )
+        return this.adaptInstance(await TypeORMVectorStore.fromDataSource(this.getEmbeddings(), await this.getArgs()), metadataFilters)
     }
 
     async fromDocuments(documents: Document[]) {
-        return this.adaptInstance(
-            await TypeORMVectorStore.fromDocuments(documents, this.getEmbeddings(), await this.getArgs()),
-            undefined,
-            this.getTablePath()
-        )
+        return this.adaptInstance(await TypeORMVectorStore.fromDocuments(documents, this.getEmbeddings(), await this.getArgs()))
     }
 
     sanitizeDocuments(documents: Document[]) {
@@ -82,8 +68,8 @@ export class TypeORMDriver extends VectorStoreDriver {
         return documents
     }
 
-    protected async adaptInstance(instance: TypeORMVectorStore, metadataFilters?: any, tablePath?: string): Promise<VectorStore> {
-        const effectiveTablePath = tablePath ?? this.getTablePath()
+    protected async adaptInstance(instance: TypeORMVectorStore, metadataFilters?: any): Promise<VectorStore> {
+        const tableName = this.getTableName()
 
         // Rewrite the method to use pg pool connection instead of the default connection
         /* Otherwise a connection error is displayed when the chain tries to execute the function
@@ -95,7 +81,7 @@ export class TypeORMDriver extends VectorStoreDriver {
             return await TypeORMDriver.similaritySearchVectorWithScore(
                 query,
                 k,
-                effectiveTablePath,
+                tableName,
                 await this.getPostgresConnectionOptions(),
                 filter ?? metadataFilters,
                 this.computedOperatorString
@@ -109,50 +95,15 @@ export class TypeORMDriver extends VectorStoreDriver {
                 try {
                     instance.appDataSource.getRepository(instance.documentEntity).delete(ids)
                 } catch (e) {
-                    console.error('Failed to delete', e)
+                    console.error('Failed to delete')
                 }
             }
         }
 
-        instance.addVectors = async (
-            vectors: number[][],
-            documents: Document[],
-            documentOptions?: TypeORMAddDocumentOptions
-        ): Promise<void> => {
-            // Sanitize documents to remove NULL characters that cause Postgres errors
-            const sanitizedDocs = this.sanitizeDocuments(documents)
+        const baseAddVectorsFn = instance.addVectors.bind(instance)
 
-            const rows = vectors.map((embedding, idx) => {
-                const embeddingString = `[${embedding.join(',')}]`
-                const documentRow = {
-                    id: documentOptions?.ids?.length ? documentOptions.ids[idx] : uuid(),
-                    pageContent: sanitizedDocs[idx].pageContent,
-                    embedding: embeddingString,
-                    metadata: sanitizedDocs[idx].metadata
-                }
-                return documentRow
-            })
-
-            const documentRepository = instance.appDataSource.getRepository(instance.documentEntity)
-            const _batchSize = this.nodeData.inputs?.batchSize
-            const chunkSize = _batchSize ? parseInt(_batchSize, 10) : 500
-
-            for (let i = 0; i < rows.length; i += chunkSize) {
-                const chunk = rows.slice(i, i + chunkSize)
-                try {
-                    await documentRepository.save(chunk)
-                } catch (e) {
-                    console.error(e)
-                    throw new Error(`Error inserting: ${chunk[0].pageContent}`)
-                }
-            }
-        }
-
-        instance.addDocuments = async (documents: Document[], options?: { ids?: string[] }): Promise<void> => {
-            const texts = documents.map(({ pageContent }) => pageContent)
-            // Ensure table exists before adding documents (this will create the table if it does not exist)
-            await this.ensureTableInDatabase(instance, effectiveTablePath)
-            return (instance.addVectors as any)(await this.getEmbeddings().embedDocuments(texts), documents, options)
+        instance.addVectors = async (vectors, documents) => {
+            return baseAddVectorsFn(vectors, this.sanitizeDocuments(documents))
         }
 
         return instance
@@ -173,48 +124,31 @@ export class TypeORMDriver extends VectorStoreDriver {
         }
     }
 
-    /**
-     * Ensures the table exists in the database with the correct schema.
-     * Creates the pgvector extension and table if they don't exist.
-     */
-    async ensureTableInDatabase(instance: TypeORMVectorStore, tablePath: string): Promise<void> {
-        await instance.appDataSource.query('CREATE EXTENSION IF NOT EXISTS vector;')
-        await instance.appDataSource.query(`
-            CREATE TABLE IF NOT EXISTS ${tablePath} (
-                "id" uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
-                "pageContent" text,
-                metadata jsonb,
-                embedding vector
-            );
-        `)
-    }
-
     static similaritySearchVectorWithScore = async (
         query: number[],
         k: number,
-        tablePath: string,
+        tableName: string,
         postgresConnectionOptions: ICommonObject,
         filter?: any,
         distanceOperator: string = '<=>'
     ) => {
         const embeddingString = `[${query.join(',')}]`
         let chatflowOr = ''
-        const { [FLOWISE_CHATID]: chatId, ...restFilters } = filter || {}
+        const { [AUTONOMOUS_CHATID]: chatId, ...restFilters } = filter || {}
 
         const _filter = JSON.stringify(restFilters || {})
         const parameters: any[] = [embeddingString, _filter, k]
 
-        // Match chatflow uploaded file and keep filtering on other files:
-        // https://github.com/FlowiseAI/Flowise/pull/3367#discussion_r1804229295
+        // Match chatflow uploaded file and keep filtering on other files
         if (chatId) {
-            parameters.push({ [FLOWISE_CHATID]: chatId })
+            parameters.push({ [AUTONOMOUS_CHATID]: chatId })
             chatflowOr = `OR metadata @> $${parameters.length}`
         }
 
         const queryString = `
             SELECT *, embedding ${distanceOperator} $1 as "_distance"
-            FROM ${tablePath}
-            WHERE ((metadata @> $2) AND NOT (metadata ? '${FLOWISE_CHATID}')) ${chatflowOr}
+            FROM ${tableName}
+            WHERE ((metadata @> $2) AND NOT (metadata ? '${AUTONOMOUS_CHATID}')) ${chatflowOr}
             ORDER BY "_distance" ASC
             LIMIT $3;`
 

@@ -13,6 +13,7 @@ import {
 } from '../../../src/utils'
 import { isValidUUID, isValidURL } from '../../../src/validator'
 import { v4 as uuidv4 } from 'uuid'
+import { getServerURL } from '../../../src/constants'
 
 class AgentAsTool_Tools implements INode {
     label: string
@@ -83,8 +84,8 @@ class AgentAsTool_Tools implements INode {
                 name: 'baseURL',
                 type: 'string',
                 description:
-                    'Base URL to Flowise. By default, it is the URL of the incoming request. Useful when you need to execute the Agentflow through an alternative route.',
-                placeholder: 'http://localhost:3000',
+                    'Base URL to Autonomous. By default, it is the URL of the incoming request. Useful when you need to execute the Agentflow through an alternative route.',
+                placeholder: getServerURL(),
                 optional: true,
                 additionalParams: true
             },
@@ -223,7 +224,7 @@ class AgentflowTool extends StructuredTool {
 
     startNewSession = false
 
-    baseURL = 'http://localhost:3000'
+    baseURL = getServerURL()
 
     headers = {}
 
@@ -337,7 +338,7 @@ class AgentflowTool extends StructuredTool {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'flowise-tool': 'true',
+                'autonomous-tool': 'true',
                 ...this.headers
             },
             body: JSON.stringify(body)

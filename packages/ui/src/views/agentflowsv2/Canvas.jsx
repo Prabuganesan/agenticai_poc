@@ -57,7 +57,7 @@ import useNotifier from '@/utils/useNotifier'
 import { usePrompt } from '@/utils/usePrompt'
 
 // const
-import { FLOWISE_CREDENTIAL_ID, AGENTFLOW_ICONS } from '@/store/constant'
+import { AUTONOMOUS_CREDENTIAL_ID, AGENTFLOW_ICONS } from '@/store/constant'
 
 const nodeTypes = { agentFlow: CanvasNode, stickyNote: StickyNote, iteration: IterationNode }
 const edgeTypes = { agentFlow: AgentFlowEdge }
@@ -75,7 +75,7 @@ const AgentflowCanvas = () => {
     const URLpath = document.location.pathname.toString().split('/')
     const chatflowId =
         URLpath[URLpath.length - 1] === 'canvas' || URLpath[URLpath.length - 1] === 'agentcanvas' ? '' : URLpath[URLpath.length - 1]
-    const canvasTitle = URLpath.includes('agentcanvas') ? 'Agent' : 'Chatflow'
+    const canvasTitle = URLpath.includes('agentcanvas') ? 'Multi-Agent' : 'Agent'
 
     const { confirm } = useConfirm()
 
@@ -183,7 +183,7 @@ const AgentflowCanvas = () => {
             try {
                 await chatflowsApi.deleteChatflow(chatflow.id)
                 localStorage.removeItem(`${chatflow.id}_INTERNAL`)
-                navigate('/agentflows')
+                navigate('/multiagent')
             } catch (error) {
                 enqueueSnackbar({
                     message: typeof error.response.data === 'object' ? error.response.data.message : error.response.data,
@@ -206,9 +206,9 @@ const AgentflowCanvas = () => {
         if (reactFlowInstance) {
             const nodes = reactFlowInstance.getNodes().map((node) => {
                 const nodeData = cloneDeep(node.data)
-                if (Object.prototype.hasOwnProperty.call(nodeData.inputs, FLOWISE_CREDENTIAL_ID)) {
-                    nodeData.credential = nodeData.inputs[FLOWISE_CREDENTIAL_ID]
-                    nodeData.inputs = omit(nodeData.inputs, [FLOWISE_CREDENTIAL_ID])
+                if (Object.prototype.hasOwnProperty.call(nodeData.inputs, AUTONOMOUS_CREDENTIAL_ID)) {
+                    nodeData.credential = nodeData.inputs[AUTONOMOUS_CREDENTIAL_ID]
+                    nodeData.inputs = omit(nodeData.inputs, [AUTONOMOUS_CREDENTIAL_ID])
                 }
                 node.data = {
                     ...nodeData,
@@ -544,7 +544,8 @@ const AgentflowCanvas = () => {
             const chatflow = createNewChatflowApi.data
             dispatch({ type: SET_CHATFLOW, chatflow })
             saveChatflowSuccess()
-            window.history.replaceState(state, null, `/v2/agentcanvas/${chatflow.id}`)
+            // Use navigate instead of window.history.replaceState to properly handle basename
+            navigate(`/v2/agentcanvas/${chatflow.id}`, { replace: true })
         } else if (createNewChatflowApi.error) {
             errorFailed(`Failed to save ${canvasTitle}: ${createNewChatflowApi.error.response.data.message}`)
         }

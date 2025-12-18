@@ -4,7 +4,7 @@ import { Document } from '@langchain/core/documents'
 import { MilvusLibArgs, Milvus } from '@langchain/community/vectorstores/milvus'
 import { Embeddings } from '@langchain/core/embeddings'
 import { ICommonObject, INode, INodeData, INodeOutputsValue, INodeParams, IndexingResult } from '../../../src/Interface'
-import { FLOWISE_CHATID, getBaseClasses, getCredentialData, getCredentialParam } from '../../../src/utils'
+import { AUTONOMOUS_CHATID, getBaseClasses, getCredentialData, getCredentialParam } from '../../../src/utils'
 import { howToUseFileUpload } from '../VectorStoreUtils'
 
 interface InsertRow {
@@ -171,7 +171,21 @@ class Milvus_VectorStores implements INode {
     vectorStoreMethods = {
         async upsert(nodeData: INodeData, options: ICommonObject): Promise<Partial<IndexingResult>> {
             // server setup
-            const address = nodeData.inputs?.milvusServerUrl as string
+            let address = nodeData.inputs?.milvusServerUrl as string
+            // Extract host:port from URL if it contains http:// or https://
+            if (address && (address.startsWith('http://') || address.startsWith('https://'))) {
+                try {
+                    const url = new URL(address)
+                    address = `${url.hostname}:${url.port || '19530'}`
+                } catch (e) {
+                    // If URL parsing fails, try to extract manually
+                    address = address.replace(/^https?:\/\//, '').replace(/\/$/, '')
+                    // Ensure port is included if missing
+                    if (!address.includes(':')) {
+                        address = `${address}:19530`
+                    }
+                }
+            }
             const collectionName = nodeData.inputs?.milvusCollection as string
 
             // embeddings
@@ -222,7 +236,7 @@ class Milvus_VectorStores implements INode {
             for (let i = 0; i < flattenDocs.length; i += 1) {
                 if (flattenDocs[i] && flattenDocs[i].pageContent) {
                     if (isFileUploadEnabled && options.chatId) {
-                        flattenDocs[i].metadata = { ...flattenDocs[i].metadata, [FLOWISE_CHATID]: options.chatId }
+                        flattenDocs[i].metadata = { ...flattenDocs[i].metadata, [AUTONOMOUS_CHATID]: options.chatId }
                     }
                     finalDocs.push(new Document(flattenDocs[i]))
                 }
@@ -245,7 +259,17 @@ class Milvus_VectorStores implements INode {
 
     async init(nodeData: INodeData, _: string, options: ICommonObject): Promise<any> {
         // server setup
-        const address = nodeData.inputs?.milvusServerUrl as string
+        let address = nodeData.inputs?.milvusServerUrl as string
+        // Extract host:port from URL if it contains http:// or https://
+        if (address && (address.startsWith('http://') || address.startsWith('https://'))) {
+            try {
+                const url = new URL(address)
+                address = `${url.hostname}:${url.port || (address.startsWith('https://') ? '443' : '80')}`
+            } catch (e) {
+                // If URL parsing fails, try to extract manually
+                address = address.replace(/^https?:\/\//, '').replace(/\/$/, '')
+            }
+        }
         const collectionName = nodeData.inputs?.milvusCollection as string
         const _milvusFilter = nodeData.inputs?.milvusFilter as string
         const textField = nodeData.inputs?.milvusTextField as string
@@ -302,8 +326,8 @@ class Milvus_VectorStores implements INode {
 
         let milvusFilter = _milvusFilter
         if (isFileUploadEnabled && options.chatId) {
-            if (milvusFilter) milvusFilter += ` OR ${FLOWISE_CHATID} == "${options.chatId}" OR NOT EXISTS(${FLOWISE_CHATID})`
-            else milvusFilter = `${FLOWISE_CHATID} == "${options.chatId}" OR NOT EXISTS(${FLOWISE_CHATID})`
+            if (milvusFilter) milvusFilter += ` OR ${AUTONOMOUS_CHATID} == "${options.chatId}" OR NOT EXISTS(${AUTONOMOUS_CHATID})`
+            else milvusFilter = `${AUTONOMOUS_CHATID} == "${options.chatId}" OR NOT EXISTS(${AUTONOMOUS_CHATID})`
         }
 
         const vectorStore = await Milvus.fromExistingCollection(embeddings, milVusArgs)

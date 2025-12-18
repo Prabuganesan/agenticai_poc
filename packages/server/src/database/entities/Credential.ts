@@ -1,29 +1,35 @@
 /* eslint-disable */
-import { Entity, Column, PrimaryGeneratedColumn, Index, CreateDateColumn, UpdateDateColumn } from 'typeorm'
+import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm'
 import { ICredential } from '../../Interface'
+import { getTextColumnType } from '../utils/column-types'
 
-@Entity()
+@Entity('auto_credential')
 export class Credential implements ICredential {
-    @PrimaryGeneratedColumn('uuid')
-    id: string
+    @PrimaryGeneratedColumn({ type: 'numeric', name: 'id' })
+    id: number
 
-    @Column()
+    @Column({ type: 'varchar', length: 15, name: 'guid' })
+    guid: string
+
+    @Column({ name: 'name' })
     name: string
 
-    @Column()
+    @Column({ name: 'credentialname' })
     credentialName: string
 
-    @Column({ type: 'text' })
+    @Column({ type: getTextColumnType(), name: 'encrypteddata' })
     encryptedData: string
 
-    @Column({ type: 'timestamp' })
-    @CreateDateColumn()
-    createdDate: Date
+    @Index()
+    @Column({ type: 'numeric', name: 'created_by' })
+    created_by: number
 
-    @Column({ type: 'timestamp' })
-    @UpdateDateColumn()
-    updatedDate: Date
+    @Column({ type: 'numeric', precision: 25, scale: 0, name: 'created_on' })
+    created_on: number
 
-    @Column({ nullable: false, type: 'text' })
-    workspaceId: string
+    @Column({ nullable: true, type: 'numeric', name: 'last_modified_by' })
+    last_modified_by?: number
+
+    @Column({ nullable: true, type: 'numeric', precision: 25, scale: 0, name: 'last_modified_on' })
+    last_modified_on?: number
 }

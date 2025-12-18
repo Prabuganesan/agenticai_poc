@@ -1,24 +1,27 @@
 import { StatusCodes } from 'http-status-codes'
 import { generateAPIKey, generateSecretHash } from '../../utils/apiKey'
 import { addChatflowsCount } from '../../utils/addChatflowsCount'
-import { InternalFlowiseError } from '../../errors/internalFlowiseError'
+import { InternalAutonomousError } from '../../errors/internalAutonomousError'
 import { getErrorMessage } from '../../errors/utils'
-import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
 import { ApiKey } from '../../database/entities/ApiKey'
-import { Not, IsNull } from 'typeorm'
-import { getWorkspaceSearchOptions } from '../../enterprise/utils/ControllerServiceUtils'
-import { v4 as uuidv4 } from 'uuid'
+import { getDataSource } from '../../DataSource'
+import { generateGuid } from '../../utils/guidGenerator'
 
-const getAllApiKeysFromDB = async (workspaceId: string, page: number = -1, limit: number = -1) => {
-    const appServer = getRunningExpressApp()
-    const queryBuilder = appServer.AppDataSource.getRepository(ApiKey).createQueryBuilder('api_key').orderBy('api_key.updatedDate', 'DESC')
+const getAllApiKeysFromDB = async (orgId: string, userId?: number, page: number = -1, limit: number = -1) => {
+    const dataSource = getDataSource(parseInt(orgId))
+    const queryBuilder = dataSource.getRepository(ApiKey).createQueryBuilder('api_key').orderBy('api_key.last_modified_on', 'DESC')
+
+    // User-based isolation: filter by created_by
+    if (userId !== undefined) {
+        queryBuilder.andWhere('api_key.created_by = :userId', { userId })
+    }
+
     if (page > 0 && limit > 0) {
         queryBuilder.skip((page - 1) * limit)
         queryBuilder.take(limit)
     }
-    queryBuilder.andWhere('api_key.workspaceId = :workspaceId', { workspaceId })
     const [data, total] = await queryBuilder.getManyAndCount()
-    const keysWithChatflows = await addChatflowsCount(data)
+    const keysWithChatflows = await addChatflowsCount(data, orgId)
 
     if (page > 0 && limit > 0) {
         return { total, data: keysWithChatflows }
@@ -27,24 +30,65 @@ const getAllApiKeysFromDB = async (workspaceId: string, page: number = -1, limit
     }
 }
 
-const getAllApiKeys = async (workspaceId: string, autoCreateNewKey?: boolean, page: number = -1, limit: number = -1) => {
+const getAllApiKeys = async (
+    orgId: string,
+    userId?: string | number,
+    autoCreateNewKey?: boolean,
+    page: number = -1,
+    limit: number = -1
+) => {
     try {
-        let keys = await getAllApiKeysFromDB(workspaceId, page, limit)
+        const userIdNum = userId ? (typeof userId === 'number' ? userId : parseInt(userId)) : undefined
+        let keys = await getAllApiKeysFromDB(orgId, userIdNum, page, limit)
         const isEmpty = keys?.total === 0 || (Array.isArray(keys) && keys?.length === 0)
-        if (isEmpty && autoCreateNewKey) {
-            await createApiKey('DefaultKey', workspaceId)
-            keys = await getAllApiKeysFromDB(workspaceId, page, limit)
+        // Only auto-create if userId is available and autoCreateNewKey is true
+        if (isEmpty && autoCreateNewKey && userIdNum !== undefined) {
+            const dataSource = getDataSource(parseInt(orgId))
+            // Check if a key with name "DefaultKey" already exists
+            const existingKey = await dataSource.getRepository(ApiKey).findOne({
+                where: { keyName: 'DefaultKey' }
+            })
+
+            if (existingKey) {
+                if (existingKey.created_by === userIdNum) {
+                    // Key exists and belongs to current user, do nothing (they already have it)
+                } else {
+                    // Key exists but belongs to another user - create with unique name
+                    let keyName = 'DefaultKey'
+                    let counter = 1
+                    let keyNameExists = true
+                    while (keyNameExists) {
+                        const checkKey = await dataSource.getRepository(ApiKey).findOne({
+                            where: { keyName }
+                        })
+                        if (!checkKey) {
+                            keyNameExists = false
+                        } else {
+                            keyName = `DefaultKey_${counter}`
+                            counter++
+                        }
+                    }
+                    await createApiKey(keyName, orgId, userIdNum.toString())
+                }
+            } else {
+                // No key exists, create a new one
+                await createApiKey('DefaultKey', orgId, userIdNum.toString())
+            }
+            keys = await getAllApiKeysFromDB(orgId, userIdNum, page, limit)
         }
         return keys
     } catch (error) {
-        throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: apikeyService.getAllApiKeys - ${getErrorMessage(error)}`)
+        throw new InternalAutonomousError(
+            StatusCodes.INTERNAL_SERVER_ERROR,
+            `Error: apikeyService.getAllApiKeys - ${getErrorMessage(error)}`
+        )
     }
 }
 
-const getApiKey = async (apiKey: string) => {
+const getApiKey = async (apiKey: string, orgId: string) => {
     try {
-        const appServer = getRunningExpressApp()
-        const currentKey = await appServer.AppDataSource.getRepository(ApiKey).findOneBy({
+        const dataSource = getDataSource(parseInt(orgId))
+        const currentKey = await dataSource.getRepository(ApiKey).findOneBy({
             apiKey: apiKey
         })
         if (!currentKey) {
@@ -52,83 +96,123 @@ const getApiKey = async (apiKey: string) => {
         }
         return currentKey
     } catch (error) {
-        throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: apikeyService.getApiKey - ${getErrorMessage(error)}`)
+        throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: apikeyService.getApiKey - ${getErrorMessage(error)}`)
     }
 }
 
-const getApiKeyById = async (apiKeyId: string) => {
+const getApiKeyById = async (apiKeyId: string, orgId: string, userId?: number) => {
     try {
-        const appServer = getRunningExpressApp()
-        const currentKey = await appServer.AppDataSource.getRepository(ApiKey).findOneBy({
-            id: apiKeyId
-        })
+        const dataSource = getDataSource(parseInt(orgId))
+        const whereClause: any = {
+            guid: apiKeyId
+        }
+        // User-based isolation: filter by created_by
+        if (userId !== undefined) {
+            whereClause.created_by = userId
+        }
+        const currentKey = await dataSource.getRepository(ApiKey).findOneBy(whereClause)
         if (!currentKey) {
             return undefined
         }
         return currentKey
     } catch (error) {
-        throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: apikeyService.getApiKeyById - ${getErrorMessage(error)}`)
+        throw new InternalAutonomousError(
+            StatusCodes.INTERNAL_SERVER_ERROR,
+            `Error: apikeyService.getApiKeyById - ${getErrorMessage(error)}`
+        )
     }
 }
 
-const createApiKey = async (keyName: string, workspaceId: string) => {
+const createApiKey = async (keyName: string, orgId: string, userId?: string) => {
     try {
         const apiKey = generateAPIKey()
         const apiSecret = generateSecretHash(apiKey)
-        const appServer = getRunningExpressApp()
+        const dataSource = getDataSource(parseInt(orgId))
         const newKey = new ApiKey()
-        newKey.id = uuidv4()
+        newKey.guid = generateGuid()
         newKey.apiKey = apiKey
         newKey.apiSecret = apiSecret
         newKey.keyName = keyName
-        newKey.workspaceId = workspaceId
-        const key = appServer.AppDataSource.getRepository(ApiKey).create(newKey)
-        await appServer.AppDataSource.getRepository(ApiKey).save(key)
-        return await getAllApiKeysFromDB(workspaceId)
+        const userIdNum = userId ? parseInt(userId) : undefined
+        if (userIdNum === undefined) {
+            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'User ID is required')
+        }
+        newKey.created_by = userIdNum
+        newKey.created_on = Date.now()
+        const key = dataSource.getRepository(ApiKey).create(newKey)
+        await dataSource.getRepository(ApiKey).save(key)
+        return await getAllApiKeysFromDB(orgId, userIdNum)
     } catch (error) {
-        throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: apikeyService.createApiKey - ${getErrorMessage(error)}`)
+        throw new InternalAutonomousError(
+            StatusCodes.INTERNAL_SERVER_ERROR,
+            `Error: apikeyService.createApiKey - ${getErrorMessage(error)}`
+        )
     }
 }
 
 // Update api key
-const updateApiKey = async (id: string, keyName: string, workspaceId: string) => {
+const updateApiKey = async (id: string, keyName: string, orgId: string, userId?: string) => {
     try {
-        const appServer = getRunningExpressApp()
-        const currentKey = await appServer.AppDataSource.getRepository(ApiKey).findOneBy({
-            id: id,
-            workspaceId: workspaceId
-        })
+        const dataSource = getDataSource(parseInt(orgId))
+        const userIdNum = userId ? parseInt(userId) : undefined
+        const whereClause: any = {
+            guid: id
+        }
+        // User-based isolation: only allow update of own API keys
+        if (userIdNum !== undefined) {
+            whereClause.created_by = userIdNum
+        }
+        const currentKey = await dataSource.getRepository(ApiKey).findOneBy(whereClause)
         if (!currentKey) {
-            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `ApiKey ${currentKey} not found`)
+            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `ApiKey ${id} not found`)
         }
         currentKey.keyName = keyName
-        await appServer.AppDataSource.getRepository(ApiKey).save(currentKey)
-        return await getAllApiKeysFromDB(workspaceId)
+        if (userIdNum !== undefined) {
+            currentKey.last_modified_by = userIdNum
+            currentKey.last_modified_on = Date.now()
+        }
+        await dataSource.getRepository(ApiKey).save(currentKey)
+        return await getAllApiKeysFromDB(orgId, userIdNum)
     } catch (error) {
-        throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: apikeyService.updateApiKey - ${getErrorMessage(error)}`)
+        throw new InternalAutonomousError(
+            StatusCodes.INTERNAL_SERVER_ERROR,
+            `Error: apikeyService.updateApiKey - ${getErrorMessage(error)}`
+        )
     }
 }
 
-const deleteApiKey = async (id: string, workspaceId: string) => {
+const deleteApiKey = async (id: string, orgId: string, userId?: number) => {
     try {
-        const appServer = getRunningExpressApp()
-        const dbResponse = await appServer.AppDataSource.getRepository(ApiKey).delete({ id, workspaceId })
-        if (!dbResponse) {
-            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `ApiKey ${id} not found`)
+        const dataSource = getDataSource(parseInt(orgId))
+        const whereClause: any = {
+            guid: id
+        }
+        // User-based isolation: only allow deletion of own API keys
+        if (userId !== undefined) {
+            whereClause.created_by = userId
+        }
+        const dbResponse = await dataSource.getRepository(ApiKey).delete(whereClause)
+        if (!dbResponse || dbResponse.affected === 0) {
+            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `ApiKey ${id} not found`)
         }
         return dbResponse
     } catch (error) {
-        throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: apikeyService.deleteApiKey - ${getErrorMessage(error)}`)
+        throw new InternalAutonomousError(
+            StatusCodes.INTERNAL_SERVER_ERROR,
+            `Error: apikeyService.deleteApiKey - ${getErrorMessage(error)}`
+        )
     }
 }
 
-const importKeys = async (body: any) => {
+const importKeys = async (body: any, orgId: string) => {
     try {
         const jsonFile = body.jsonFile
-        const workspaceId = body.workspaceId
+        if (!orgId) {
+            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+        }
         const splitDataURI = jsonFile.split(',')
         if (splitDataURI[0] !== 'data:application/json;base64') {
-            throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Invalid dataURI`)
+            throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Invalid dataURI`)
         }
         const bf = Buffer.from(splitDataURI[1] || '', 'base64')
         const plain = bf.toString('utf8')
@@ -136,31 +220,31 @@ const importKeys = async (body: any) => {
 
         // Validate schema of imported keys
         if (!Array.isArray(keys)) {
-            throw new InternalFlowiseError(StatusCodes.BAD_REQUEST, `Invalid format: Expected an array of API keys`)
+            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, `Invalid format: Expected an array of API keys`)
         }
 
-        const requiredFields = ['keyName', 'apiKey', 'apiSecret', 'createdAt', 'id']
+        const requiredFields = ['keyName', 'apiKey', 'apiSecret']
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i]
             if (typeof key !== 'object' || key === null) {
-                throw new InternalFlowiseError(StatusCodes.BAD_REQUEST, `Invalid format: Key at index ${i} is not an object`)
+                throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, `Invalid format: Key at index ${i} is not an object`)
             }
 
             for (const field of requiredFields) {
                 if (!(field in key)) {
-                    throw new InternalFlowiseError(
+                    throw new InternalAutonomousError(
                         StatusCodes.BAD_REQUEST,
                         `Invalid format: Key at index ${i} is missing required field '${field}'`
                     )
                 }
                 if (typeof key[field] !== 'string') {
-                    throw new InternalFlowiseError(
+                    throw new InternalAutonomousError(
                         StatusCodes.BAD_REQUEST,
                         `Invalid format: Key at index ${i} field '${field}' must be a string`
                     )
                 }
                 if (key[field].trim() === '') {
-                    throw new InternalFlowiseError(
+                    throw new InternalAutonomousError(
                         StatusCodes.BAD_REQUEST,
                         `Invalid format: Key at index ${i} field '${field}' cannot be empty`
                     )
@@ -168,24 +252,35 @@ const importKeys = async (body: any) => {
             }
         }
 
-        const appServer = getRunningExpressApp()
-        const allApiKeys = await appServer.AppDataSource.getRepository(ApiKey).findBy(getWorkspaceSearchOptions(workspaceId))
+        const dataSource = getDataSource(parseInt(orgId))
+        const userId = body.userId ? parseInt(body.userId) : undefined
+        if (userId === undefined) {
+            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'User ID is required for import')
+        }
+
+        // User-based isolation: only fetch and manage the current user's API keys
+        const allApiKeys = await dataSource.getRepository(ApiKey).findBy({
+            created_by: userId
+        })
+
         if (body.importMode === 'replaceAll') {
-            await appServer.AppDataSource.getRepository(ApiKey).delete({
-                id: Not(IsNull()),
-                workspaceId: workspaceId
+            // User-based isolation: only delete the current user's API keys, not all keys in the organization
+            await dataSource.getRepository(ApiKey).delete({
+                created_by: userId
             })
         }
         if (body.importMode === 'errorIfExist') {
             // if importMode is errorIfExist, check for existing keys and raise error before any modification to the DB
+            // Only check within the current user's keys for user-based isolation
             for (const key of keys) {
                 const keyNameExists = allApiKeys.find((k) => k.keyName === key.keyName)
                 if (keyNameExists) {
-                    throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Key with name ${key.keyName} already exists`)
+                    throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Key with name ${key.keyName} already exists`)
                 }
             }
         }
         // iterate through the keys and add them to the database
+        // Only check for existing keys within the current user's keys for user-based isolation
         for (const key of keys) {
             const keyNameExists = allApiKeys.find((k) => k.keyName === key.keyName)
             if (keyNameExists) {
@@ -193,12 +288,24 @@ const importKeys = async (body: any) => {
                 switch (body.importMode) {
                     case 'overwriteIfExist':
                     case 'replaceAll': {
+                        // Primary key (guid) is immutable - cannot modify it
+                        // Delete the old key and create a new one instead
                         const currentKey = allApiKeys[keyIndex]
-                        currentKey.id = uuidv4()
-                        currentKey.apiKey = key.apiKey
-                        currentKey.apiSecret = key.apiSecret
-                        currentKey.workspaceId = workspaceId
-                        await appServer.AppDataSource.getRepository(ApiKey).save(currentKey)
+                        await dataSource.getRepository(ApiKey).delete({
+                            guid: currentKey.guid
+                        })
+                        // Create new key with the imported data
+                        const newKey = new ApiKey()
+                        newKey.guid = generateGuid()
+                        newKey.apiKey = key.apiKey
+                        newKey.apiSecret = key.apiSecret
+                        newKey.keyName = key.keyName
+                        newKey.created_by = userId
+                        newKey.created_on = Date.now()
+                        newKey.last_modified_by = userId
+                        newKey.last_modified_on = Date.now()
+                        const newKeyEntity = dataSource.getRepository(ApiKey).create(newKey)
+                        await dataSource.getRepository(ApiKey).save(newKeyEntity)
                         break
                     }
                     case 'ignoreIfExist': {
@@ -215,36 +322,44 @@ const importKeys = async (body: any) => {
                 }
             } else {
                 const newKey = new ApiKey()
-                newKey.id = uuidv4()
+                newKey.guid = generateGuid()
                 newKey.apiKey = key.apiKey
                 newKey.apiSecret = key.apiSecret
                 newKey.keyName = key.keyName
-                newKey.workspaceId = workspaceId
-                const newKeyEntity = appServer.AppDataSource.getRepository(ApiKey).create(newKey)
-                await appServer.AppDataSource.getRepository(ApiKey).save(newKeyEntity)
+                newKey.created_by = userId
+                newKey.created_on = Date.now()
+                const newKeyEntity = dataSource.getRepository(ApiKey).create(newKey)
+                await dataSource.getRepository(ApiKey).save(newKeyEntity)
             }
         }
-        return await getAllApiKeysFromDB(workspaceId)
+        const userIdNum = body.userId ? parseInt(body.userId) : undefined
+        return await getAllApiKeysFromDB(orgId, userIdNum)
     } catch (error) {
-        throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: apikeyService.importKeys - ${getErrorMessage(error)}`)
+        throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: apikeyService.importKeys - ${getErrorMessage(error)}`)
     }
 }
 
-const verifyApiKey = async (paramApiKey: string): Promise<string> => {
+const verifyApiKey = async (paramApiKey: string, orgId?: string): Promise<string> => {
     try {
-        const appServer = getRunningExpressApp()
-        const apiKey = await appServer.AppDataSource.getRepository(ApiKey).findOneBy({
+        // If orgId is provided, use specific org's database
+        // Require orgId upfront - no cross-org search
+        if (!orgId) {
+            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+        }
+
+        const dataSource = getDataSource(parseInt(orgId))
+        const apiKey = await dataSource.getRepository(ApiKey).findOneBy({
             apiKey: paramApiKey
         })
         if (!apiKey) {
-            throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, `Unauthorized`)
+            throw new InternalAutonomousError(StatusCodes.UNAUTHORIZED, `Unauthorized`)
         }
         return 'OK'
     } catch (error) {
-        if (error instanceof InternalFlowiseError && error.statusCode === StatusCodes.UNAUTHORIZED) {
+        if (error instanceof InternalAutonomousError && error.statusCode === StatusCodes.UNAUTHORIZED) {
             throw error
         } else {
-            throw new InternalFlowiseError(
+            throw new InternalAutonomousError(
                 StatusCodes.INTERNAL_SERVER_ERROR,
                 `Error: apikeyService.verifyApiKey - ${getErrorMessage(error)}`
             )

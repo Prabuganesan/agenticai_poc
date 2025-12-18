@@ -1,7 +1,11 @@
 {
     "description": "An agent designed to use tools and LLM with function calling capability to provide responses",
-    "usecases": ["Agent"],
-    "framework": ["Langchain"],
+    "usecases": [
+        "Agent"
+    ],
+    "framework": [
+        "Langchain"
+    ],
     "nodes": [
         {
             "width": 300,
@@ -18,7 +22,12 @@
                 "version": 1,
                 "name": "calculator",
                 "type": "Calculator",
-                "baseClasses": ["Calculator", "Tool", "StructuredTool", "BaseLangChain"],
+                "baseClasses": [
+                    "Calculator",
+                    "Tool",
+                    "StructuredTool",
+                    "BaseLangChain"
+                ],
                 "category": "Tools",
                 "description": "Perform calculations on response",
                 "inputParams": [],
@@ -57,7 +66,11 @@
                 "version": 2,
                 "name": "bufferMemory",
                 "type": "BufferMemory",
-                "baseClasses": ["BufferMemory", "BaseChatMemory", "BaseMemory"],
+                "baseClasses": [
+                    "BufferMemory",
+                    "BaseChatMemory",
+                    "BaseMemory"
+                ],
                 "category": "Memory",
                 "description": "Retrieve chat messages stored in database",
                 "inputParams": [
@@ -65,7 +78,7 @@
                         "label": "Session Id",
                         "name": "sessionId",
                         "type": "string",
-                        "description": "If not specified, a random id will be used. Learn <a target=\"_blank\" href=\"https://docs.flowiseai.com/memory#ui-and-embedded-chat\">more</a>",
+                        "description": "If not specified, a random id will be used. Learn <a target=\"_blank\" href=\"[AUTONOMOUS_DOCS]/memory#ui-and-embedded-chat\">more</a>",
                         "default": "",
                         "additionalParams": true,
                         "optional": true,
@@ -118,7 +131,11 @@
                 "version": 1,
                 "name": "serpAPI",
                 "type": "SerpAPI",
-                "baseClasses": ["SerpAPI", "Tool", "StructuredTool"],
+                "baseClasses": [
+                    "SerpAPI",
+                    "Tool",
+                    "StructuredTool"
+                ],
                 "category": "Tools",
                 "description": "Wrapper around SerpAPI - a real-time API to access Google search results",
                 "inputParams": [
@@ -126,7 +143,9 @@
                         "label": "Connect Credential",
                         "name": "credential",
                         "type": "credential",
-                        "credentialNames": ["serpApi"],
+                        "credentialNames": [
+                            "serpApi"
+                        ],
                         "id": "serpAPI_0-input-credential-credential"
                     }
                 ],
@@ -165,7 +184,12 @@
                 "version": 8.2,
                 "name": "chatOpenAI",
                 "type": "ChatOpenAI",
-                "baseClasses": ["ChatOpenAI", "BaseChatModel", "BaseLanguageModel", "Runnable"],
+                "baseClasses": [
+                    "ChatOpenAI",
+                    "BaseChatModel",
+                    "BaseLanguageModel",
+                    "Runnable"
+                ],
                 "category": "Chat Models",
                 "description": "Wrapper around OpenAI large language models that use the Chat endpoint",
                 "inputParams": [
@@ -173,7 +197,9 @@
                         "label": "Connect Credential",
                         "name": "credential",
                         "type": "credential",
-                        "credentialNames": ["openAIApi"],
+                        "credentialNames": [
+                            "openAIApi"
+                        ],
                         "id": "chatOpenAI_0-input-credential-credential",
                         "display": true
                     },
@@ -308,7 +334,7 @@
                         "label": "Allow Image Uploads",
                         "name": "allowImageUploads",
                         "type": "boolean",
-                        "description": "Allow image input. Refer to the <a href=\"https://docs.flowiseai.com/using-flowise/uploads#image\" target=\"_blank\">docs</a> for more details.",
+                        "description": "Allow image input. Refer to the <a href=\"[AUTONOMOUS_DOCS]/using-autonomous/uploads#image\" target=\"_blank\">docs</a> for more details.",
                         "default": false,
                         "optional": true,
                         "id": "chatOpenAI_0-input-allowImageUploads-boolean",
@@ -428,8 +454,12 @@
                 "version": 2,
                 "name": "stickyNote",
                 "type": "StickyNote",
-                "baseClasses": ["StickyNote"],
-                "tags": ["Utilities"],
+                "baseClasses": [
+                    "StickyNote"
+                ],
+                "tags": [
+                    "Utilities"
+                ],
                 "category": "Utilities",
                 "description": "Add a sticky note",
                 "inputParams": [
@@ -481,7 +511,11 @@
                 "version": 2,
                 "name": "toolAgent",
                 "type": "AgentExecutor",
-                "baseClasses": ["AgentExecutor", "BaseChain", "Runnable"],
+                "baseClasses": [
+                    "AgentExecutor",
+                    "BaseChain",
+                    "Runnable"
+                ],
                 "category": "Agents",
                 "description": "Agent that uses Function Calling to pick the tools and args to call",
                 "inputParams": [
@@ -563,7 +597,10 @@
                     }
                 ],
                 "inputs": {
-                    "tools": ["{{calculator_1.data.instance}}", "{{serpAPI_0.data.instance}}"],
+                    "tools": [
+                        "{{calculator_1.data.instance}}",
+                        "{{serpAPI_0.data.instance}}"
+                    ],
                     "memory": "{{bufferMemory_1.data.instance}}",
                     "model": "{{chatOpenAI_0.data.instance}}",
                     "chatPromptTemplate": "",

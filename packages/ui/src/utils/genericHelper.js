@@ -566,7 +566,7 @@ const _removeCredentialId = (obj) => {
 
     const newObj = {}
     for (const [key, value] of Object.entries(obj)) {
-        if (key === 'FLOWISE_CREDENTIAL_ID') continue
+        if (key === 'AUTONOMOUS_CREDENTIAL_ID') continue
         newObj[key] = _removeCredentialId(value)
     }
     return newObj

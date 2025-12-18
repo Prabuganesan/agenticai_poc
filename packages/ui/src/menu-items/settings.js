@@ -7,7 +7,6 @@ import {
     IconMessage,
     IconDatabaseExport,
     IconAdjustmentsHorizontal,
-    IconUsers,
     IconTemplate
 } from '@tabler/icons-react'
 
@@ -20,7 +19,6 @@ const icons = {
     IconMessage,
     IconDatabaseExport,
     IconAdjustmentsHorizontal,
-    IconUsers,
     IconTemplate
 }
 
@@ -38,13 +36,14 @@ const settings = {
             url: '',
             icon: icons.IconMessage
         },
-        {
-            id: 'viewLeads',
-            title: 'View Leads',
-            type: 'item',
-            url: '',
-            icon: icons.IconUsers
-        },
+        // Leads feature removed for autonomous server deployment
+        // {
+        //     id: 'viewLeads',
+        //     title: 'View Leads',
+        //     type: 'item',
+        //     url: '',
+        //     icon: icons.IconUsers
+        // },
         {
             id: 'viewUpsertHistory',
             title: 'Upsert History',
@@ -70,7 +69,7 @@ const settings = {
         },
         {
             id: 'duplicateChatflow',
-            title: 'Duplicate Chatflow',
+            title: 'Duplicate Agent',
             type: 'item',
             url: '',
             icon: icons.IconCopy,
@@ -78,7 +77,7 @@ const settings = {
         },
         {
             id: 'loadChatflow',
-            title: 'Load Chatflow',
+            title: 'Load Agent',
             type: 'item',
             url: '',
             icon: icons.IconFileUpload,
@@ -86,7 +85,7 @@ const settings = {
         },
         {
             id: 'exportChatflow',
-            title: 'Export Chatflow',
+            title: 'Export Agent',
             type: 'item',
             url: '',
             icon: icons.IconFileExport,
@@ -94,7 +93,7 @@ const settings = {
         },
         {
             id: 'deleteChatflow',
-            title: 'Delete Chatflow',
+            title: 'Delete Agent',
             type: 'item',
             url: '',
             icon: icons.IconTrash,

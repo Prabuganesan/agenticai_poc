@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { FullPageChat } from 'flowise-embed-react'
 
 // API
 import chatflowsApi from '@/api/chatflows'
@@ -15,6 +14,9 @@ import { alpha } from '@mui/material/styles'
 //Const
 import { baseURL } from '@/store/constant'
 
+// Project import
+import ChatMessage from '@/views/chatmessage/ChatMessage'
+
 // ==============================|| Chatbot ||============================== //
 
 const ChatbotFull = () => {
@@ -26,6 +28,7 @@ const ChatbotFull = () => {
     const [chatbotTheme, setChatbotTheme] = useState({})
     const [isLoading, setLoading] = useState(true)
     const [chatbotOverrideConfig, setChatbotOverrideConfig] = useState({})
+    const [previews, setPreviews] = useState([])
 
     const getSpecificChatflowFromPublicApi = useApi(chatflowsApi.getSpecificChatflowFromPublicEndpoint)
     const getSpecificChatflowApi = useApi(chatflowsApi.getSpecificChatflow)
@@ -102,12 +105,27 @@ const ChatbotFull = () => {
                             </Box>
                         </Box>
                     ) : (
-                        <FullPageChat
-                            chatflowid={chatflow.id}
-                            apiHost={baseURL}
-                            chatflowConfig={chatbotOverrideConfig}
-                            theme={{ chatWindow: chatbotTheme }}
+                        <Box
+                            sx={{
+                                width: '100%',
+                                height: '100vh',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                overflow: 'hidden',
+                                backgroundColor: theme.palette.background.default
+                            }}
+                        >
+                            <ChatMessage
+                                open={true}
+                                chatflowid={chatflow.guid}
+                                isAgentCanvas={false}
+                                isDialog={false}
+                                previews={previews}
+                                setPreviews={setPreviews}
+                                onExpand={undefined}
+                                onClose={undefined}
                         />
+                        </Box>
                     )}
                 </>
             ) : null}

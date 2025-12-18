@@ -1,16 +1,31 @@
+export interface LLMUsageMetrics {
+    provider: string
+    model: string
+    feature: string
+    orgId: string
+    nodeType: string
+    promptTokens: number
+    completionTokens: number
+    totalTokens: number
+    cost: number
+    processingTimeMs: number
+    success: boolean
+}
+
 export interface IMetricsProvider {
     getName(): string
     initializeCounters(): void
     setupMetricsEndpoint(): void
-    incrementCounter(counter: FLOWISE_METRIC_COUNTERS, payload: any): void
+    incrementCounter(counter: AUTONOMOUS_METRIC_COUNTERS, payload: any): void
+    trackLLMUsage?(usage: LLMUsageMetrics): void
 }
 
-export enum FLOWISE_COUNTER_STATUS {
+export enum AUTONOMOUS_COUNTER_STATUS {
     SUCCESS = 'success',
     FAILURE = 'failure'
 }
 
-export enum FLOWISE_METRIC_COUNTERS {
+export enum AUTONOMOUS_METRIC_COUNTERS {
     CHATFLOW_CREATED = 'chatflow_created',
     AGENTFLOW_CREATED = 'agentflow_created',
     ASSISTANT_CREATED = 'assistant_created',

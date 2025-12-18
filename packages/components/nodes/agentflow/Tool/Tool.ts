@@ -29,7 +29,7 @@ class Tool_Agentflow implements INode {
     constructor() {
         this.label = 'Tool'
         this.name = 'toolAgentflow'
-        this.version = 1.2
+        this.version = 1.1
         this.type = 'Tool'
         this.category = 'Agent Flows'
         this.description = 'Tools allow LLM to interact with external systems'
@@ -101,18 +101,10 @@ class Tool_Agentflow implements INode {
                 [key: string]: INode
             }
 
-            const removeTools = ['chainTool', 'retrieverTool', 'webBrowser']
-
             const returnOptions: INodeOptionsValue[] = []
             for (const nodeName in componentNodes) {
                 const componentNode = componentNodes[nodeName]
                 if (componentNode.category === 'Tools' || componentNode.category === 'Tools (MCP)') {
-                    if (componentNode.tags?.includes('LlamaIndex')) {
-                        continue
-                    }
-                    if (removeTools.includes(nodeName)) {
-                        continue
-                    }
                     returnOptions.push({
                         label: componentNode.label,
                         name: nodeName,
@@ -137,7 +129,7 @@ class Tool_Agentflow implements INode {
 
             const newNodeData = {
                 ...nodeData,
-                credential: selectedToolConfig['FLOWISE_CREDENTIAL_ID'],
+                credential: selectedToolConfig['AUTONOMOUS_CREDENTIAL_ID'],
                 inputs: {
                     ...nodeData.inputs,
                     ...selectedToolConfig
@@ -217,7 +209,7 @@ class Tool_Agentflow implements INode {
         const newToolNodeInstance = new nodeModule.nodeClass()
         const newNodeData = {
             ...nodeData,
-            credential: selectedToolConfig['FLOWISE_CREDENTIAL_ID'],
+            credential: selectedToolConfig['AUTONOMOUS_CREDENTIAL_ID'],
             inputs: {
                 ...nodeData.inputs,
                 ...selectedToolConfig
@@ -282,19 +274,137 @@ class Tool_Agentflow implements INode {
         }
 
         try {
+            const toolStartTime = Date.now()
+            const toolName = nodeData.name || 'unknown'
+            const orgId = options?.orgId?.toString() || 'unknown'
+            const userId = (options as any)?.userId?.toString() || 'anonymous'
+            const chatId = options?.chatId || 'unknown'
+            const sessionId = flowConfig?.sessionId || 'unknown'
+
+            // Log tool execution start
+            try {
+                // Dynamic import with path resolution - components package cannot directly import from server
+                const path = require('path')
+                const fs = require('fs')
+                const possiblePaths = [
+                    path.resolve(__dirname, '../../../../server/src/utils/logger/module-methods'),
+                    path.resolve(process.cwd(), 'packages/server/src/utils/logger/module-methods'),
+                    path.resolve(process.cwd(), 'autonomous/packages/server/src/utils/logger/module-methods')
+                ]
+                let serverPath: string | null = null
+                for (const p of possiblePaths) {
+                    if (fs.existsSync(p + '.ts') || fs.existsSync(p + '.js')) {
+                        serverPath = p
+                        break
+                    }
+                }
+                if (serverPath) {
+                    const { toolLog } = await import(serverPath)
+                    await toolLog('info', 'Tool execution started (agentflow)', {
+                        userId: userId,
+                        orgId: orgId,
+                        toolName: toolName,
+                        toolInput: toolCallArgs ? JSON.stringify(toolCallArgs).substring(0, 200) : '',
+                        sessionId: sessionId,
+                        chatId: chatId
+                    }).catch(() => {})
+                }
+            } catch (logError) {
+                // Silently fail
+            }
+
             let toolOutput: string
-            if (Array.isArray(toolInstance)) {
-                // Execute all tools and combine their outputs
-                const outputs = await Promise.all(
-                    toolInstance.map((tool) =>
-                        //@ts-ignore
-                        tool.call(toolCallArgs, { signal: abortController?.signal }, undefined, flowConfig)
+            try {
+                if (Array.isArray(toolInstance)) {
+                    // Execute all tools and combine their outputs
+                    const outputs = await Promise.all(
+                        toolInstance.map((tool) =>
+                            //@ts-ignore
+                            tool.call(toolCallArgs, { signal: abortController?.signal }, undefined, flowConfig)
+                        )
                     )
-                )
-                toolOutput = outputs.join('\n')
-            } else {
-                //@ts-ignore
-                toolOutput = await toolInstance.call(toolCallArgs, { signal: abortController?.signal }, undefined, flowConfig)
+                    toolOutput = outputs.join('\n')
+                } else {
+                    //@ts-ignore
+                    toolOutput = await toolInstance.call(toolCallArgs, { signal: abortController?.signal }, undefined, flowConfig)
+                }
+
+                const toolEndTime = Date.now()
+                const toolDuration = toolEndTime - toolStartTime
+
+                // Log tool execution success
+                try {
+                    const path = require('path')
+                    const fs = require('fs')
+                    const possiblePaths = [
+                        path.resolve(__dirname, '../../../../server/src/utils/logger/module-methods'),
+                        path.resolve(process.cwd(), 'packages/server/src/utils/logger/module-methods'),
+                        path.resolve(process.cwd(), 'autonomous/packages/server/src/utils/logger/module-methods')
+                    ]
+                    let serverPath: string | null = null
+                    for (const p of possiblePaths) {
+                        if (fs.existsSync(p + '.ts') || fs.existsSync(p + '.js')) {
+                            serverPath = p
+                            break
+                        }
+                    }
+                    if (serverPath) {
+                        const { toolLog } = await import(serverPath)
+                        await toolLog('info', 'Tool execution completed (agentflow)', {
+                            userId: userId,
+                            orgId: orgId,
+                            toolName: toolName,
+                            toolOutput:
+                                typeof toolOutput === 'string'
+                                    ? toolOutput.substring(0, 200)
+                                    : JSON.stringify(toolOutput).substring(0, 200),
+                            sessionId: sessionId,
+                            chatId: chatId,
+                            durationMs: toolDuration,
+                            status: 'success'
+                        }).catch(() => {})
+                    }
+                } catch (logError) {
+                    // Silently fail
+                }
+            } catch (toolError) {
+                const toolEndTime = Date.now()
+                const toolDuration = toolEndTime - toolStartTime
+
+                // Log tool execution failure
+                try {
+                    const path = require('path')
+                    const fs = require('fs')
+                    const possiblePaths = [
+                        path.resolve(__dirname, '../../../../server/src/utils/logger/module-methods'),
+                        path.resolve(process.cwd(), 'packages/server/src/utils/logger/module-methods'),
+                        path.resolve(process.cwd(), 'autonomous/packages/server/src/utils/logger/module-methods')
+                    ]
+                    let serverPath: string | null = null
+                    for (const p of possiblePaths) {
+                        if (fs.existsSync(p + '.ts') || fs.existsSync(p + '.js')) {
+                            serverPath = p
+                            break
+                        }
+                    }
+                    if (serverPath) {
+                        const { toolLog } = await import(serverPath)
+                        await toolLog('error', 'Tool execution failed (agentflow)', {
+                            userId: userId,
+                            orgId: orgId,
+                            toolName: toolName,
+                            sessionId: sessionId,
+                            chatId: chatId,
+                            durationMs: toolDuration,
+                            status: 'failed',
+                            error: toolError instanceof Error ? toolError.message : String(toolError)
+                        }).catch(() => {})
+                    }
+                } catch (logError) {
+                    // Silently fail
+                }
+
+                throw toolError
             }
 
             let parsedArtifacts

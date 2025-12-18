@@ -28,7 +28,7 @@ import useNotifier from '@/utils/useNotifier'
 import { initializeDefaultNodeData } from '@/utils/genericHelper'
 
 // const
-import { baseURL, REDACTED_CREDENTIAL_VALUE } from '@/store/constant'
+import { baseURL, REDACTED_CREDENTIAL_VALUE, getAutonomousDocsPath } from '@/store/constant'
 import { HIDE_CANVAS_DIALOG, SHOW_CANVAS_DIALOG } from '@/store/actions'
 import keySVG from '@/assets/images/key.svg'
 
@@ -52,6 +52,7 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
     const [credentialData, setCredentialData] = useState({})
     const [componentCredential, setComponentCredential] = useState({})
     const [shared, setShared] = useState(false)
+    const [oauthSaving, setOauthSaving] = useState(false) // Track if OAuth flow has saved the credential
 
     useEffect(() => {
         if (getSpecificCredentialApi.data) {
@@ -95,14 +96,17 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
     useEffect(() => {
         if (dialogProps.type === 'EDIT' && dialogProps.data) {
             // When credential dialog is opened from Credentials dashboard
+            setOauthSaving(false) // Reset OAuth saving state
             getSpecificCredentialApi.request(dialogProps.data.id)
         } else if (dialogProps.type === 'EDIT' && dialogProps.credentialId) {
             // When credential dialog is opened from node in canvas
+            setOauthSaving(false) // Reset OAuth saving state
             getSpecificCredentialApi.request(dialogProps.credentialId)
         } else if (dialogProps.type === 'ADD' && dialogProps.credentialComponent) {
             // When credential dialog is to add a new credential
             setName('')
             setCredential({})
+            setOauthSaving(false) // Reset OAuth saving state
             const defaultCredentialData = initializeDefaultNodeData(dialogProps.credentialComponent.inputs)
             setCredentialData(defaultCredentialData)
             setComponentCredential(dialogProps.credentialComponent)
@@ -143,9 +147,8 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
         } catch (error) {
             if (setError) setError(error)
             enqueueSnackbar({
-                message: `Failed to add new Credential: ${
-                    typeof error.response.data === 'object' ? error.response.data.message : error.response.data
-                }`,
+                message: `Failed to add new Credential: ${typeof error.response.data === 'object' ? error.response.data.message : error.response.data
+                    }`,
                 options: {
                     key: new Date().getTime() + Math.random(),
                     variant: 'error',
@@ -195,9 +198,8 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
         } catch (error) {
             if (setError) setError(error)
             enqueueSnackbar({
-                message: `Failed to save Credential: ${
-                    typeof error.response.data === 'object' ? error.response.data.message : error.response.data
-                }`,
+                message: `Failed to save Credential: ${typeof error.response.data === 'object' ? error.response.data.message : error.response.data
+                    }`,
                 options: {
                     key: new Date().getTime() + Math.random(),
                     variant: 'error',
@@ -215,11 +217,28 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
 
     const setOAuth2 = async () => {
         try {
+            // Validate name is required
+            if (!name || !name.trim()) {
+                enqueueSnackbar({
+                    message: 'Credential Name is required',
+                    options: {
+                        key: new Date().getTime() + Math.random(),
+                        variant: 'error',
+                        action: (key) => (
+                            <Button style={{ color: 'white' }} onClick={() => closeSnackbar(key)}>
+                                <IconX />
+                            </Button>
+                        )
+                    }
+                })
+                return
+            }
+
             let credentialId = null
 
             // First save or add the credential
-            if (dialogProps.type === 'ADD') {
-                // Add new credential first
+            if (dialogProps.type === 'ADD' && !credential.id) {
+                // Add new credential first (only if not already saved via OAuth)
                 const obj = {
                     name,
                     credentialName: componentCredential.name,
@@ -228,9 +247,11 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
                 const createResp = await credentialsApi.createCredential(obj)
                 if (createResp.data) {
                     credentialId = createResp.data.id
+                    // Store the credential ID so subsequent Save will UPDATE instead of creating new
+                    setCredential({ id: credentialId })
                 }
             } else {
-                // Save existing credential first
+                // Save existing credential first (or credential already created via OAuth)
                 const saveObj = {
                     name,
                     credentialName: componentCredential.name
@@ -254,6 +275,9 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
                 throw new Error('Failed to save credential')
             }
 
+            // Mark that OAuth has saved the credential
+            setOauthSaving(true)
+
             const authResponse = await oauth2Api.authorize(credentialId)
 
             if (authResponse.data && authResponse.data.success && authResponse.data.authorizationUrl) {
@@ -273,6 +297,11 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
                     // Verify origin if needed (you may want to add origin checking)
                     if (event.data && (event.data.type === 'OAUTH2_SUCCESS' || event.data.type === 'OAUTH2_ERROR')) {
                         window.removeEventListener('message', handleMessage)
+
+                        // Clear the cleanup timeout since we received a message
+                        if (handleMessage.cleanupTimeout) {
+                            clearTimeout(handleMessage.cleanupTimeout)
+                        }
 
                         if (event.data.type === 'OAUTH2_SUCCESS') {
                             enqueueSnackbar({
@@ -304,9 +333,15 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
                             })
                         }
 
-                        // Close the auth window if it's still open
-                        if (authWindow && !authWindow.closed) {
-                            authWindow.close()
+                        // Try to close the auth window if it's still open
+                        // Wrapped in try-catch because COOP restrictions may prevent this
+                        // when popup is on cross-origin domain (Google)
+                        try {
+                            if (authWindow && !authWindow.closed) {
+                                authWindow.close()
+                            }
+                        } catch (e) {
+                            // Silently ignore - popup will auto-close itself
                         }
                     }
                 }
@@ -314,26 +349,18 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
                 // Add message listener
                 window.addEventListener('message', handleMessage)
 
-                // Fallback: Monitor the auth window and handle if it closes manually
-                const checkClosed = setInterval(() => {
-                    if (authWindow.closed) {
-                        clearInterval(checkClosed)
-                        window.removeEventListener('message', handleMessage)
-
-                        // If no message was received, assume user closed window manually
-                        // Don't show error in this case, just close dialog
-                        onConfirm(credentialId)
-                    }
-                }, 1000)
-
                 // Cleanup after a reasonable timeout (5 minutes)
-                setTimeout(() => {
-                    clearInterval(checkClosed)
+                // Note: We no longer poll window.closed to avoid COOP warnings
+                // The OAuth flow will complete via postMessage from the callback page
+                const cleanupTimeout = setTimeout(() => {
                     window.removeEventListener('message', handleMessage)
-                    if (authWindow && !authWindow.closed) {
-                        authWindow.close()
-                    }
+                    // Note: Cannot reliably check authWindow.closed due to COOP restrictions
+                    // when popup is on cross-origin (Google's domain)
+                    // The popup will auto-close itself after successful/failed auth
                 }, 300000) // 5 minutes
+
+                // Store cleanup function so handleMessage can clear it early
+                handleMessage.cleanupTimeout = cleanupTimeout
             } else {
                 throw new Error('Invalid response from authorization endpoint')
             }
@@ -436,7 +463,12 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
                                 marginBottom: 10
                             }}
                         >
-                            <span style={{ color: 'rgb(116,66,16)' }}>{parser(componentCredential.description)}</span>
+                            <span style={{ color: 'rgb(116,66,16)' }}>
+                                {parser(
+                                    componentCredential.description
+                                        .replace('[AUTONOMOUS_DOCS]', getAutonomousDocsPath())
+                                )}
+                            </span>
                         </div>
                     </Box>
                 )}
@@ -493,9 +525,10 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
                     <StyledButton
                         disabled={!name}
                         variant='contained'
-                        onClick={() => (dialogProps.type === 'ADD' ? addNewCredential() : saveCredential())}
+                        onClick={() => (credential.id ? saveCredential() : addNewCredential())}
+                        title={oauthSaving ? 'Update credential name or close dialog' : ''}
                     >
-                        {dialogProps.confirmButtonName}
+                        {oauthSaving ? 'Update' : dialogProps.confirmButtonName}
                     </StyledButton>
                 )}
             </DialogActions>

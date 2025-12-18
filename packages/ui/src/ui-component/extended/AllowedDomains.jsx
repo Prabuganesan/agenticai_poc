@@ -17,7 +17,7 @@ import useNotifier from '@/utils/useNotifier'
 // API
 import chatflowsApi from '@/api/chatflows'
 
-const AllowedDomains = ({ dialogProps, onConfirm }) => {
+const AllowedDomains = ({ dialogProps }) => {
     const dispatch = useDispatch()
 
     useNotifier()
@@ -72,7 +72,6 @@ const AllowedDomains = ({ dialogProps, onConfirm }) => {
                     }
                 })
                 dispatch({ type: SET_CHATFLOW, chatflow: saveResp.data })
-                onConfirm?.()
             }
         } catch (error) {
             enqueueSnackbar({
@@ -201,8 +200,7 @@ const AllowedDomains = ({ dialogProps, onConfirm }) => {
 }
 
 AllowedDomains.propTypes = {
-    dialogProps: PropTypes.object,
-    onConfirm: PropTypes.func
+    dialogProps: PropTypes.object
 }
 
 export default AllowedDomains

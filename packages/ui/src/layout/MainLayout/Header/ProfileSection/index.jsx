@@ -44,7 +44,7 @@ import Transitions from '@/ui-component/extended/Transitions'
 
 // assets
 import ExportingGIF from '@/assets/images/Exporting.gif'
-import { IconFileExport, IconFileUpload, IconInfoCircle, IconLogout, IconSettings, IconUserEdit, IconX } from '@tabler/icons-react'
+import { IconFileExport, IconFileUpload, IconInfoCircle, IconSettings, IconX } from '@tabler/icons-react'
 import './index.css'
 
 // API
@@ -56,7 +56,6 @@ import { getErrorMessage } from '@/utils/errorHandler'
 
 const dataToExport = [
     'Agentflows',
-    'Agentflows V2',
     'Assistants Custom',
     'Assistants OpenAI',
     'Assistants Azure',
@@ -210,7 +209,7 @@ ImportDialog.propTypes = {
 
 // ==============================|| PROFILE MENU ||============================== //
 
-const ProfileSection = ({ handleLogout }) => {
+const ProfileSection = () => {
     const theme = useTheme()
 
     const customization = useSelector((state) => state.customization)
@@ -306,8 +305,7 @@ const ProfileSection = ({ handleLogout }) => {
 
     const onExport = (data) => {
         const body = {}
-        if (data.includes('Agentflows')) body.agentflow = true
-        if (data.includes('Agentflows V2')) body.agentflowv2 = true
+        if (data.includes('Agentflows')) body.agentflowv2 = true
         if (data.includes('Assistants Custom')) body.assistantCustom = true
         if (data.includes('Assistants OpenAI')) body.assistantOpenAI = true
         if (data.includes('Assistants Azure')) body.assistantAzure = true
@@ -498,29 +496,6 @@ const ProfileSection = ({ handleLogout }) => {
                                                     </ListItemIcon>
                                                     <ListItemText primary={<Typography variant='body2'>Version</Typography>} />
                                                 </ListItemButton>
-                                                {isAuthenticated && !currentUser.isSSO && (
-                                                    <ListItemButton
-                                                        sx={{ borderRadius: `${customization.borderRadius}px` }}
-                                                        onClick={() => {
-                                                            setOpen(false)
-                                                            navigate('/account')
-                                                        }}
-                                                    >
-                                                        <ListItemIcon>
-                                                            <IconUserEdit stroke={1.5} size='1.3rem' />
-                                                        </ListItemIcon>
-                                                        <ListItemText primary={<Typography variant='body2'>Account Settings</Typography>} />
-                                                    </ListItemButton>
-                                                )}
-                                                <ListItemButton
-                                                    sx={{ borderRadius: `${customization.borderRadius}px` }}
-                                                    onClick={handleLogout}
-                                                >
-                                                    <ListItemIcon>
-                                                        <IconLogout stroke={1.5} size='1.3rem' />
-                                                    </ListItemIcon>
-                                                    <ListItemText primary={<Typography variant='body2'>Logout</Typography>} />
-                                                </ListItemButton>
                                             </List>
                                         </Box>
                                     </PerfectScrollbar>
@@ -538,7 +513,6 @@ const ProfileSection = ({ handleLogout }) => {
 }
 
 ProfileSection.propTypes = {
-    handleLogout: PropTypes.func
 }
 
 export default ProfileSection

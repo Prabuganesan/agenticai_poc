@@ -10,6 +10,18 @@ export const isValidUUID = (uuid: string): boolean => {
 }
 
 /**
+ * Validates if a string is a valid 15-character GUID (used for chatflowId)
+ * Format: base62 encoded (0-9, A-Z, a-z), exactly 15 characters
+ * @param {string} guid The string to validate
+ * @returns {boolean} True if valid 15-char GUID, false otherwise
+ */
+export const isValidGuid = (guid: string): boolean => {
+    // 15 characters, alphanumeric (base62: 0-9, A-Z, a-z)
+    const guidPattern = /^[0-9A-Za-z]{15}$/
+    return guidPattern.test(guid)
+}
+
+/**
  * Validates if a string is a valid URL
  * @param {string} url The string to validate
  * @returns {boolean} True if valid URL, false otherwise

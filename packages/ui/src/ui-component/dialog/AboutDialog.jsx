@@ -13,7 +13,8 @@ const AboutDialog = ({ show, onCancel }) => {
 
     useEffect(() => {
         if (show) {
-            const latestReleaseReq = axios.get('https://api.github.com/repos/FlowiseAI/Flowise/releases/latest')
+            // Version check removed - no public repository
+            const latestReleaseReq = Promise.resolve({ data: null })
             const currentVersionReq = axios.get(`${baseURL}/api/v1/version`, {
                 withCredentials: true,
                 headers: { 'Content-type': 'application/json', 'x-request-from': 'internal' }
@@ -45,7 +46,7 @@ const AboutDialog = ({ show, onCancel }) => {
             aria-describedby='alert-dialog-description'
         >
             <DialogTitle sx={{ fontSize: '1rem' }} id='alert-dialog-title'>
-                Flowise Version
+                Autonomous Version
             </DialogTitle>
             <DialogContent>
                 {data && (
@@ -54,8 +55,6 @@ const AboutDialog = ({ show, onCancel }) => {
                             <TableHead>
                                 <TableRow>
                                     <TableCell>Current Version</TableCell>
-                                    <TableCell>Latest Version</TableCell>
-                                    <TableCell>Published At</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
@@ -63,12 +62,6 @@ const AboutDialog = ({ show, onCancel }) => {
                                     <TableCell component='th' scope='row'>
                                         {data.currentVersion}
                                     </TableCell>
-                                    <TableCell component='th' scope='row'>
-                                        <a target='_blank' rel='noreferrer' href={data.html_url}>
-                                            {data.name}
-                                        </a>
-                                    </TableCell>
-                                    <TableCell>{moment(data.published_at).fromNow()}</TableCell>
                                 </TableRow>
                             </TableBody>
                         </Table>

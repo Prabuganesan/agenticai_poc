@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { enqueueSnackbar as enqueueSnackbarAction, closeSnackbar as closeSnackbarAction, SET_CHATFLOW } from '@/store/actions'
+import { getAutonomousDocsPath } from '@/store/constant'
 import PropTypes from 'prop-types'
 
 import { Typography, Button, OutlinedInput, Stack } from '@mui/material'
@@ -95,9 +96,8 @@ const RateLimit = ({ dialogProps }) => {
             }
         } catch (error) {
             enqueueSnackbar({
-                message: `Failed to save Rate Limit Configuration: ${
-                    typeof error.response.data === 'object' ? error.response.data.message : error.response.data
-                }`,
+                message: `Failed to save Rate Limit Configuration: ${typeof error.response.data === 'object' ? error.response.data.message : error.response.data
+                    }`,
                 options: {
                     key: new Date().getTime() + Math.random(),
                     variant: 'error',
@@ -153,7 +153,7 @@ const RateLimit = ({ dialogProps }) => {
                 <TooltipWithParser
                     style={{ marginLeft: 10 }}
                     title={
-                        'Visit <a target="_blank" href="https://docs.flowiseai.com/configuration/rate-limit">Rate Limit Setup Guide</a> to set up Rate Limit correctly in your hosting environment.'
+                        `Visit <a target="_blank" href="${getAutonomousDocsPath()}/configuration/rate-limit">Rate Limit Setup Guide</a> to set up Rate Limit correctly in your hosting environment.`
                     }
                 />
             </Typography>

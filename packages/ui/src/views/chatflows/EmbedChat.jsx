@@ -38,62 +38,15 @@ function a11yProps(index) {
     }
 }
 
-const embedPopupHtmlCode = (chatflowid) => {
-    return `<script type="module">
-    import Chatbot from "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js"
-    Chatbot.init({
-        chatflowid: "${chatflowid}",
-        apiHost: "${baseURL}",
-    })
-</script>`
-}
-
-const embedPopupReactCode = (chatflowid) => {
-    return `import { BubbleChat } from 'flowise-embed-react'
-
-const App = () => {
-    return (
-        <BubbleChat
-            chatflowid="${chatflowid}"
-            apiHost="${baseURL}"
-        />
-    );
-};`
-}
-
-const embedFullpageHtmlCode = (chatflowid) => {
-    return `<flowise-fullchatbot></flowise-fullchatbot>
-<script type="module">
-    import Chatbot from "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js"
-    Chatbot.initFull({
-        chatflowid: "${chatflowid}",
-        apiHost: "${baseURL}",
-    })
-</script>`
-}
-
-const embedFullpageReactCode = (chatflowid) => {
-    return `import { FullPageChat } from "flowise-embed-react"
-
-const App = () => {
-    return (
-        <FullPageChat
-            chatflowid="${chatflowid}"
-            apiHost="${baseURL}"
-        />
-    );
-};`
-}
-
 export const defaultThemeConfig = {
     button: {
-        backgroundColor: '#3B81F6',
+        backgroundColor: '#ffffff',
         right: 20,
         bottom: 20,
         size: 48,
         dragAndDrop: true,
         iconColor: 'white',
-        customIconSrc: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/main/svg/google-messages.svg',
+        customIconSrc: `${baseURL}/Ari-logo.png`,
         autoWindowOpen: {
             autoOpen: true,
             openDelay: 2,
@@ -109,7 +62,7 @@ export const defaultThemeConfig = {
     },
     disclaimer: {
         title: 'Disclaimer',
-        message: 'By using this chatbot, you agree to the <a target="_blank" href="https://flowiseai.com/terms">Terms & Condition</a>',
+        message: 'By using this chatbot, you agree to the <a target="_blank" href="https://chainsys.com/terms">Terms & Condition</a>',
         textColor: 'black',
         buttonColor: '#3b82f6',
         buttonText: 'Start Chatting',
@@ -117,12 +70,24 @@ export const defaultThemeConfig = {
         blurredBackgroundColor: 'rgba(0, 0, 0, 0.4)',
         backgroundColor: 'white'
     },
-    customCSS: ``,
+    customCSS: `
+        [id*="autonomous-chatbot"], [class*="autonomous-chatbot"], [id*="chatbot-button"], [class*="chatbot-button"] {
+            background-color: #ffffff !important;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+        }
+        [id*="autonomous-chatbot"] img, [class*="autonomous-chatbot"] img, [id*="chatbot-button"] img, [class*="chatbot-button"] img, img[alt*="Bubble"], img[alt*="button"], img.rounded-full {
+            width: 50px !important;
+            height: 30px !important;
+            object-fit: contain !important;
+            max-width: 50px !important;
+            max-height: 30px !important;
+        }
+    `,
     chatWindow: {
         showTitle: true,
         showAgentMessages: true,
-        title: 'Flowise Bot',
-        titleAvatarSrc: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/main/svg/google-messages.svg',
+        title: 'Autonomous Bot',
+        titleAvatarSrc: `${baseURL}/Ari-logo.png`,
         welcomeMessage: 'Hello! This is custom welcome message',
         errorMessage: 'This is a custom error message',
         backgroundColor: '#ffffff',
@@ -169,9 +134,9 @@ export const defaultThemeConfig = {
         },
         footer: {
             textColor: '#303235',
-            text: 'Powered by',
-            company: 'Flowise',
-            companyLink: 'https://flowiseai.com'
+            text: 'Autonomous SAB',
+            company: '',
+            companyLink: ''
         }
     }
 }
@@ -189,6 +154,73 @@ const customStringify = (obj) => {
             return ' '.repeat(8) + line
         })
         .join('\n')
+}
+
+const embedPopupHtmlCode = (chatflowid) => {
+    return `<script type="module">
+    import Chatbot from "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js"
+    (async () => {
+        try {
+            const themeResponse = await fetch("${baseURL}/api/v1/public-chatbotConfig/${chatflowid}/theme")
+            const theme = await themeResponse.json()
+            Chatbot.init({
+                chatflowid: "${chatflowid}",
+                apiHost: "${baseURL}",
+                theme: theme
+            })
+        } catch (error) {
+            console.error("Failed to load chatbot theme:", error)
+            Chatbot.init({
+                chatflowid: "${chatflowid}",
+                apiHost: "${baseURL}"
+            })
+        }
+    })()
+</script>`
+}
+
+const embedPopupReactCode = (chatflowid) => {
+    return `import { useState, useEffect } from 'react'
+import { BubbleChat } from 'flowise-embed-react'
+
+const App = () => {
+    const [theme, setTheme] = useState(null)
+    
+    useEffect(() => {
+        fetch("${baseURL}/api/v1/public-chatbotConfig/${chatflowid}/theme")
+            .then(res => res.json())
+            .then(theme => setTheme(theme))
+            .catch(err => console.error("Failed to load chatbot theme:", err))
+    }, [])
+    
+    return (
+        <BubbleChat
+            chatflowid="${chatflowid}"
+            apiHost="${baseURL}"
+            theme={theme || undefined}
+        />
+    );
+};`
+}
+
+const embedFullpageHtmlCode = (chatflowid) => {
+    return `<iframe 
+    src="${baseURL}/chatbot/${chatflowid}" 
+    style="width: 100%; height: 100vh; border: none;"
+    title="Chatbot"
+></iframe>`
+}
+
+const embedFullpageReactCode = (chatflowid) => {
+    return `const App = () => {
+    return (
+        <iframe 
+            src="${baseURL}/chatbot/${chatflowid}" 
+            style={{ width: '100%', height: '100vh', border: 'none' }}
+            title="Chatbot"
+        />
+    );
+};`
 }
 
 const embedPopupHtmlCodeCustomization = (chatflowid) => {
@@ -232,57 +264,24 @@ const App = () => {
 }`
 }
 
-const getFullPageThemeConfig = () => {
-    return {
-        ...defaultThemeConfig,
-        chatWindow: {
-            ...defaultThemeConfig.chatWindow,
-            height: '100%',
-            width: '100%'
-        }
-    }
-}
-
 const embedFullpageHtmlCodeCustomization = (chatflowid) => {
-    return `<flowise-fullchatbot></flowise-fullchatbot>
-<script type="module">
-    import Chatbot from "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js"
-    Chatbot.initFull({
-        chatflowid: "${chatflowid}",
-        apiHost: "${baseURL}",
-        chatflowConfig: {
-            /* Chatflow Config */
-        },
-        observersConfig: {
-            /* Observers Config */
-        },
-        theme: ${customStringify(getFullPageThemeConfig())}
-    })
-</script>`
+    return `<iframe 
+    src="${baseURL}/chatbot/${chatflowid}" 
+    style="width: 100%; height: 100vh; border: none;"
+    title="Chatbot"
+></iframe>`
 }
 
 const embedFullpageReactCodeCustomization = (chatflowid) => {
-    return `import { FullPageChat } from 'flowise-embed-react'
-
-const App = () => {
+    return `const App = () => {
     return (
-        <FullPageChat
-            chatflowid="${chatflowid}"
-            apiHost="${baseURL}"
-            chatflowConfig={{
-                /* Chatflow Config */
-            }}
-            observersConfig={{
-                /* Observers Config */
-            }}
-            theme={{${customStringify(getFullPageThemeConfig())
-                .substring(1)
-                .split('\n')
-                .map((line) => ' '.repeat(4) + line)
-                .join('\n')}
+        <iframe 
+            src="${baseURL}/chatbot/${chatflowid}" 
+            style={{ width: '100%', height: '100vh', border: 'none' }}
+            title="Chatbot"
         />
-    )
-}`
+    );
+};`
 }
 
 const EmbedChat = ({ chatflowid }) => {
@@ -342,7 +341,16 @@ const EmbedChat = ({ chatflowid }) => {
             <div style={{ marginTop: 10 }}></div>
             {codes.map((codeLang, index) => (
                 <TabPanel key={index} value={value} index={index}>
-                    {(value === 0 || value === 1) && (
+                    {value === 1 && (
+                        <>
+                            <span>
+                                Paste this iframe code anywhere in your HTML file. The chatbot will display with the full UI including chat history sidebar and ARI
+                                branding.
+                            </span>
+                            <div style={{ height: 10 }}></div>
+                        </>
+                    )}
+                    {value === 0 && (
                         <>
                             <span>
                                 Paste this anywhere in the <code>{`<body>`}</code> tag of your html file.

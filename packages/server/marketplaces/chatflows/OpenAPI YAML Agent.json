@@ -1,7 +1,11 @@
 {
     "description": "Given an OpenAPI YAML file, agent automatically decide which API to call, generating url and body request from conversation",
-    "framework": ["Langchain"],
-    "usecases": ["Interacting with API"],
+    "framework": [
+        "Langchain"
+    ],
+    "usecases": [
+        "Interacting with API"
+    ],
     "nodes": [
         {
             "id": "toolAgent_0",
@@ -16,7 +20,11 @@
                 "version": 2,
                 "name": "toolAgent",
                 "type": "AgentExecutor",
-                "baseClasses": ["AgentExecutor", "BaseChain", "Runnable"],
+                "baseClasses": [
+                    "AgentExecutor",
+                    "BaseChain",
+                    "Runnable"
+                ],
                 "category": "Agents",
                 "description": "Agent that uses Function Calling to pick the tools and args to call",
                 "inputParams": [
@@ -80,7 +88,9 @@
                     }
                 ],
                 "inputs": {
-                    "tools": ["{{openAPIToolkit_0.data.instance}}"],
+                    "tools": [
+                        "{{openAPIToolkit_0.data.instance}}"
+                    ],
                     "memory": "{{bufferMemory_0.data.instance}}",
                     "model": "{{chatAnthropic_0.data.instance}}",
                     "chatPromptTemplate": "",
@@ -122,7 +132,11 @@
                 "version": 2,
                 "name": "bufferMemory",
                 "type": "BufferMemory",
-                "baseClasses": ["BufferMemory", "BaseChatMemory", "BaseMemory"],
+                "baseClasses": [
+                    "BufferMemory",
+                    "BaseChatMemory",
+                    "BaseMemory"
+                ],
                 "category": "Memory",
                 "description": "Retrieve chat messages stored in database",
                 "inputParams": [
@@ -130,7 +144,7 @@
                         "label": "Session Id",
                         "name": "sessionId",
                         "type": "string",
-                        "description": "If not specified, a random id will be used. Learn <a target=\"_blank\" href=\"https://docs.flowiseai.com/memory#ui-and-embedded-chat\">more</a>",
+                        "description": "If not specified, a random id will be used. Learn <a target=\"_blank\" href=\"[AUTONOMOUS_DOCS]/memory#ui-and-embedded-chat\">more</a>",
                         "default": "",
                         "additionalParams": true,
                         "optional": true,
@@ -184,7 +198,13 @@
                 "version": 8,
                 "name": "chatAnthropic",
                 "type": "ChatAnthropic",
-                "baseClasses": ["ChatAnthropic", "ChatAnthropicMessages", "BaseChatModel", "BaseLanguageModel", "Runnable"],
+                "baseClasses": [
+                    "ChatAnthropic",
+                    "ChatAnthropicMessages",
+                    "BaseChatModel",
+                    "BaseLanguageModel",
+                    "Runnable"
+                ],
                 "category": "Chat Models",
                 "description": "Wrapper around ChatAnthropic large language models that use the Chat endpoint",
                 "inputParams": [
@@ -192,7 +212,9 @@
                         "label": "Connect Credential",
                         "name": "credential",
                         "type": "credential",
-                        "credentialNames": ["anthropicApi"],
+                        "credentialNames": [
+                            "anthropicApi"
+                        ],
                         "id": "chatAnthropic_0-input-credential-credential",
                         "display": true
                     },
@@ -281,7 +303,7 @@
                         "label": "Allow Image Uploads",
                         "name": "allowImageUploads",
                         "type": "boolean",
-                        "description": "Allow image input. Refer to the <a href=\"https://docs.flowiseai.com/using-flowise/uploads#image\" target=\"_blank\">docs</a> for more details.",
+                        "description": "Allow image input. Refer to the <a href=\"[AUTONOMOUS_DOCS]/using-autonomous/uploads#image\" target=\"_blank\">docs</a> for more details.",
                         "default": false,
                         "optional": true,
                         "id": "chatAnthropic_0-input-allowImageUploads-boolean",
@@ -344,7 +366,10 @@
                 "version": 2,
                 "name": "openAPIToolkit",
                 "type": "OpenAPIToolkit",
-                "baseClasses": ["OpenAPIToolkit", "Tool"],
+                "baseClasses": [
+                    "OpenAPIToolkit",
+                    "Tool"
+                ],
                 "category": "Tools",
                 "description": "Load OpenAPI specification, and converts each API endpoint to a tool",
                 "inputParams": [
@@ -390,7 +415,7 @@
                         "type": "code",
                         "hint": {
                             "label": "How to use",
-                            "value": "- **Libraries:**  \n  You can use any libraries imported in Flowise.\n\n- **Tool Input Arguments:**  \n  Tool input arguments are available as the following variables:\n  - `$PathParameters`\n  - `$QueryParameters`\n  - `$RequestBody`\n\n- **HTTP Requests:**  \n  By default, you can get the following values for making HTTP requests:\n  - `$url`\n  - `$options`\n\n- **Default Flow Config:**  \n  You can access the default flow configuration using these variables:\n  - `$flow.sessionId`\n  - `$flow.chatId`\n  - `$flow.chatflowId`\n  - `$flow.input`\n  - `$flow.state`\n\n- **Custom Variables:**  \n  You can get custom variables using the syntax:\n  - `$vars.<variable-name>`\n\n- **Return Value:**  \n  The function must return a **string** value at the end.\n\n```js\nconst fetch = require('node-fetch');\nconst url = $url;\nconst options = $options;\n\ntry {\n\tconst response = await fetch(url, options);\n\tconst resp = await response.json();\n\treturn JSON.stringify(resp);\n} catch (error) {\n\tconsole.error(error);\n\treturn '';\n}\n\n```\n"
+                            "value": "- **Libraries:**  \n  You can use any libraries imported in Autonomous.\n\n- **Tool Input Arguments:**  \n  Tool input arguments are available as the following variables:\n  - `$PathParameters`\n  - `$QueryParameters`\n  - `$RequestBody`\n\n- **HTTP Requests:**  \n  By default, you can get the following values for making HTTP requests:\n  - `$url`\n  - `$options`\n\n- **Default Flow Config:**  \n  You can access the default flow configuration using these variables:\n  - `$flow.sessionId`\n  - `$flow.chatId`\n  - `$flow.chatflowId`\n  - `$flow.input`\n  - `$flow.state`\n\n- **Custom Variables:**  \n  You can get custom variables using the syntax:\n  - `$vars.<variable-name>`\n\n- **Return Value:**  \n  The function must return a **string** value at the end.\n\n```js\nconst fetch = require('node-fetch');\nconst url = $url;\nconst options = $options;\n\ntry {\n\tconst response = await fetch(url, options);\n\tconst resp = await response.json();\n\treturn JSON.stringify(resp);\n} catch (error) {\n\tconsole.error(error);\n\treturn '';\n}\n\n```\n"
                         },
                         "codeExample": "const fetch = require('node-fetch');\nconst url = $url;\nconst options = $options;\n\ntry {\n\tconst response = await fetch(url, options);\n\tconst resp = await response.json();\n\treturn JSON.stringify(resp);\n} catch (error) {\n\tconsole.error(error);\n\treturn '';\n}\n",
                         "description": "Custom code to return the output of the tool. The code should be a function that takes in the input and returns a string",

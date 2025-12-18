@@ -52,21 +52,35 @@ const NavGroup = ({ item }) => {
     }
 
     const renderPrimaryItems = () => {
+        if (!item?.children) return []
         const primaryGroup = item.children.find((child) => child.id === 'primary')
-        return primaryGroup.children
+        return primaryGroup?.children || []
     }
 
     const renderNonPrimaryGroups = () => {
-        let nonprimaryGroups = item.children.filter((child) => child.id !== 'primary')
+        if (!item?.children) return { groups: [], standaloneItems: [] }
+        let nonprimaryItems = item.children.filter((child) => child.id !== 'primary')
+        // Separate groups from standalone items
+        const groups = nonprimaryItems.filter((child) => child.type === 'group')
+        const standaloneItems = nonprimaryItems.filter((child) => child.type === 'item' || child.type === 'collapse')
+        
+        // Filter groups based on their display flag first
+        let filteredGroups = groups.filter((group) => shouldDisplayMenu(group))
         // Display children based on permission and display
-        nonprimaryGroups = nonprimaryGroups.map((group) => {
-            const children = group.children.filter((menu) => shouldDisplayMenu(menu))
+        filteredGroups = filteredGroups.map((group) => {
+            const children = (group?.children || []).filter((menu) => shouldDisplayMenu(menu))
             return { ...group, children }
         })
         // Get rid of group with empty children
-        nonprimaryGroups = nonprimaryGroups.filter((group) => group.children.length > 0)
-        return nonprimaryGroups
+        filteredGroups = filteredGroups.filter((group) => group?.children?.length > 0)
+        
+        // Filter standalone items based on display and permission
+        const filteredStandaloneItems = standaloneItems.filter((menu) => shouldDisplayMenu(menu))
+        
+        return { groups: filteredGroups, standaloneItems: filteredStandaloneItems }
     }
+
+    const nonPrimaryData = renderNonPrimaryGroups()
 
     return (
         <>
@@ -88,8 +102,8 @@ const NavGroup = ({ item }) => {
                 {renderPrimaryItems().map((menu) => listItems(menu))}
             </List>
 
-            {renderNonPrimaryGroups().map((group) => {
-                const groupPermissions = group.children.map((menu) => menu.permission).join(',')
+            {nonPrimaryData.groups.map((group) => {
+                const groupPermissions = (group?.children || []).map((menu) => menu.permission).join(',')
                 return (
                     <Available key={group.id} permission={groupPermissions}>
                         <>
@@ -102,12 +116,22 @@ const NavGroup = ({ item }) => {
                                 }
                                 sx={{ p: '16px', py: 2, display: 'flex', flexDirection: 'column', gap: 1 }}
                             >
-                                {group.children.map((menu) => listItems(menu))}
+                                {(group?.children || []).map((menu) => listItems(menu))}
                             </List>
                         </>
                     </Available>
                 )
             })}
+            {nonPrimaryData.standaloneItems.length > 0 && (
+                <>
+                    <Divider sx={{ height: '1px', borderColor: theme.palette.grey[900] + 25, my: 0 }} />
+                    <List
+                        sx={{ p: '16px', py: 2, display: 'flex', flexDirection: 'column', gap: 1 }}
+                    >
+                        {nonPrimaryData.standaloneItems.map((menu) => listItems(menu))}
+                    </List>
+                </>
+            )}
         </>
     )
 }

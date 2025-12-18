@@ -164,7 +164,7 @@ class Json_DocumentLoaders implements INode {
             for (const file of files) {
                 if (!file) continue
                 const fileData = await getFileFromStorage(file, orgId, chatflowid)
-                const blob = new Blob([fileData])
+                const blob = new Blob([fileData instanceof Buffer ? new Uint8Array(fileData) : fileData])
                 const loader = new JSONLoader(blob, pointers.length != 0 ? pointers : undefined, metadata, separateByObject)
 
                 if (textSplitter) {
@@ -187,7 +187,7 @@ class Json_DocumentLoaders implements INode {
                 const splitDataURI = file.split(',')
                 splitDataURI.pop()
                 const bf = Buffer.from(splitDataURI.pop() || '', 'base64')
-                const blob = new Blob([bf])
+                const blob = new Blob([new Uint8Array(bf)])
                 const loader = new JSONLoader(blob, pointers.length != 0 ? pointers : undefined, metadata, separateByObject)
 
                 if (textSplitter) {
@@ -345,15 +345,15 @@ class JSONLoader extends TextLoader {
             if (this.separateByObject) {
                 if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
                     const metadata = this.extractMetadata(item)
-                    const pageContent = this.formatObjectAsKeyValue(item)
                     documents.push({
-                        pageContent,
+                        pageContent: JSON.stringify(item),
                         metadata
                     })
                 }
             } else {
                 const content = this.extractContent(item)
                 const metadata = this.extractMetadata(item)
+
                 for (const pageContent of content) {
                     documents.push({
                         pageContent,
@@ -397,30 +397,6 @@ class JSONLoader extends TextLoader {
         }
 
         return metadata
-    }
-
-    /**
-     * Formats a JSON object as readable key-value pairs
-     */
-    private formatObjectAsKeyValue(obj: any, prefix: string = ''): string {
-        const lines: string[] = []
-
-        for (const [key, value] of Object.entries(obj)) {
-            const fullKey = prefix ? `${prefix}.${key}` : key
-
-            if (value === null || value === undefined) {
-                lines.push(`${fullKey}: ${value}`)
-            } else if (Array.isArray(value)) {
-                lines.push(`${fullKey}: ${JSON.stringify(value)}`)
-            } else if (typeof value === 'object') {
-                // Recursively format nested objects
-                lines.push(this.formatObjectAsKeyValue(value, fullKey))
-            } else {
-                lines.push(`${fullKey}: ${value}`)
-            }
-        }
-
-        return lines.join('\n')
     }
 
     /**

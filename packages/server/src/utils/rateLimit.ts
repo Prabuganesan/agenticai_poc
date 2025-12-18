@@ -5,6 +5,8 @@ import { Mutex } from 'async-mutex'
 import { RedisStore } from 'rate-limit-redis'
 import Redis from 'ioredis'
 import { QueueEvents, QueueEventsListener, QueueEventsProducer } from 'bullmq'
+import { OrganizationConfigService } from '../services/org-config.service'
+import { logInfo, logWarn } from './logger/system-helper'
 
 interface CustomListener extends QueueEventsListener {
     updateRateLimiter: (args: { limitDuration: number; limitMax: number; limitMsg: string; id: string }) => void
@@ -16,65 +18,73 @@ const QUEUE_EVENT_NAME = 'updateRateLimiter'
 export class RateLimiterManager {
     private rateLimiters: Record<string, RateLimitRequestHandler> = {}
     private rateLimiterMutex: Mutex = new Mutex()
-    private redisClient: Redis
+    private redisClient: Redis | null = null
     private static instance: RateLimiterManager
-    private queueEventsProducer: QueueEventsProducer
-    private queueEvents: QueueEvents
+    private queueEventsProducer: QueueEventsProducer | null = null
+    private queueEvents: QueueEvents | null = null
+    private orgConfigService?: OrganizationConfigService
 
-    constructor() {
+    constructor(orgConfigService?: OrganizationConfigService) {
+        this.orgConfigService = orgConfigService
         if (process.env.MODE === MODE.QUEUE) {
-            if (process.env.REDIS_URL) {
-                this.redisClient = new Redis(process.env.REDIS_URL, {
-                    keepAlive:
-                        process.env.REDIS_KEEP_ALIVE && !isNaN(parseInt(process.env.REDIS_KEEP_ALIVE, 10))
-                            ? parseInt(process.env.REDIS_KEEP_ALIVE, 10)
-                            : undefined
-                })
-            } else {
+            // Get Redis config from first org's config (loaded from main database)
+            const redisConfig = this.getRedisConfigFromOrg()
+
+            if (redisConfig) {
                 this.redisClient = new Redis({
-                    host: process.env.REDIS_HOST || 'localhost',
-                    port: parseInt(process.env.REDIS_PORT || '6379'),
-                    username: process.env.REDIS_USERNAME || undefined,
-                    password: process.env.REDIS_PASSWORD || undefined,
-                    tls:
-                        process.env.REDIS_TLS === 'true'
-                            ? {
-                                  cert: process.env.REDIS_CERT ? Buffer.from(process.env.REDIS_CERT, 'base64') : undefined,
-                                  key: process.env.REDIS_KEY ? Buffer.from(process.env.REDIS_KEY, 'base64') : undefined,
-                                  ca: process.env.REDIS_CA ? Buffer.from(process.env.REDIS_CA, 'base64') : undefined
-                              }
-                            : undefined,
+                    host: redisConfig.host,
+                    port: redisConfig.port,
+                    password: redisConfig.password,
                     keepAlive:
                         process.env.REDIS_KEEP_ALIVE && !isNaN(parseInt(process.env.REDIS_KEEP_ALIVE, 10))
                             ? parseInt(process.env.REDIS_KEEP_ALIVE, 10)
                             : undefined
                 })
+                const connection = this.getConnection()
+                this.queueEventsProducer = new QueueEventsProducer(QUEUE_NAME, { connection })
+                this.queueEvents = new QueueEvents(QUEUE_NAME, { connection })
+                logInfo(`[RateLimiterManager] Using Redis config from org config: ${redisConfig.host}:${redisConfig.port}`).catch(() => {})
+            } else {
+                logWarn('[RateLimiterManager] No Redis config found from org configs, rate limiting will use in-memory store').catch(
+                    () => {}
+                )
             }
-            this.queueEventsProducer = new QueueEventsProducer(QUEUE_NAME, { connection: this.getConnection() })
-            this.queueEvents = new QueueEvents(QUEUE_NAME, { connection: this.getConnection() })
         }
     }
 
-    getConnection() {
-        let tlsOpts = undefined
-        if (process.env.REDIS_URL && process.env.REDIS_URL.startsWith('rediss://')) {
-            tlsOpts = {
-                rejectUnauthorized: false
-            }
-        } else if (process.env.REDIS_TLS === 'true') {
-            tlsOpts = {
-                cert: process.env.REDIS_CERT ? Buffer.from(process.env.REDIS_CERT, 'base64') : undefined,
-                key: process.env.REDIS_KEY ? Buffer.from(process.env.REDIS_KEY, 'base64') : undefined,
-                ca: process.env.REDIS_CA ? Buffer.from(process.env.REDIS_CA, 'base64') : undefined
+    private getRedisConfigFromOrg(): { host: string; port: number; password?: string } | null {
+        if (this.orgConfigService) {
+            const orgIds = this.orgConfigService.getAllOrgIds()
+            if (orgIds.length > 0) {
+                const firstOrgId = orgIds[0]
+                const orgConfig = this.orgConfigService.getOrgConfig(firstOrgId)
+                const redisConfigData = orgConfig?.redis
+
+                if (redisConfigData) {
+                    return {
+                        host: redisConfigData.host,
+                        port: redisConfigData.port,
+                        password:
+                            redisConfigData.password && redisConfigData.password.trim().length > 0
+                                ? redisConfigData.password.trim()
+                                : undefined
+                    }
+                }
             }
         }
+        return null
+    }
+
+    getConnection() {
+        const redisConfig = this.getRedisConfigFromOrg()
+        if (!redisConfig) {
+            throw new Error('Redis connection not available - no org config found')
+        }
+
         return {
-            url: process.env.REDIS_URL || undefined,
-            host: process.env.REDIS_HOST || 'localhost',
-            port: parseInt(process.env.REDIS_PORT || '6379'),
-            username: process.env.REDIS_USERNAME || undefined,
-            password: process.env.REDIS_PASSWORD || undefined,
-            tls: tlsOpts,
+            host: redisConfig.host,
+            port: redisConfig.port,
+            password: redisConfig.password,
             maxRetriesPerRequest: null,
             enableReadyCheck: true,
             keepAlive:
@@ -84,9 +94,9 @@ export class RateLimiterManager {
         }
     }
 
-    public static getInstance(): RateLimiterManager {
+    public static getInstance(orgConfigService?: OrganizationConfigService): RateLimiterManager {
         if (!RateLimiterManager.instance) {
-            RateLimiterManager.instance = new RateLimiterManager()
+            RateLimiterManager.instance = new RateLimiterManager(orgConfigService)
         }
         return RateLimiterManager.instance
     }
@@ -94,7 +104,7 @@ export class RateLimiterManager {
     public async addRateLimiter(id: string, duration: number, limit: number, message: string): Promise<void> {
         const release = await this.rateLimiterMutex.acquire()
         try {
-            if (process.env.MODE === MODE.QUEUE) {
+            if (process.env.MODE === MODE.QUEUE && this.redisClient) {
                 this.rateLimiters[id] = rateLimit({
                     windowMs: duration * 1000,
                     max: limit,
@@ -104,7 +114,7 @@ export class RateLimiterManager {
                     store: new RedisStore({
                         prefix: `rl:${id}`,
                         // @ts-expect-error - Known issue: the `call` function is not present in @types/ioredis
-                        sendCommand: (...args: string[]) => this.redisClient.call(...args)
+                        sendCommand: (...args: string[]) => this.redisClient!.call(...args)
                     })
                 })
             } else {
@@ -143,19 +153,19 @@ export class RateLimiterManager {
 
         const { limitDuration, limitMax, limitMsg, status } = rateLimit
 
-        if (!isInitialized && process.env.MODE === MODE.QUEUE && this.queueEventsProducer) {
+        if (!isInitialized && process.env.MODE === MODE.QUEUE && this.queueEventsProducer && this.queueEvents) {
             await this.queueEventsProducer.publishEvent({
                 eventName: QUEUE_EVENT_NAME,
                 limitDuration,
                 limitMax,
                 limitMsg,
-                id: chatFlow.id
+                id: chatFlow.guid
             })
         } else {
             if (status === false) {
-                this.removeRateLimiter(chatFlow.id)
+                this.removeRateLimiter(chatFlow.guid)
             } else if (limitMax && limitDuration && limitMsg) {
-                await this.addRateLimiter(chatFlow.id, limitDuration, limitMax, limitMsg)
+                await this.addRateLimiter(chatFlow.guid, limitDuration, limitMax, limitMsg)
             }
         }
     }

@@ -42,15 +42,6 @@ const LoaderConfigPreviewChunks = Loadable(lazy(() => import('@/views/docstore/L
 const VectorStoreConfigure = Loadable(lazy(() => import('@/views/docstore/VectorStoreConfigure')))
 const VectorStoreQuery = Loadable(lazy(() => import('@/views/docstore/VectorStoreQuery')))
 
-// Evaluations routing
-const EvalEvaluation = Loadable(lazy(() => import('@/views/evaluations/index')))
-const EvaluationResult = Loadable(lazy(() => import('@/views/evaluations/EvaluationResult')))
-const EvalDatasetRows = Loadable(lazy(() => import('@/views/datasets/DatasetItems')))
-const EvalDatasets = Loadable(lazy(() => import('@/views/datasets')))
-const Evaluators = Loadable(lazy(() => import('@/views/evaluators')))
-
-// account routing
-const Account = Loadable(lazy(() => import('@/views/account')))
 
 // files routing
 const Files = Loadable(lazy(() => import('@/views/files')))
@@ -61,14 +52,17 @@ const Logs = Loadable(lazy(() => import('@/views/serverlogs')))
 // executions routing
 const Executions = Loadable(lazy(() => import('@/views/agentexecutions')))
 
-// enterprise features
-const UsersPage = Loadable(lazy(() => import('@/views/users')))
-const RolesPage = Loadable(lazy(() => import('@/views/roles')))
-const LoginActivityPage = Loadable(lazy(() => import('@/views/auth/loginActivity')))
-const Workspaces = Loadable(lazy(() => import('@/views/workspace')))
-const WorkspaceDetails = Loadable(lazy(() => import('@/views/workspace/WorkspaceUsers')))
-const SSOConfig = Loadable(lazy(() => import('@/views/auth/ssoConfig')))
-const SSOSuccess = Loadable(lazy(() => import('@/views/auth/ssoSuccess')))
+// queues routing
+const Queues = Loadable(lazy(() => import('@/views/queues')))
+
+// llm usage routing
+const LlmUsage = Loadable(lazy(() => import('@/views/llmUsage')))
+
+// home routing
+const Home = Loadable(lazy(() => import('@/views/home')))
+// back routing
+const Back = Loadable(lazy(() => import('@/views/back')))
+
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -81,7 +75,15 @@ const MainRoutes = {
             element: <DefaultRedirect />
         },
         {
-            path: '/chatflows',
+            path: '/home',
+            element: (
+                <RequireAuth>
+                    <Home />
+                </RequireAuth>
+            )
+        },
+        {
+            path: '/agent',
             element: (
                 <RequireAuth permission={'chatflows:view'}>
                     <Chatflows />
@@ -89,7 +91,7 @@ const MainRoutes = {
             )
         },
         {
-            path: '/agentflows',
+            path: '/multiagent',
             element: (
                 <RequireAuth permission={'agentflows:view'}>
                     <Agentflows />
@@ -233,46 +235,6 @@ const MainRoutes = {
             )
         },
         {
-            path: '/datasets',
-            element: (
-                <RequireAuth permission={'datasets:view'} display={'feat:datasets'}>
-                    <EvalDatasets />
-                </RequireAuth>
-            )
-        },
-        {
-            path: '/dataset_rows/:id',
-            element: (
-                <RequireAuth permission={'datasets:view'} display={'feat:datasets'}>
-                    <EvalDatasetRows />
-                </RequireAuth>
-            )
-        },
-        {
-            path: '/evaluations',
-            element: (
-                <RequireAuth permission={'evaluations:view'} display={'feat:evaluations'}>
-                    <EvalEvaluation />
-                </RequireAuth>
-            )
-        },
-        {
-            path: '/evaluation_results/:id',
-            element: (
-                <RequireAuth permission={'evaluations:view'} display={'feat:evaluations'}>
-                    <EvaluationResult />
-                </RequireAuth>
-            )
-        },
-        {
-            path: '/evaluators',
-            element: (
-                <RequireAuth permission={'evaluators:view'} display={'feat:evaluators'}>
-                    <Evaluators />
-                </RequireAuth>
-            )
-        },
-        {
             path: '/logs',
             element: (
                 <RequireAuth permission={'logs:view'} display={'feat:logs'}>
@@ -289,60 +251,28 @@ const MainRoutes = {
             )
         },
         {
-            path: '/account',
-            element: <Account />
-        },
-        {
-            path: '/users',
+            path: '/queues',
             element: (
-                <RequireAuth permission={'users:manage'} display={'feat:users'}>
-                    <UsersPage />
+                <RequireAuth>
+                    <Queues />
                 </RequireAuth>
             )
         },
         {
-            path: '/roles',
+            path: '/llm-usage',
             element: (
-                <RequireAuth permission={'roles:manage'} display={'feat:roles'}>
-                    <RolesPage />
+                <RequireAuth>
+                    <LlmUsage />
                 </RequireAuth>
             )
         },
         {
-            path: '/login-activity',
+            path: '/back',
             element: (
-                <RequireAuth permission={'loginActivity:view'} display={'feat:login-activity'}>
-                    <LoginActivityPage />
+                <RequireAuth>
+                    <Back />
                 </RequireAuth>
             )
-        },
-        {
-            path: '/workspaces',
-            element: (
-                <RequireAuth permission={'workspace:view'} display={'feat:workspaces'}>
-                    <Workspaces />
-                </RequireAuth>
-            )
-        },
-        {
-            path: '/workspace-users/:id',
-            element: (
-                <RequireAuth permission={'workspace:view'} display={'feat:workspaces'}>
-                    <WorkspaceDetails />
-                </RequireAuth>
-            )
-        },
-        {
-            path: '/sso-config',
-            element: (
-                <RequireAuth permission={'sso:manage'} display={'feat:sso-config'}>
-                    <SSOConfig />
-                </RequireAuth>
-            )
-        },
-        {
-            path: '/sso-success',
-            element: <SSOSuccess />
         }
     ]
 }

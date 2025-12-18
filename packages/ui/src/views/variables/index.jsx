@@ -172,9 +172,8 @@ const Variables = () => {
                 }
             } catch (error) {
                 enqueueSnackbar({
-                    message: `Failed to delete Variable: ${
-                        typeof error.response.data === 'object' ? error.response.data.message : error.response.data
-                    }`,
+                    message: `Failed to delete Variable: ${typeof error.response.data === 'object' ? error.response.data.message : error.response.data
+                        }`,
                     options: {
                         key: new Date().getTime() + Math.random(),
                         variant: 'error',
@@ -382,10 +381,14 @@ const Variables = () => {
                                                                 />
                                                             </StyledTableCell>
                                                             <StyledTableCell>
-                                                                {moment(variable.updatedDate).format('MMMM Do, YYYY HH:mm:ss')}
+                                                                {variable.updatedDate || variable.createdDate
+                                                                    ? moment(variable.updatedDate || variable.createdDate).format('MMMM Do, YYYY HH:mm:ss')
+                                                                    : 'N/A'}
                                                             </StyledTableCell>
                                                             <StyledTableCell>
-                                                                {moment(variable.createdDate).format('MMMM Do, YYYY HH:mm:ss')}
+                                                                {variable.createdDate
+                                                                    ? moment(variable.createdDate).format('MMMM Do, YYYY HH:mm:ss')
+                                                                    : 'N/A'}
                                                             </StyledTableCell>
                                                             <Available permission={'variables:create,variables:update'}>
                                                                 <StyledTableCell>

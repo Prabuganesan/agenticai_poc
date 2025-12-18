@@ -1,7 +1,11 @@
 {
     "description": "An agent that uses ReAct (Reason + Act) logic to decide what action to take",
-    "usecases": ["Agent"],
-    "framework": ["Langchain"],
+    "usecases": [
+        "Agent"
+    ],
+    "framework": [
+        "Langchain"
+    ],
     "nodes": [
         {
             "width": 300,
@@ -18,7 +22,12 @@
                 "version": 1,
                 "name": "calculator",
                 "type": "Calculator",
-                "baseClasses": ["Calculator", "Tool", "StructuredTool", "BaseLangChain"],
+                "baseClasses": [
+                    "Calculator",
+                    "Tool",
+                    "StructuredTool",
+                    "BaseLangChain"
+                ],
                 "category": "Tools",
                 "description": "Perform calculations on response",
                 "inputParams": [],
@@ -55,7 +64,12 @@
                 "version": 6,
                 "name": "chatOpenAI",
                 "type": "ChatOpenAI",
-                "baseClasses": ["ChatOpenAI", "BaseChatModel", "BaseLanguageModel", "Runnable"],
+                "baseClasses": [
+                    "ChatOpenAI",
+                    "BaseChatModel",
+                    "BaseLanguageModel",
+                    "Runnable"
+                ],
                 "category": "Chat Models",
                 "description": "Wrapper around OpenAI large language models that use the Chat endpoint",
                 "inputParams": [
@@ -63,7 +77,9 @@
                         "label": "Connect Credential",
                         "name": "credential",
                         "type": "credential",
-                        "credentialNames": ["openAIApi"],
+                        "credentialNames": [
+                            "openAIApi"
+                        ],
                         "id": "chatOpenAI_0-input-credential-credential"
                     },
                     {
@@ -235,7 +251,11 @@
                 "version": 2,
                 "name": "bufferMemory",
                 "type": "BufferMemory",
-                "baseClasses": ["BufferMemory", "BaseChatMemory", "BaseMemory"],
+                "baseClasses": [
+                    "BufferMemory",
+                    "BaseChatMemory",
+                    "BaseMemory"
+                ],
                 "category": "Memory",
                 "description": "Retrieve chat messages stored in database",
                 "inputParams": [
@@ -243,7 +263,7 @@
                         "label": "Session Id",
                         "name": "sessionId",
                         "type": "string",
-                        "description": "If not specified, a random id will be used. Learn <a target=\"_blank\" href=\"https://docs.flowiseai.com/memory#ui-and-embedded-chat\">more</a>",
+                        "description": "If not specified, a random id will be used. Learn <a target=\"_blank\" href=\"[AUTONOMOUS_DOCS]/memory#ui-and-embedded-chat\">more</a>",
                         "default": "",
                         "additionalParams": true,
                         "optional": true,
@@ -297,7 +317,12 @@
                 "version": 1,
                 "name": "googleCustomSearch",
                 "type": "GoogleCustomSearchAPI",
-                "baseClasses": ["GoogleCustomSearchAPI", "Tool", "StructuredTool", "Runnable"],
+                "baseClasses": [
+                    "GoogleCustomSearchAPI",
+                    "Tool",
+                    "StructuredTool",
+                    "Runnable"
+                ],
                 "category": "Tools",
                 "description": "Wrapper around Google Custom Search API - a real-time API to access Google search results",
                 "inputParams": [
@@ -305,7 +330,9 @@
                         "label": "Connect Credential",
                         "name": "credential",
                         "type": "credential",
-                        "credentialNames": ["googleCustomSearchApi"],
+                        "credentialNames": [
+                            "googleCustomSearchApi"
+                        ],
                         "id": "googleCustomSearch_0-input-credential-credential"
                     }
                 ],
@@ -345,7 +372,11 @@
                 "version": 4,
                 "name": "reactAgentChat",
                 "type": "AgentExecutor",
-                "baseClasses": ["AgentExecutor", "BaseChain", "Runnable"],
+                "baseClasses": [
+                    "AgentExecutor",
+                    "BaseChain",
+                    "Runnable"
+                ],
                 "category": "Agents",
                 "description": "Agent that uses the ReAct logic to decide what action to take, optimized to be used with Chat Models",
                 "inputParams": [
@@ -389,7 +420,10 @@
                     }
                 ],
                 "inputs": {
-                    "tools": ["{{googleCustomSearch_0.data.instance}}", "{{calculator_1.data.instance}}"],
+                    "tools": [
+                        "{{googleCustomSearch_0.data.instance}}",
+                        "{{calculator_1.data.instance}}"
+                    ],
                     "model": "{{chatOpenAI_0.data.instance}}",
                     "memory": "{{bufferMemory_0.data.instance}}",
                     "inputModeration": "",

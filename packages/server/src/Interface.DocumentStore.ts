@@ -1,8 +1,7 @@
-import { ICommonObject } from 'flowise-components'
+import { ICommonObject } from 'kodivian-components'
 import { DocumentStore } from './database/entities/DocumentStore'
 import { DataSource } from 'typeorm'
 import { IComponentNodes } from './Interface'
-import { Telemetry } from './utils/telemetry'
 import { CachePool } from './CachePool'
 import { UsageCacheManager } from './UsageCacheManager'
 
@@ -17,22 +16,26 @@ export enum DocumentStoreStatus {
 }
 
 export interface IDocumentStore {
-    id: string
+    id: number
+    guid: string
     name: string
+    display_name?: string
     description: string
     loaders: string // JSON string
     whereUsed: string // JSON string
-    updatedDate: Date
-    createdDate: Date
+    created_by: number
+    created_on: number
+    last_modified_by?: number
+    last_modified_on?: number
     status: DocumentStoreStatus
     vectorStoreConfig: string | null // JSON string
     embeddingConfig: string | null // JSON string
     recordManagerConfig: string | null // JSON string
-    workspaceId?: string
 }
 
 export interface IDocumentStoreFileChunk {
-    id: string
+    id: number
+    guid: string
     chunkNo: number
     docId: string
     storeId: string
@@ -49,7 +52,6 @@ export interface IDocumentStoreFileChunkPagedResponse {
     storeName: string
     description: string
     docId: string
-    workspaceId?: string
 }
 
 export interface IDocumentStoreLoader {
@@ -123,12 +125,9 @@ export interface IDocumentStoreWhereUsed {
 }
 
 export interface IUpsertQueueAppServer {
-    orgId: string
-    workspaceId: string
-    subscriptionId: string
+    orgId?: string
     appDataSource: DataSource
     componentNodes: IComponentNodes
-    telemetry: Telemetry
     usageCacheManager: UsageCacheManager
     cachePool?: CachePool
 }
@@ -143,7 +142,6 @@ export interface IExecuteDocStoreUpsert extends IUpsertQueueAppServer {
 export interface IExecutePreviewLoader extends Omit<IUpsertQueueAppServer, 'telemetry'> {
     data: IDocumentStoreLoaderForPreview
     isPreviewOnly: boolean
-    telemetry?: Telemetry
 }
 
 export interface IExecuteProcessLoader extends IUpsertQueueAppServer {
@@ -226,20 +224,25 @@ export const addLoaderSource = (loader: IDocumentStoreLoader, isGetFileNameOnly 
 }
 
 export class DocumentStoreDTO {
-    id: string
+    guid: string
+    id: string // Frontend compatibility: mapped from guid
     name: string
+    display_name?: string
     description: string
     files: IDocumentStoreLoaderFile[]
     whereUsed: IDocumentStoreWhereUsed[]
-    createdDate: Date
-    updatedDate: Date
+    created_by: number
+    created_on: number
+    createdDate?: number // Frontend compatibility: numeric timestamp (milliseconds)
+    last_modified_by?: number
+    last_modified_on?: number
+    updatedDate?: number // Frontend compatibility: numeric timestamp (milliseconds)
     status: DocumentStoreStatus
     chunkOverlap: number
     splitter: string
     totalChunks: number
     totalChars: number
     chunkSize: number
-    workspaceId?: string
     loaders: IDocumentStoreLoader[]
     vectorStoreConfig: any
     embeddingConfig: any
@@ -251,13 +254,21 @@ export class DocumentStoreDTO {
         let documentStoreDTO = new DocumentStoreDTO()
 
         Object.assign(documentStoreDTO, entity)
-        documentStoreDTO.id = entity.id
+        documentStoreDTO.guid = entity.guid
+        // Frontend compatibility: map guid to id
+        documentStoreDTO.id = entity.guid
         documentStoreDTO.name = entity.name
+        documentStoreDTO.display_name = entity.display_name
         documentStoreDTO.description = entity.description
         documentStoreDTO.status = entity.status
-        documentStoreDTO.workspaceId = entity.workspaceId
         documentStoreDTO.totalChars = 0
         documentStoreDTO.totalChunks = 0
+
+        // Frontend compatibility: map timestamps as numeric (milliseconds) - moment.js can handle this
+        // Convert to number if TypeORM returns as string
+        documentStoreDTO.createdDate = typeof entity.created_on === 'string' ? parseInt(entity.created_on) : entity.created_on
+        const lastModified = typeof entity.last_modified_on === 'string' ? parseInt(entity.last_modified_on) : entity.last_modified_on
+        documentStoreDTO.updatedDate = lastModified || documentStoreDTO.createdDate
 
         if (entity.whereUsed) {
             documentStoreDTO.whereUsed = JSON.parse(entity.whereUsed)

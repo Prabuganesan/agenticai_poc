@@ -3,8 +3,8 @@ import path from 'path'
 import { Dirent } from 'fs'
 import { getNodeModulesPackagePath } from './utils'
 import { promises } from 'fs'
-import { ICommonObject } from 'flowise-components'
-import logger from './utils/logger'
+import { ICommonObject } from 'kodivian-components'
+import { logError } from './utils/logger/system-helper'
 import { appConfig } from './AppConfig'
 
 export class NodesPool {
@@ -25,11 +25,15 @@ export class NodesPool {
      */
     private async initializeNodes() {
         const disabled_nodes = process.env.DISABLED_NODES ? process.env.DISABLED_NODES.split(',') : []
-        const packagePath = getNodeModulesPackagePath('flowise-components')
-        const nodesPath = path.join(packagePath, 'dist', 'nodes')
+        const packagePath = getNodeModulesPackagePath('kodivian-components')
+        const nodesPath = path.join(packagePath, 'dist', 'components', 'nodes')
         const nodeFiles = await this.getFiles(nodesPath)
         return Promise.all(
             nodeFiles.map(async (file) => {
+                // Skip LlamaIndex files (removed from codebase)
+                if (file.includes('LlamaIndex')) {
+                    return
+                }
                 if (file.endsWith('.js')) {
                     try {
                         const nodeModule = await require(file)
@@ -47,7 +51,10 @@ export class NodesPool {
                             ) {
                                 const filePath = file.replace(/\\/g, '/').split('/')
                                 filePath.pop()
-                                const nodeIconAbsolutePath = `${filePath.join('/')}/${newNodeInstance.icon}`
+                                let nodeIconAbsolutePath = `${filePath.join('/')}/${newNodeInstance.icon}`
+                                // Icons are in dist/nodes but node files are in dist/components/nodes
+                                // Replace dist/components/nodes with dist/nodes in the icon path
+                                nodeIconAbsolutePath = nodeIconAbsolutePath.replace(/dist\/components\/nodes\//g, 'dist/nodes/')
                                 newNodeInstance.icon = nodeIconAbsolutePath
 
                                 // Store icon path for componentCredentials
@@ -72,8 +79,8 @@ export class NodesPool {
                                 this.componentNodes[newNodeInstance.name] = newNodeInstance
                             }
                         }
-                    } catch (err) {
-                        logger.error(`❌ [server]: Error during initDatabase with file ${file}:`, err)
+                    } catch (err: any) {
+                        logError(`❌ [server]: Error during initDatabase with file ${file}:`, err).catch(() => {})
                     }
                 }
             })
@@ -84,17 +91,21 @@ export class NodesPool {
      * Initialize credentials
      */
     private async initializeCredentials() {
-        const packagePath = getNodeModulesPackagePath('flowise-components')
-        const nodesPath = path.join(packagePath, 'dist', 'credentials')
+        const packagePath = getNodeModulesPackagePath('kodivian-components')
+        const nodesPath = path.join(packagePath, 'dist', 'components', 'credentials')
         const nodeFiles = await this.getFiles(nodesPath)
         return Promise.all(
             nodeFiles.map(async (file) => {
                 if (file.endsWith('.credential.js')) {
-                    const credentialModule = await require(file)
-                    if (credentialModule.credClass) {
-                        const newCredInstance = new credentialModule.credClass()
-                        newCredInstance.icon = this.credentialIconPath[newCredInstance.name] ?? ''
-                        this.componentCredentials[newCredInstance.name] = newCredInstance
+                    try {
+                        const credentialModule = await require(file)
+                        if (credentialModule.credClass) {
+                            const newCredInstance = new credentialModule.credClass()
+                            newCredInstance.icon = this.credentialIconPath[newCredInstance.name] ?? ''
+                            this.componentCredentials[newCredInstance.name] = newCredInstance
+                        }
+                    } catch (err: any) {
+                        logError(`❌ [server]: Error during initCredentials with file ${file}:`, err).catch(() => {})
                     }
                 }
             })

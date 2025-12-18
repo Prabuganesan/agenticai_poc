@@ -3,7 +3,7 @@ import { BaseChatModelParams } from '@langchain/core/language_models/chat_models
 import { BaseCache } from '@langchain/core/caches'
 import { IMultiModalOption, INode, INodeData, INodeParams } from '../../../src/Interface'
 import { getBaseClasses } from '../../../src/utils'
-import { ChatOllama } from './FlowiseChatOllama'
+import { ChatOllama } from './AutonomousChatOllama'
 
 class ChatOllama_ChatModels implements INode {
     label: string
@@ -60,7 +60,7 @@ class ChatOllama_ChatModels implements INode {
                 name: 'allowImageUploads',
                 type: 'boolean',
                 description:
-                    'Allow image input. Refer to the <a href="https://docs.flowiseai.com/using-flowise/uploads#image" target="_blank">docs</a> for more details.',
+                    'Allow image input. Refer to the <a href="[AUTONOMOUS_DOCS]/using-autonomous/uploads#image" target="_blank">docs</a> for more details.',
                 default: false,
                 optional: true
             },

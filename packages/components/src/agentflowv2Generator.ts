@@ -151,7 +151,22 @@ export const generateAgentflowv2 = async (config: Record<string, any>, question:
     try {
         const result = await generateNodesEdges(config, question, options)
 
-        const { nodes, edges } = generateNodesData(result, config)
+        const nodesDataResult = generateNodesData(result, config)
+        
+        // Check if generateNodesData returned an error
+        if (nodesDataResult.error) {
+            return nodesDataResult
+        }
+
+        // Ensure nodes and edges exist before destructuring
+        if (!nodesDataResult.nodes || !Array.isArray(nodesDataResult.nodes)) {
+            return { error: 'Failed to generate nodes: nodes array is missing or invalid' }
+        }
+        if (!nodesDataResult.edges || !Array.isArray(nodesDataResult.edges)) {
+            return { error: 'Failed to generate edges: edges array is missing or invalid' }
+        }
+
+        const { nodes, edges } = nodesDataResult
 
         const updatedNodes = await generateSelectedTools(nodes, config, question, options)
 
@@ -160,11 +175,21 @@ export const generateAgentflowv2 = async (config: Record<string, any>, question:
         return { nodes: updatedNodes, edges: updatedEdges }
     } catch (error) {
         console.error('Error generating AgentflowV2:', error)
-        return { error: error.message || 'Unknown error occurred' }
+        return { error: error instanceof Error ? error.message : 'Unknown error occurred' }
     }
 }
 
 const updateEdges = (edges: Edge[], nodes: Node[]): Edge[] => {
+    // Safety check: ensure edges and nodes are arrays
+    if (!edges || !Array.isArray(edges)) {
+        console.error('updateEdges: edges is not an array:', edges)
+        return []
+    }
+    if (!nodes || !Array.isArray(nodes)) {
+        console.error('updateEdges: nodes is not an array:', nodes)
+        return []
+    }
+
     const isMultiOutput = (source: string) => {
         return source.includes('conditionAgentflow') || source.includes('conditionAgentAgentflow') || source.includes('humanInputAgentflow')
     }
@@ -229,6 +254,12 @@ const updateEdges = (edges: Edge[], nodes: Node[]): Edge[] => {
 }
 
 const generateSelectedTools = async (nodes: Node[], config: Record<string, any>, question: string, options: ICommonObject) => {
+    // Safety check: ensure nodes is an array
+    if (!nodes || !Array.isArray(nodes)) {
+        console.error('generateSelectedTools: nodes is not an array:', nodes)
+        return []
+    }
+
     const selectedTools: string[] = []
 
     for (let i = 0; i < nodes.length; i += 1) {
@@ -414,15 +445,29 @@ const generateNodesData = (result: Record<string, any>, config: Record<string, a
             return result
         }
 
+        // Ensure nodes exists and is an array
+        if (!result.nodes || !Array.isArray(result.nodes)) {
+            return { error: 'Invalid result: nodes array is missing or not an array' }
+        }
+
+        // Ensure edges exists and is an array
+        if (!result.edges || !Array.isArray(result.edges)) {
+            return { error: 'Invalid result: edges array is missing or not an array' }
+        }
+
         let nodes = result.nodes
 
         for (let i = 0; i < nodes.length; i += 1) {
             const node = nodes[i]
-            let nodeName = node.data.name
+            // Safety check: ensure node.data exists
+            if (!node.data) {
+                node.data = {}
+            }
+            let nodeName = node.data?.name
 
             // If nodeName is not found in data.name, try extracting from node.id
             if (!nodeName || !config.componentNodes[nodeName]) {
-                nodeName = node.id.split('_')[0]
+                nodeName = node.id?.split('_')[0]
             }
 
             const componentNode = config.componentNodes[nodeName]
@@ -454,7 +499,8 @@ const generateNodesData = (result: Record<string, any>, config: Record<string, a
 
 const initNode = (nodeData: Record<string, any>, newNodeId: string): NodeData => {
     const inputParams = []
-    const incoming = nodeData.inputs ? nodeData.inputs.length : 0
+    // Safety check: ensure inputs is an array before accessing length
+    const incoming = (nodeData.inputs && Array.isArray(nodeData.inputs)) ? nodeData.inputs.length : 0
 
     // Inputs
     for (let i = 0; i < incoming; i += 1) {

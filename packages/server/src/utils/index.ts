@@ -4,7 +4,7 @@
 
 import path from 'path'
 import fs from 'fs'
-import logger from './logger'
+import { logInfo, logError, logWarn, logDebug } from './logger/system-helper'
 import { v4 as uuidv4 } from 'uuid'
 import {
     IChatFlow,
@@ -27,6 +27,7 @@ import {
     IVariableOverride,
     IncomingInput
 } from '../Interface'
+import { INodeOptionsValue, INodeParams } from 'kodivian-components'
 import { cloneDeep, get, isEqual } from 'lodash'
 import {
     convertChatHistoryToText,
@@ -36,10 +37,10 @@ import {
     ICommonObject,
     IDatabaseEntity,
     IMessage,
-    FlowiseMemory,
+    AutonomousMemory,
     IFileUpload,
     getS3Config
-} from 'flowise-components'
+} from 'kodivian-components'
 import { randomBytes } from 'crypto'
 import { AES, enc } from 'crypto-js'
 import multer from 'multer'
@@ -50,55 +51,26 @@ import { ChatMessage } from '../database/entities/ChatMessage'
 import { Credential } from '../database/entities/Credential'
 import { Tool } from '../database/entities/Tool'
 import { Assistant } from '../database/entities/Assistant'
-import { Lead } from '../database/entities/Lead'
 import { DataSource } from 'typeorm'
 import { CachePool } from '../CachePool'
 import { Variable } from '../database/entities/Variable'
 import { DocumentStore } from '../database/entities/DocumentStore'
 import { DocumentStoreFileChunk } from '../database/entities/DocumentStoreFileChunk'
-import { InternalFlowiseError } from '../errors/internalFlowiseError'
+import { InternalAutonomousError } from '../errors/internalAutonomousError'
 import { StatusCodes } from 'http-status-codes'
-import {
-    CreateSecretCommand,
-    GetSecretValueCommand,
-    SecretsManagerClient,
-    SecretsManagerClientConfig
-} from '@aws-sdk/client-secrets-manager'
-
 export const QUESTION_VAR_PREFIX = 'question'
 export const FILE_ATTACHMENT_PREFIX = 'file_attachment'
 export const CHAT_HISTORY_VAR_PREFIX = 'chat_history'
 export const RUNTIME_MESSAGES_LENGTH_VAR_PREFIX = 'runtime_messages_length'
 export const LOOP_COUNT_VAR_PREFIX = 'loop_count'
 export const CURRENT_DATE_TIME_VAR_PREFIX = 'current_date_time'
-export const REDACTED_CREDENTIAL_VALUE = '_FLOWISE_BLANK_07167752-1a71-43b1-bf8f-4f32252165db'
-
-let secretsManagerClient: SecretsManagerClient | null = null
-const USE_AWS_SECRETS_MANAGER = process.env.SECRETKEY_STORAGE_TYPE === 'aws'
-if (USE_AWS_SECRETS_MANAGER) {
-    const region = process.env.SECRETKEY_AWS_REGION || 'us-east-1' // Default region if not provided
-    const accessKeyId = process.env.SECRETKEY_AWS_ACCESS_KEY
-    const secretAccessKey = process.env.SECRETKEY_AWS_SECRET_KEY
-
-    const secretManagerConfig: SecretsManagerClientConfig = {
-        region: region
-    }
-
-    if (accessKeyId && secretAccessKey) {
-        secretManagerConfig.credentials = {
-            accessKeyId,
-            secretAccessKey
-        }
-    }
-    secretsManagerClient = new SecretsManagerClient(secretManagerConfig)
-}
+export const REDACTED_CREDENTIAL_VALUE = '_AUTONOMOUS_BLANK_07167752-1a71-43b1-bf8f-4f32252165db'
 
 export const databaseEntities: IDatabaseEntity = {
     ChatFlow: ChatFlow,
     ChatMessage: ChatMessage,
     Tool: Tool,
     Credential: Credential,
-    Lead: Lead,
     Assistant: Assistant,
     Variable: Variable,
     DocumentStore: DocumentStore,
@@ -126,17 +98,69 @@ export const getUserHome = (): string => {
 }
 
 /**
+ * Returns the base autonomous server data directory path
+ * Uses AUTONOMOUS_DATA_PATH if set, otherwise uses .autonomous inside the server folder
+ * This ensures all autonomous server data (database, encryption key, uploads) is in one place
+ */
+export const getAutonomousDataPath = (): string => {
+    if (process.env.AUTONOMOUS_DATA_PATH) {
+        return path.join(process.env.AUTONOMOUS_DATA_PATH, '.autonomous')
+    }
+    // Default to .autonomous inside the server package directory
+    // __dirname in compiled code will be dist/utils, so we go up to server root
+    const serverRoot = path.resolve(__dirname, '..', '..')
+    return path.join(serverRoot, '.autonomous')
+}
+
+/**
+ * Ensures the autonomous server data directory exists
+ */
+export const ensureAutonomousDataPath = (): void => {
+    const dataPath = getAutonomousDataPath()
+    if (!fs.existsSync(dataPath)) {
+        fs.mkdirSync(dataPath, { recursive: true })
+    }
+}
+
+/**
  * Returns the path of node modules package
  * @param {string} packageName
  * @returns {string}
  */
 export const getNodeModulesPackagePath = (packageName: string): string => {
+    // Map package names to their workspace directory names (if different)
+    const packageDirMap: Record<string, string> = {
+        'kodivian-ui': 'ui',
+        'kodivian-components': 'components',
+        'autonomous-api': 'api-documentation'
+    }
+    const packageDir = packageDirMap[packageName] || packageName
+
     const checkPaths = [
+        // Check node_modules locations (standard npm/pnpm install)
         path.join(__dirname, '..', 'node_modules', packageName),
         path.join(__dirname, '..', '..', 'node_modules', packageName),
         path.join(__dirname, '..', '..', '..', 'node_modules', packageName),
         path.join(__dirname, '..', '..', '..', '..', 'node_modules', packageName),
-        path.join(__dirname, '..', '..', '..', '..', '..', 'node_modules', packageName)
+        path.join(__dirname, '..', '..', '..', '..', '..', 'node_modules', packageName),
+        // Check workspace packages directory (monorepo setup)
+        path.join(__dirname, '..', '..', '..', 'packages', packageDir),
+        path.join(__dirname, '..', '..', 'packages', packageDir),
+        path.join(__dirname, '..', 'packages', packageDir),
+        // Check from process.cwd() (for installed/deployed environments)
+        path.join(process.cwd(), 'packages', packageDir),
+        path.join(process.cwd(), '..', 'packages', packageDir),
+        path.join(process.cwd(), 'node_modules', packageName),
+        path.join(process.cwd(), '..', 'node_modules', packageName),
+        // Check from server root (when running from bin/)
+        (() => {
+            const serverRoot = path.resolve(__dirname, '..', '..')
+            return path.join(serverRoot, '..', 'packages', packageDir)
+        })(),
+        (() => {
+            const serverRoot = path.resolve(__dirname, '..', '..')
+            return path.join(serverRoot, '..', '..', 'packages', packageDir)
+        })()
     ]
     for (const checkPath of checkPaths) {
         if (fs.existsSync(checkPath)) {
@@ -311,11 +335,11 @@ export const getEndingNodes = (
     // If there are multiple endingnodes, the failed ones will be automatically ignored.
     // And only ensure that at least one can pass the verification.
     const verifiedEndingNodes: typeof endingNodes = []
-    let error: InternalFlowiseError | null = null
+    let error: InternalAutonomousError | null = null
     for (const endingNode of endingNodes) {
         const endingNodeData = endingNode.data
         if (!endingNodeData) {
-            error = new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Ending node ${endingNode.id} data not found`)
+            error = new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Ending node ${endingNode.id} data not found`)
 
             continue
         }
@@ -331,7 +355,10 @@ export const getEndingNodes = (
                 endingNodeData.category !== 'Multi Agents' &&
                 endingNodeData.category !== 'Sequential Agents'
             ) {
-                error = new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Ending node must be either a Chain or Agent or Engine`)
+                error = new InternalAutonomousError(
+                    StatusCodes.INTERNAL_SERVER_ERROR,
+                    `Ending node must be either a Chain or Agent or Engine`
+                )
                 continue
             }
         }
@@ -343,7 +370,7 @@ export const getEndingNodes = (
     }
 
     if (endingNodes.length === 0 || error === null) {
-        error = new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Ending nodes not found`)
+        error = new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Ending nodes not found`)
     }
 
     throw error
@@ -456,7 +483,7 @@ const checkIfDocLoaderShouldBeIgnored = (
     if (reactFlowNode.data.outputAnchors.length) {
         if (Object.keys(reactFlowNode.data.outputs || {}).length) {
             const output = reactFlowNode.data.outputs?.output
-            const node = reactFlowNode.data.outputAnchors[0].options?.find((anchor) => anchor.name === output)
+            const node = reactFlowNode.data.outputAnchors[0].options?.find((anchor: ICommonObject) => anchor.name === output)
             if (node) outputId = (node as ICommonObject).id
         } else {
             outputId = (reactFlowNode.data.outputAnchors[0] as ICommonObject).id
@@ -501,12 +528,12 @@ type BuildFlowParams = {
     uploads?: IFileUpload[]
     baseURL?: string
     orgId?: string
-    workspaceId?: string
-    subscriptionId?: string
     usageCacheManager?: any
     uploadedFilesContent?: string
-    updateStorageUsage?: (orgId: string, workspaceId: string, totalSize: number, usageCacheManager?: any) => void
-    checkStorage?: (orgId: string, subscriptionId: string, usageCacheManager: any) => Promise<any>
+    updateStorageUsage?: (orgId: string, totalSize: number, usageCacheManager?: any) => void
+    checkStorage?: (orgId: string, usageCacheManager: any) => Promise<any>
+    userId?: string
+    chatflowType?: string
 }
 
 /**
@@ -539,12 +566,24 @@ export const buildFlow = async ({
     uploads,
     baseURL,
     orgId,
-    workspaceId,
-    subscriptionId,
     usageCacheManager,
     updateStorageUsage,
-    checkStorage
-}: BuildFlowParams) => {
+    checkStorage,
+    userId,
+    chatflowType
+}: BuildFlowParams): Promise<IReactFlowNode[]> => {
+    // Wrap componentNodes with LLM tracking proxy for automatic metrics collection
+    const { createLLMTrackingProxy } = await import('./llm-tracking-proxy')
+    const trackedComponentNodes = createLLMTrackingProxy(componentNodes, {
+        chatflowId: chatflowid,
+        chatId: chatId,
+        sessionId: sessionId,
+        chatflowType: chatflowType || 'chatflow',
+        userId: userId,
+        orgId: orgId || '',
+        executionId: apiMessageId
+    })
+
     const flowNodes = cloneDeep(reactFlowNodes)
 
     let upsertHistory: Record<string, any> = {}
@@ -581,7 +620,7 @@ export const buildFlow = async ({
         if (!reactFlowNode || reactFlowNode === undefined || nodeIndex < 0) continue
 
         try {
-            const nodeInstanceFilePath = componentNodes[reactFlowNode.data.name].filePath as string
+            const nodeInstanceFilePath = trackedComponentNodes[reactFlowNode.data.name].filePath as string
             const nodeModule = await import(nodeInstanceFilePath)
             const newNodeInstance = new nodeModule.nodeClass()
 
@@ -606,17 +645,15 @@ export const buildFlow = async ({
             )
 
             if (isUpsert && stopNodeId && nodeId === stopNodeId) {
-                logger.debug(`[server]: [${orgId}]: Upserting ${reactFlowNode.data.label} (${reactFlowNode.data.id})`)
+                logDebug(`[server]: [${orgId}]: Upserting ${reactFlowNode.data.label} (${reactFlowNode.data.id})`).catch(() => { })
                 const indexResult = await newNodeInstance.vectorStoreMethods!['upsert']!.call(newNodeInstance, reactFlowNodeData, {
                     orgId,
-                    workspaceId,
-                    subscriptionId,
                     chatId,
                     sessionId,
                     chatflowid,
                     chatHistory,
                     apiMessageId,
-                    logger,
+                    logger: undefined,
                     appDataSource,
                     databaseEntities,
                     cachePool,
@@ -626,7 +663,7 @@ export const buildFlow = async ({
                     baseURL
                 })
                 if (indexResult) upsertHistory['result'] = indexResult
-                logger.debug(`[server]: [${orgId}]: Finished upserting ${reactFlowNode.data.label} (${reactFlowNode.data.id})`)
+                logDebug(`[server]: [${orgId}]: Finished upserting ${reactFlowNode.data.label} (${reactFlowNode.data.id})`).catch(() => { })
                 break
             } else if (
                 !isUpsert &&
@@ -635,17 +672,15 @@ export const buildFlow = async ({
             ) {
                 initializedNodes.add(nodeId)
             } else {
-                logger.debug(`[server]: [${orgId}]: Initializing ${reactFlowNode.data.label} (${reactFlowNode.data.id})`)
+                logDebug(`[server]: [${orgId}]: Initializing ${reactFlowNode.data.label} (${reactFlowNode.data.id})`).catch(() => { })
                 const finalQuestion = uploadedFilesContent ? `${uploadedFilesContent}\n\n${question}` : question
                 let outputResult = await newNodeInstance.init(reactFlowNodeData, finalQuestion, {
                     orgId,
-                    workspaceId,
-                    subscriptionId,
                     chatId,
                     sessionId,
                     chatflowid,
                     chatHistory,
-                    logger,
+                    logger: undefined,
                     appDataSource,
                     databaseEntities,
                     cachePool,
@@ -701,11 +736,128 @@ export const buildFlow = async ({
 
                 flowNodes[nodeIndex].data.instance = outputResult
 
-                logger.debug(`[server]: [${orgId}]: Finished initializing ${reactFlowNode.data.label} (${reactFlowNode.data.id})`)
+                // Inject Usage Tracking for Embeddings
+                if (reactFlowNode.data.category === 'Embeddings') {
+                    try {
+                        const embeddingsInstance = outputResult as any
+                        const originalEmbedDocuments = embeddingsInstance.embedDocuments?.bind(embeddingsInstance)
+                        const originalEmbedQuery = embeddingsInstance.embedQuery?.bind(embeddingsInstance)
+
+                        if (originalEmbedDocuments) {
+                            embeddingsInstance.embedDocuments = async (documents: string[]) => {
+                                const start = Date.now()
+                                const result = await originalEmbedDocuments(documents)
+                                const end = Date.now()
+
+                                let tokenCount = 0
+                                // Simple token estimator: 1 token ~= 4 chars
+                                for (const doc of documents) {
+                                    tokenCount += Math.ceil(doc.length / 4)
+                                }
+
+                                const { extractProviderAndModel, trackLLMUsage } = await import('./llm-usage-tracker')
+                                const { provider, model } = extractProviderAndModel(reactFlowNode.data, embeddingsInstance)
+
+                                await trackLLMUsage({
+                                    requestId: apiMessageId,
+                                    executionId: apiMessageId,
+                                    orgId: orgId || '',
+                                    userId: userId || '0',
+                                    chatflowId: chatflowid,
+                                    chatId,
+                                    sessionId,
+                                    feature: isUpsert ? 'upsert' : (chatflowType || 'chatflow'),
+                                    nodeId: reactFlowNode.data.id,
+                                    nodeType: reactFlowNode.data.type,
+                                    nodeName: reactFlowNode.data.name,
+                                    provider,
+                                    model,
+                                    requestType: 'embedding',
+                                    promptTokens: tokenCount,
+                                    completionTokens: 0,
+                                    totalTokens: tokenCount,
+                                    processingTimeMs: end - start,
+                                    success: true
+                                })
+
+                                return result
+                            }
+                        }
+
+                        if (originalEmbedQuery) {
+                            embeddingsInstance.embedQuery = async (query: string) => {
+                                const start = Date.now()
+                                const result = await originalEmbedQuery(query)
+                                const end = Date.now()
+
+                                const tokenCount = Math.ceil(query.length / 4)
+
+                                const { extractProviderAndModel, trackLLMUsage } = await import('./llm-usage-tracker')
+                                const { provider, model } = extractProviderAndModel(reactFlowNode.data, embeddingsInstance)
+
+                                await trackLLMUsage({
+                                    requestId: apiMessageId,
+                                    executionId: apiMessageId,
+                                    orgId: orgId || '',
+                                    userId: userId || '0',
+                                    chatflowId: chatflowid,
+                                    chatId,
+                                    sessionId,
+                                    feature: isUpsert ? 'upsert' : (chatflowType || 'chatflow'),
+                                    nodeId: reactFlowNode.data.id,
+                                    nodeType: reactFlowNode.data.type,
+                                    nodeName: reactFlowNode.data.name,
+                                    provider,
+                                    model,
+                                    requestType: 'embedding',
+                                    promptTokens: tokenCount,
+                                    completionTokens: 0,
+                                    totalTokens: tokenCount,
+                                    processingTimeMs: end - start,
+                                    success: true
+                                })
+
+                                return result
+                            }
+                        }
+                    } catch (e) {
+                        console.error('[server]: Error injecting embedding usage tracking:', e)
+                    }
+                }
+
+                // Inject Usage Tracking Callback
+                if (reactFlowNode.data.category === 'Chat Models' || reactFlowNode.data.category === 'LLMs') {
+                    try {
+                        const { UsageTrackingCallbackHandler } = await import('./UsageTrackingCallbackHandler')
+                        const usageHandler = new UsageTrackingCallbackHandler(
+                            {
+                                orgId,
+                                chatId,
+                                chatflowId: chatflowid,
+                                sessionId,
+                                userId: userId || '0',
+                                executionId: apiMessageId,
+                                chatflowType: chatflowType || 'CHATFLOW'
+                            },
+                            reactFlowNode.data
+                        )
+                        if (outputResult.callbacks) {
+                            outputResult.callbacks.push(usageHandler)
+                        } else {
+                            outputResult.callbacks = [usageHandler]
+                        }
+                    } catch (e) {
+                        console.error('[server]: Error injecting usage handler:', e)
+                    }
+                }
+
+                logDebug(`[server]: [${orgId}]: Finished initializing ${reactFlowNode.data.label} (${reactFlowNode.data.id})`).catch(
+                    () => { }
+                )
                 initializedNodes.add(reactFlowNode.data.id)
             }
         } catch (e: any) {
-            logger.error(`[server]: [${orgId}]:`, e)
+            logError(`[server]: [${orgId}]:`, e).catch(() => { })
             throw new Error(e)
         }
 
@@ -783,7 +935,7 @@ export const clearSessionMemory = async (
         const nodeInstanceFilePath = componentNodes[node.data.name].filePath as string
         const nodeModule = await import(nodeInstanceFilePath)
         const newNodeInstance = new nodeModule.nodeClass()
-        const options: ICommonObject = { orgId, chatId, appDataSource, databaseEntities, logger }
+        const options: ICommonObject = { orgId, chatId, appDataSource, databaseEntities, logger: undefined }
 
         // SessionId always take priority first because it is the sessionId used for 3rd party memory node
         if (sessionId && node.data.inputs) {
@@ -791,7 +943,7 @@ export const clearSessionMemory = async (
                 await newNodeInstance.clearChatMessages(node.data, options, { type: 'threadId', id: sessionId })
             } else {
                 node.data.inputs.sessionId = sessionId
-                const initializedInstance: FlowiseMemory = await newNodeInstance.init(node.data, '', options)
+                const initializedInstance: AutonomousMemory = await newNodeInstance.init(node.data, '', options)
                 await initializedInstance.clearChatMessages(sessionId)
             }
         } else if (chatId && node.data.inputs) {
@@ -799,7 +951,7 @@ export const clearSessionMemory = async (
                 await newNodeInstance.clearChatMessages(node.data, options, { type: 'chatId', id: chatId })
             } else {
                 node.data.inputs.sessionId = chatId
-                const initializedInstance: FlowiseMemory = await newNodeInstance.init(node.data, '', options)
+                const initializedInstance: AutonomousMemory = await newNodeInstance.init(node.data, '', options)
                 await initializedInstance.clearChatMessages(chatId)
             }
         }
@@ -828,15 +980,16 @@ export const getGlobalVariable = async (
                 foundVar.value = overrideConfig.vars[propertyName]
             } else {
                 // add it the variables, if not found locally in the db
+                // Generate a temporary guid for runtime variables (simple random string)
+                const tempGuid = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
                 availableVariables.push({
+                    guid: tempGuid.substring(0, 15),
                     name: propertyName,
                     type: 'static',
                     value: overrideConfig.vars[propertyName],
-                    id: '',
-                    updatedDate: new Date(),
-                    createdDate: new Date(),
-                    workspaceId: ''
-                })
+                    created_by: 0, // Temporary variable, no user
+                    created_on: Date.now()
+                } as IVariable)
             }
         }
     }
@@ -906,7 +1059,7 @@ export const getVariableValue = async (
             /**
              * Apply string transformation to convert special chars:
              * FROM: hello i am ben\n\n\thow are you?
-             * TO: hello i am benFLOWISE_NEWLINEFLOWISE_NEWLINEFLOWISE_TABhow are you?
+             * TO: hello i am benAUTONOMOUS_NEWLINEAUTONOMOUS_NEWLINEAUTONOMOUS_TABhow are you?
              */
             if (isAcceptVariable && variableFullPath === QUESTION_VAR_PREFIX) {
                 variableDict[`{{${variableFullPath}}}`] = handleEscapeCharacters(question, false)
@@ -1265,7 +1418,7 @@ export const isStartNodeDependOnInput = (startingNodes: IReactFlowNode[], nodes:
             if (inputVariables.length > 0) return true
         }
     }
-    const whitelistNodeNames = ['vectorStoreToDocument', 'autoGPT', 'chatPromptTemplate', 'promptTemplate'] //If these nodes are found, chatflow cannot be reused
+    const whitelistNodeNames = ['vectorStoreToDocument', 'chatPromptTemplate', 'promptTemplate'] //If these nodes are found, chatflow cannot be reused
     for (const node of nodes) {
         if (node.data.name === 'chatPromptTemplate' || node.data.name === 'promptTemplate') {
             let promptValues: ICommonObject = {}
@@ -1274,7 +1427,7 @@ export const isStartNodeDependOnInput = (startingNodes: IReactFlowNode[], nodes:
                 try {
                     promptValues = typeof promptValuesRaw === 'object' ? promptValuesRaw : JSON.parse(promptValuesRaw)
                 } catch (exception) {
-                    console.error(exception)
+                    logError(`Error parsing prompt values: ${exception}`).catch(() => { })
                 }
             }
             if (getAllValuesFromJson(promptValues).includes(`{{${QUESTION_VAR_PREFIX}}}`)) return true
@@ -1355,10 +1508,10 @@ export const findAvailableConfigs = (reactFlowNodes: IReactFlowNode[], component
                     name: inputParam.name,
                     type: inputParam.options
                         ? inputParam.options
-                              ?.map((option) => {
-                                  return option.name
-                              })
-                              .join(', ')
+                            ?.map((option: INodeOptionsValue) => {
+                                return option.name
+                            })
+                            .join(', ')
                         : 'string'
                 }
             } else if (inputParam.type === 'credential') {
@@ -1387,7 +1540,7 @@ export const findAvailableConfigs = (reactFlowNodes: IReactFlowNode[], component
                     for (const item of arrayItem) {
                         let itemType = item.type
                         if (itemType === 'options') {
-                            const availableOptions = item.options?.map((option) => option.name).join(', ')
+                            const availableOptions = item.options?.map((option: INodeOptionsValue) => option.name).join(', ')
                             itemType = `(${availableOptions})`
                         } else if (itemType === 'file') {
                             itemType = item.fileType ?? item.type
@@ -1475,22 +1628,16 @@ export const isFlowValidForStream = (reactFlowNodes: IReactFlowNode[], endingNod
         'Chat Models': [
             'azureChatOpenAI',
             'chatOpenAI',
-            'chatOpenAI_LlamaIndex',
             'chatOpenAICustom',
             'chatAnthropic',
-            'chatAnthropic_LlamaIndex',
             'chatOllama',
-            'chatOllama_LlamaIndex',
             'awsChatBedrock',
             'chatMistralAI',
-            'chatMistral_LlamaIndex',
             'chatAlibabaTongyi',
             'groqChat',
-            'chatGroq_LlamaIndex',
             'chatCohere',
             'chatGoogleGenerativeAI',
             'chatTogetherAI',
-            'chatTogetherAI_LlamaIndex',
             'chatFireworks',
             'ChatSambanova',
             'chatBaiduWenxin',
@@ -1512,20 +1659,20 @@ export const isFlowValidForStream = (reactFlowNodes: IReactFlowNode[], endingNod
             /** Deprecated, add streaming input param to the component instead **/
             if (!Object.prototype.hasOwnProperty.call(data.inputs, 'streaming') && !data.inputs?.streaming) {
                 isChatOrLLMsExist = true
-                const validLLMs = streamAvailableLLMs[data.category]
-                if (!validLLMs.includes(data.name)) return false
+                const validLLMs = (streamAvailableLLMs as Record<string, string[]>)[data.category]
+                if (!validLLMs || !validLLMs.includes(data.name)) return false
             }
         }
     }
 
     let isValidChainOrAgent = false
     if (endingNodeData.category === 'Chains') {
-        // Chains that are not available to stream
-        const blacklistChains = ['openApiChain', 'vectaraQAChain']
+        // Chains that are not available to stream (deprecated chains removed)
+        const blacklistChains: string[] = []
         isValidChainOrAgent = !blacklistChains.includes(endingNodeData.name)
     } else if (endingNodeData.category === 'Agents') {
         // Agent that are available to stream
-        const whitelistAgents = ['csvAgent', 'airtableAgent', 'toolAgent', 'conversationalRetrievalToolAgent', 'openAIToolAgentLlamaIndex']
+        const whitelistAgents = ['csvAgent', 'airtableAgent', 'toolAgent', 'conversationalRetrievalToolAgent']
         isValidChainOrAgent = whitelistAgents.includes(endingNodeData.name)
 
         // If agent is openAIAssistant, streaming is enabled
@@ -1549,45 +1696,106 @@ export const isFlowValidForStream = (reactFlowNodes: IReactFlowNode[], endingNod
 }
 
 /**
- * Returns the encryption key
- * @returns {Promise<string>}
+ * Get encryption key backup path (in .autonomous/backup/ folder)
+ * @returns {string} Path to backup encryption key file
+ */
+const getEncryptionKeyBackupPath = (): string => {
+    const dataPath = getAutonomousDataPath()
+    const backupDir = path.join(dataPath, 'backup')
+    return path.join(backupDir, 'encryption.key')
+}
+
+/**
+ * Backup encryption key to backup location (manual backup only)
+ * This is a safety copy - not used for automatic recovery
+ * @param key The encryption key to backup
+ */
+const backupEncryptionKey = async (key: string): Promise<void> => {
+    try {
+        const backupPath = getEncryptionKeyBackupPath()
+        const backupDir = path.dirname(backupPath)
+
+        // Ensure backup directory exists
+        if (!fs.existsSync(backupDir)) {
+            fs.mkdirSync(backupDir, { recursive: true })
+        }
+
+        // Write backup file
+        await fs.promises.writeFile(backupPath, key, 'utf8')
+        logInfo(`🔑 Encryption key backed up to: ${backupPath}`).catch(() => { })
+    } catch (error: any) {
+        logWarn(`Failed to backup encryption key: ${error.message}`).catch(() => { })
+        // Don't throw - backup is optional
+    }
+}
+
+/**
+ * Get encryption key from file (primary location only)
+ * For cluster environments, use AUTONOMOUS_DATA_PATH to point to shared volume
+ * All instances will read from the same file location
+ *
+ * Note: Backup folder is NOT used for automatic recovery - it's for manual backup only
+ * If primary file is deleted, user must manually restore from backup folder
+ *
+ * @returns {Promise<string>} The encryption key
  */
 export const getEncryptionKey = async (): Promise<string> => {
-    if (process.env.FLOWISE_SECRETKEY_OVERWRITE !== undefined && process.env.FLOWISE_SECRETKEY_OVERWRITE !== '') {
-        return process.env.FLOWISE_SECRETKEY_OVERWRITE
-    }
-    if (USE_AWS_SECRETS_MANAGER && secretsManagerClient) {
-        const secretId = process.env.SECRETKEY_AWS_NAME || 'FlowiseEncryptionKey'
-        try {
-            const command = new GetSecretValueCommand({ SecretId: secretId })
-            const response = await secretsManagerClient.send(command)
+    const encryptionKeyPath = getEncryptionKeyPath()
 
-            if (response.SecretString) {
-                return response.SecretString
-            }
-        } catch (error: any) {
-            if (error.name === 'ResourceNotFoundException') {
-                // Secret doesn't exist, create it
-                const newKey = generateEncryptKey()
-                const createCommand = new CreateSecretCommand({
-                    Name: secretId,
-                    SecretString: newKey
-                })
-                await secretsManagerClient.send(createCommand)
-                return newKey
-            }
-            throw error
+    // Try to read existing key file (primary location only)
+    try {
+        const key = await fs.promises.readFile(encryptionKeyPath, 'utf8')
+        if (key && key.trim().length > 0) {
+            const trimmedKey = key.trim()
+            // Ensure backup exists (async, don't wait) - manual backup only
+            backupEncryptionKey(trimmedKey).catch(() => { })
+            return trimmedKey
+        }
+    } catch (readError: any) {
+        // File doesn't exist or is empty - will create below
+        if (readError.code !== 'ENOENT') {
+            logWarn(`Failed to read encryption key file: ${readError.message}`).catch(() => { })
         }
     }
+
+    // File doesn't exist - generate and save
+    // In cluster environments, multiple instances may try to create simultaneously
+    // First instance creates it, others will read it on retry
+    const encryptKey = generateEncryptKey()
+    const dataPath = getAutonomousDataPath()
+    ensureAutonomousDataPath() // Ensure directory exists before writing
+
     try {
-        return await fs.promises.readFile(getEncryptionKeyPath(), 'utf8')
-    } catch (error) {
-        const encryptKey = generateEncryptKey()
-        const defaultLocation = process.env.SECRETKEY_PATH
-            ? path.join(process.env.SECRETKEY_PATH, 'encryption.key')
-            : path.join(getUserHome(), '.flowise', 'encryption.key')
-        await fs.promises.writeFile(defaultLocation, encryptKey)
+        // Use 'wx' flag to create file exclusively (fails if file already exists)
+        // This prevents race conditions in cluster environments
+        await fs.promises.writeFile(encryptionKeyPath, encryptKey, { flag: 'wx' })
+        logInfo(`🔑 Created new encryption key file: ${encryptionKeyPath}`).catch(() => { })
+
+        // Backup the new key (manual backup only - not used for recovery)
+        await backupEncryptionKey(encryptKey)
+
         return encryptKey
+    } catch (writeError: any) {
+        // File was created by another instance (cluster scenario)
+        if (writeError.code === 'EEXIST') {
+            logInfo(`🔑 Encryption key file already exists (created by another instance), reading...`).catch(() => { })
+            // Retry reading - another instance created it
+            try {
+                const existingKey = await fs.promises.readFile(encryptionKeyPath, 'utf8')
+                if (existingKey && existingKey.trim().length > 0) {
+                    const trimmedKey = existingKey.trim()
+                    // Ensure backup exists (manual backup only)
+                    backupEncryptionKey(trimmedKey).catch(() => { })
+                    return trimmedKey
+                }
+            } catch (retryError) {
+                logError(`Failed to read encryption key after concurrent creation: ${retryError}`).catch(() => { })
+                throw new Error(`Encryption key file exists but cannot be read: ${retryError}`)
+            }
+        }
+        // Other write errors
+        logError(`Failed to write encryption key file: ${writeError.message}`).catch(() => { })
+        throw new Error(`Failed to create encryption key file: ${writeError.message}`)
     }
 }
 
@@ -1615,33 +1823,9 @@ export const decryptCredentialData = async (
 ): Promise<ICredentialDataDecrypted> => {
     let decryptedDataStr: string
 
-    if (USE_AWS_SECRETS_MANAGER && secretsManagerClient) {
-        try {
-            if (encryptedData.startsWith('FlowiseCredential_')) {
-                const command = new GetSecretValueCommand({ SecretId: encryptedData })
-                const response = await secretsManagerClient.send(command)
-
-                if (response.SecretString) {
-                    const secretObj = JSON.parse(response.SecretString)
-                    decryptedDataStr = JSON.stringify(secretObj)
-                } else {
-                    throw new Error('Failed to retrieve secret value.')
-                }
-            } else {
-                const encryptKey = await getEncryptionKey()
-                const decryptedData = AES.decrypt(encryptedData, encryptKey)
-                decryptedDataStr = decryptedData.toString(enc.Utf8)
-            }
-        } catch (error) {
-            console.error(error)
-            throw new Error('Failed to decrypt credential data.')
-        }
-    } else {
-        // Fallback to existing code
-        const encryptKey = await getEncryptionKey()
-        const decryptedData = AES.decrypt(encryptedData, encryptKey)
-        decryptedDataStr = decryptedData.toString(enc.Utf8)
-    }
+    const encryptKey = await getEncryptionKey()
+    const decryptedData = AES.decrypt(encryptedData, encryptKey)
+    decryptedDataStr = decryptedData.toString(enc.Utf8)
 
     if (!decryptedDataStr) return {}
     try {
@@ -1651,7 +1835,7 @@ export const decryptCredentialData = async (
         }
         return JSON.parse(decryptedDataStr)
     } catch (e) {
-        console.error(e)
+        logError(`Error decrypting data: ${e}`).catch(() => { })
         return {}
     }
 }
@@ -1683,10 +1867,6 @@ export const transformToCredentialEntity = async (body: ICredentialReqBody): Pro
     const newCredential = new Credential()
     Object.assign(newCredential, credentialBody)
 
-    if (body.workspaceId) {
-        newCredential.workspaceId = body.workspaceId
-    }
-
     return newCredential
 }
 
@@ -1704,7 +1884,9 @@ export const redactCredentialWithPasswordType = (
 ): ICredentialDataDecrypted => {
     const plainDataObj = cloneDeep(decryptedCredentialObj)
     for (const cred in plainDataObj) {
-        const inputParam = componentCredentials[componentCredentialName].inputs?.find((inp) => inp.type === 'password' && inp.name === cred)
+        const inputParam = componentCredentials[componentCredentialName].inputs?.find(
+            (inp: INodeParams) => inp.type === 'password' && inp.name === cred
+        )
         if (inputParam) {
             plainDataObj[cred] = REDACTED_CREDENTIAL_VALUE
         }
@@ -1784,7 +1966,7 @@ export const getSessionChatHistory = async (
         memoryNode.data.inputs.sessionId = sessionId
     }
 
-    const initializedInstance: FlowiseMemory = await newNodeInstance.init(memoryNode.data, '', {
+    const initializedInstance: AutonomousMemory = await newNodeInstance.init(memoryNode.data, '', {
         chatflowid,
         appDataSource,
         databaseEntities,
@@ -1843,16 +2025,7 @@ export const getAllValuesFromJson = (obj: any): any[] => {
     return values
 }
 
-/**
- * Get only essential flow data items for telemetry
- * @param {IReactFlowNode[]} nodes
- * @param {IReactFlowEdge[]} edges
- */
-export const getTelemetryFlowObj = (nodes: IReactFlowNode[], edges: IReactFlowEdge[]) => {
-    const nodeData = nodes.map((node) => node.id)
-    const edgeData = edges.map((edge) => ({ source: edge.source, target: edge.target }))
-    return { nodes: nodeData, edges: edgeData }
-}
+// getTelemetryFlowObj removed - Telemetry feature removed
 
 /**
  * Get app current version
@@ -1915,9 +2088,14 @@ export const getAPIOverrideConfig = (chatflow: IChatFlow) => {
 }
 
 export const getUploadPath = (): string => {
-    return process.env.BLOB_STORAGE_PATH
-        ? path.join(process.env.BLOB_STORAGE_PATH, 'uploads')
-        : path.join(getUserHome(), '.flowise', 'uploads')
+    // Use centralized autonomous server data path
+    const dataPath = getAutonomousDataPath()
+    const uploadPath = path.join(dataPath, 'uploads')
+    ensureAutonomousDataPath() // Ensure base directory exists
+    if (!fs.existsSync(uploadPath)) {
+        fs.mkdirSync(uploadPath, { recursive: true })
+    }
+    return uploadPath
 }
 
 export function generateId() {
@@ -2035,7 +2213,7 @@ export const _removeCredentialId = (obj: any): any => {
 
     const newObj: Record<string, any> = {}
     for (const [key, value] of Object.entries(obj)) {
-        if (key === 'FLOWISE_CREDENTIAL_ID') continue
+        if (key === 'AUTONOMOUS_CREDENTIAL_ID') continue
         newObj[key] = _removeCredentialId(value)
     }
     return newObj

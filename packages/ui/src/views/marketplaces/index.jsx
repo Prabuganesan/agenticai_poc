@@ -42,7 +42,6 @@ import { closeSnackbar as closeSnackbarAction, enqueueSnackbar as enqueueSnackba
 import ConfirmDialog from '@/ui-component/dialog/ConfirmDialog'
 import { PermissionTab } from '@/ui-component/button/RBACButtons'
 import { Available } from '@/ui-component/rbac/available'
-import ShareWithWorkspaceDialog from '@/ui-component/dialog/ShareWithWorkspaceDialog'
 
 // API
 import marketplacesApi from '@/api/marketplaces'
@@ -62,7 +61,7 @@ import { useError } from '@/store/context/ErrorContext'
 
 const badges = ['POPULAR', 'NEW']
 const types = ['Chatflow', 'AgentflowV2', 'Tool']
-const framework = ['Langchain', 'LlamaIndex']
+const framework = ['Langchain']
 const MenuProps = {
     PaperProps: {
         style: {
@@ -111,8 +110,7 @@ const Marketplace = () => {
     const { confirm } = useConfirm()
     const { hasPermission } = useAuth()
 
-    const [showShareTemplateDialog, setShowShareTemplateDialog] = useState(false)
-    const [shareTemplateDialogProps, setShareTemplateDialogProps] = useState({})
+    // Share template dialog removed - not needed for autonomous server
 
     const share = (template) => {
         const dialogProps = {
@@ -942,14 +940,6 @@ const Marketplace = () => {
                 onConfirm={() => setShowToolDialog(false)}
                 onUseTemplate={(tool) => onUseTemplate(tool)}
             ></ToolDialog>
-            {showShareTemplateDialog && (
-                <ShareWithWorkspaceDialog
-                    show={showShareTemplateDialog}
-                    dialogProps={shareTemplateDialogProps}
-                    onCancel={() => setShowShareTemplateDialog(false)}
-                    setError={setError}
-                ></ShareWithWorkspaceDialog>
-            )}
             <ConfirmDialog />
         </>
     )

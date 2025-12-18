@@ -49,7 +49,6 @@ export function getMessageAuthor(message: BaseMessage) {
 
 /**
  * !!! IMPORTANT: Must return 'user' as default instead of throwing error
- * https://github.com/FlowiseAI/Flowise/issues/4743
  * Maps a message type to a Google Generative AI chat author.
  * @param message The message to map.
  * @param model The model to use for mapping.
@@ -452,7 +451,6 @@ export function mapGenerateContentResultToChatResult(
     const [candidate] = response.candidates
     const { content: candidateContent, ...generationInfo } = candidate
     let content: MessageContent | undefined
-    const inlineDataItems: any[] = []
 
     if (Array.isArray(candidateContent?.parts) && candidateContent.parts.length === 1 && candidateContent.parts[0].text) {
         content = candidateContent.parts[0].text
@@ -473,18 +471,6 @@ export function mapGenerateContentResultToChatResult(
                     type: 'codeExecutionResult',
                     codeExecutionResult: p.codeExecutionResult
                 }
-            } else if ('inlineData' in p && p.inlineData) {
-                // Extract inline image data for processing by Agent
-                inlineDataItems.push({
-                    type: 'gemini_inline_data',
-                    mimeType: p.inlineData.mimeType,
-                    data: p.inlineData.data
-                })
-                // Return the inline data as part of the content structure
-                return {
-                    type: 'inlineData',
-                    inlineData: p.inlineData
-                }
             }
             return p
         })
@@ -501,12 +487,6 @@ export function mapGenerateContentResultToChatResult(
         text = block?.text ?? text
     }
 
-    // Build response_metadata with inline data if present
-    const response_metadata: any = {}
-    if (inlineDataItems.length > 0) {
-        response_metadata.inlineData = inlineDataItems
-    }
-
     const generation: ChatGeneration = {
         text,
         message: new AIMessage({
@@ -521,8 +501,7 @@ export function mapGenerateContentResultToChatResult(
             additional_kwargs: {
                 ...generationInfo
             },
-            usage_metadata: extra?.usageMetadata,
-            response_metadata: Object.keys(response_metadata).length > 0 ? response_metadata : undefined
+            usage_metadata: extra?.usageMetadata
         }),
         generationInfo
     }
@@ -553,8 +532,6 @@ export function convertResponseContentToChatGenerationChunk(
     const [candidate] = response.candidates
     const { content: candidateContent, ...generationInfo } = candidate
     let content: MessageContent | undefined
-    const inlineDataItems: any[] = []
-
     // Checks if some parts do not have text. If false, it means that the content is a string.
     if (Array.isArray(candidateContent?.parts) && candidateContent.parts.every((p) => 'text' in p)) {
         content = candidateContent.parts.map((p) => p.text).join('')
@@ -574,18 +551,6 @@ export function convertResponseContentToChatGenerationChunk(
                 return {
                     type: 'codeExecutionResult',
                     codeExecutionResult: p.codeExecutionResult
-                }
-            } else if ('inlineData' in p && p.inlineData) {
-                // Extract inline image data for processing by Agent
-                inlineDataItems.push({
-                    type: 'gemini_inline_data',
-                    mimeType: p.inlineData.mimeType,
-                    data: p.inlineData.data
-                })
-                // Return the inline data as part of the content structure
-                return {
-                    type: 'inlineData',
-                    inlineData: p.inlineData
                 }
             }
             return p
@@ -616,12 +581,6 @@ export function convertResponseContentToChatGenerationChunk(
         )
     }
 
-    // Build response_metadata with inline data if present
-    const response_metadata: any = {}
-    if (inlineDataItems.length > 0) {
-        response_metadata.inlineData = inlineDataItems
-    }
-
     return new ChatGenerationChunk({
         text,
         message: new AIMessageChunk({
@@ -631,8 +590,7 @@ export function convertResponseContentToChatGenerationChunk(
             // Each chunk can have unique "generationInfo", and merging strategy is unclear,
             // so leave blank for now.
             additional_kwargs: {},
-            usage_metadata: extra.usageMetadata,
-            response_metadata: Object.keys(response_metadata).length > 0 ? response_metadata : undefined
+            usage_metadata: extra.usageMetadata
         }),
         generationInfo
     })

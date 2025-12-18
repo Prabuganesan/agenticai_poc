@@ -1,7 +1,11 @@
 {
     "description": "Basic example of Conversation Chain with built-in memory - works exactly like ChatGPT",
-    "usecases": ["Basic"],
-    "framework": ["Langchain"],
+    "usecases": [
+        "Basic"
+    ],
+    "framework": [
+        "Langchain"
+    ],
     "nodes": [
         {
             "width": 300,
@@ -18,7 +22,12 @@
                 "version": 6.0,
                 "name": "chatOpenAI",
                 "type": "ChatOpenAI",
-                "baseClasses": ["ChatOpenAI", "BaseChatModel", "BaseLanguageModel", "Runnable"],
+                "baseClasses": [
+                    "ChatOpenAI",
+                    "BaseChatModel",
+                    "BaseLanguageModel",
+                    "Runnable"
+                ],
                 "category": "Chat Models",
                 "description": "Wrapper around OpenAI large language models that use the Chat endpoint",
                 "inputParams": [
@@ -26,7 +35,9 @@
                         "label": "Connect Credential",
                         "name": "credential",
                         "type": "credential",
-                        "credentialNames": ["openAIApi"],
+                        "credentialNames": [
+                            "openAIApi"
+                        ],
                         "id": "chatOpenAI_0-input-credential-credential"
                     },
                     {
@@ -197,7 +208,11 @@
                 "version": 2,
                 "name": "bufferMemory",
                 "type": "BufferMemory",
-                "baseClasses": ["BufferMemory", "BaseChatMemory", "BaseMemory"],
+                "baseClasses": [
+                    "BufferMemory",
+                    "BaseChatMemory",
+                    "BaseMemory"
+                ],
                 "category": "Memory",
                 "description": "Retrieve chat messages stored in database",
                 "inputParams": [
@@ -205,7 +220,7 @@
                         "label": "Session Id",
                         "name": "sessionId",
                         "type": "string",
-                        "description": "If not specified, a random id will be used. Learn <a target=\"_blank\" href=\"https://docs.flowiseai.com/memory#ui-and-embedded-chat\">more</a>",
+                        "description": "If not specified, a random id will be used. Learn <a target=\"_blank\" href=\"[AUTONOMOUS_DOCS]/memory#ui-and-embedded-chat\">more</a>",
                         "default": "",
                         "additionalParams": true,
                         "optional": true,
@@ -258,7 +273,12 @@
                 "version": 3,
                 "name": "conversationChain",
                 "type": "ConversationChain",
-                "baseClasses": ["ConversationChain", "LLMChain", "BaseChain", "Runnable"],
+                "baseClasses": [
+                    "ConversationChain",
+                    "LLMChain",
+                    "BaseChain",
+                    "Runnable"
+                ],
                 "category": "Chains",
                 "description": "Chat models specific conversational chain with memory",
                 "inputParams": [

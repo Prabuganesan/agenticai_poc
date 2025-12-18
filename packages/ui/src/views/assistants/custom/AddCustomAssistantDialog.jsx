@@ -8,7 +8,6 @@ import {
     enqueueSnackbar as enqueueSnackbarAction,
     closeSnackbar as closeSnackbarAction
 } from '@/store/actions'
-import { v4 as uuidv4 } from 'uuid'
 
 // Material
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Box, Typography, OutlinedInput } from '@mui/material'
@@ -52,7 +51,8 @@ const AddCustomAssistantDialog = ({ show, dialogProps, onCancel, onConfirm }) =>
                 details: JSON.stringify({
                     name: customAssistantName
                 }),
-                credential: uuidv4(),
+                // CUSTOM assistants don't require a credential - send null instead of UUID
+                credential: null,
                 type: 'CUSTOM'
             }
             const createResp = await assistantsApi.createNewAssistant(obj)

@@ -188,10 +188,15 @@ export class HuggingFaceInference extends LLM implements HFInput {
 
     /** @ignore */
     static async imports(): Promise<{
-        InferenceClient: typeof import('@huggingface/inference').InferenceClient
+        InferenceClient: any
     }> {
         try {
-            const { InferenceClient } = await import('@huggingface/inference')
+            const HF: any = await import('@huggingface/inference')
+            // Handle both named export and default export patterns
+            const InferenceClient = HF.InferenceClient || HF.default?.InferenceClient || HF.default
+            if (!InferenceClient) {
+                throw new Error('InferenceClient not found in @huggingface/inference package')
+            }
             return { InferenceClient }
         } catch (e) {
             throw new Error('Please install huggingface as a dependency with, e.g. `pnpm install @huggingface/inference`')

@@ -111,27 +111,119 @@ const AgentflowGeneratorDialog = ({ show, dialogProps, onCancel, onConfirm }) =>
     }, [loading])
 
     const onGenerate = async () => {
-        if (!customAssistantInstruction.trim()) return
+        if (!customAssistantInstruction.trim()) {
+            enqueueSnackbar({
+                message: 'Please enter a description for your agent',
+                options: {
+                    key: new Date().getTime() + Math.random(),
+                    variant: 'warning',
+                    persist: false
+                }
+            })
+            return
+        }
+
+        if (!selectedChatModel || !Object.keys(selectedChatModel).length) {
+            enqueueSnackbar({
+                message: 'Please select a model to generate agentflow',
+                options: {
+                    key: new Date().getTime() + Math.random(),
+                    variant: 'warning',
+                    persist: false
+                }
+            })
+            return
+        }
+
+        // Validate that the model has required configuration
+        if (!selectedChatModel.name) {
+            enqueueSnackbar({
+                message: 'Selected model is missing name. Please select a valid model.',
+                options: {
+                    key: new Date().getTime() + Math.random(),
+                    variant: 'error',
+                    persist: false
+                }
+            })
+            return
+        }
+
+        // Check if model has inputs configured (credentials, model name, etc.)
+        if (!selectedChatModel.inputs || Object.keys(selectedChatModel.inputs).length === 0) {
+            console.warn('[AgentflowGenerator] Selected model has no inputs configured:', selectedChatModel)
+        }
 
         try {
             setLoading(true)
+
+            // Log the request for debugging
+            console.log('[AgentflowGenerator] Generating with:', {
+                question: customAssistantInstruction.trim(),
+                modelName: selectedChatModel?.name,
+                hasInputs: !!selectedChatModel?.inputs
+            })
 
             const response = await chatflowsApi.generateAgentflow({
                 question: customAssistantInstruction.trim(),
                 selectedChatModel: selectedChatModel
             })
 
-            if (response.data && response.data.nodes && response.data.edges) {
+            // Log the response for debugging
+            console.log('[AgentflowGenerator] Response received:', {
+                hasData: !!response.data,
+                hasError: !!response.data?.error,
+                hasNodes: !!response.data?.nodes,
+                hasEdges: !!response.data?.edges,
+                nodesLength: response.data?.nodes?.length,
+                edgesLength: response.data?.edges?.length
+            })
+
+            // Check if response has an error property
+            if (response.data?.error) {
+                console.error('[AgentflowGenerator] Error in response:', response.data.error)
+                console.error('[AgentflowGenerator] Full response:', response.data)
+                
+                enqueueSnackbar({
+                    message: response.data.error || 'Failed to generate agentflow',
+                    options: {
+                        key: new Date().getTime() + Math.random(),
+                        variant: 'error',
+                        persist: true, // Keep error visible longer for user to read
+                        action: (key) => (
+                            <Button style={{ color: 'white' }} onClick={() => closeSnackbar(key)}>
+                                <IconX />
+                            </Button>
+                        )
+                    }
+                })
+                return
+            }
+
+            // Check if response has valid nodes and edges arrays
+            if (response.data && Array.isArray(response.data.nodes) && Array.isArray(response.data.edges)) {
+                // Validate that nodes and edges arrays are not empty (unless that's intentional)
+                if (response.data.nodes.length === 0 && response.data.edges.length === 0) {
+                    enqueueSnackbar({
+                        message: 'Generated agentflow is empty. Please try again with a different prompt.',
+                        options: {
+                            key: new Date().getTime() + Math.random(),
+                            variant: 'warning',
+                            persist: false
+                        }
+                    })
+                    return
+                }
+
                 reactFlowInstance.setNodes(response.data.nodes)
                 reactFlowInstance.setEdges(response.data.edges)
                 onConfirm()
             } else {
                 enqueueSnackbar({
-                    message: response.error || 'Failed to generate agentflow',
+                    message: response.data?.error || 'Invalid response format: missing nodes or edges',
                     options: {
                         key: new Date().getTime() + Math.random(),
                         variant: 'error',
-                        persist: false,
+                        persist: true,
                         action: (key) => (
                             <Button style={{ color: 'white' }} onClick={() => closeSnackbar(key)}>
                                 <IconX />
@@ -141,12 +233,41 @@ const AgentflowGeneratorDialog = ({ show, dialogProps, onCancel, onConfirm }) =>
                 })
             }
         } catch (error) {
+            // Log full error details for debugging
+            console.error('[AgentflowGenerator] Error caught:', error)
+            console.error('[AgentflowGenerator] Error response:', error.response)
+            console.error('[AgentflowGenerator] Error response data:', error.response?.data)
+            console.error('[AgentflowGenerator] Error message:', error.message)
+            console.error('[AgentflowGenerator] Error stack:', error.stack)
+
+            // Handle different error response formats
+            let errorMessage = 'Failed to generate agentflow'
+            
+            if (error.response?.data?.message) {
+                errorMessage = error.response.data.message
+            } else if (error.response?.data?.error) {
+                errorMessage = error.response.data.error
+            } else if (error.message) {
+                errorMessage = error.message
+            }
+
+            // Add more context to error message if available
+            if (error.response?.status === 429) {
+                errorMessage = 'API rate limit exceeded. Please wait a moment and try again.'
+            } else if (error.response?.status === 401) {
+                errorMessage = 'Authentication failed. Please check your API credentials.'
+            } else if (error.response?.status === 400) {
+                errorMessage = errorMessage || 'Invalid request. Please check your input and model configuration.'
+            } else if (error.response?.status >= 500) {
+                errorMessage = errorMessage || 'Server error. Please try again later or contact support.'
+            }
+
             enqueueSnackbar({
-                message: error.response?.data?.message || 'Failed to generate agentflow',
+                message: errorMessage,
                 options: {
                     key: new Date().getTime() + Math.random(),
                     variant: 'error',
-                    persist: false,
+                    persist: true, // Keep error visible longer for user to read
                     action: (key) => (
                         <Button style={{ color: 'white' }} onClick={() => closeSnackbar(key)}>
                             <IconX />

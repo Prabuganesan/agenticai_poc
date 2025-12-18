@@ -23,7 +23,7 @@ class CustomTool_Tools implements INode {
         this.type = 'CustomTool'
         this.icon = 'customtool.svg'
         this.category = 'Tools'
-        this.description = `Use custom tool you've created in Flowise within chatflow`
+        this.description = `Use custom tool you've created in Autonomous within chatflow`
         this.inputs = [
             {
                 label: 'Select Tool',
@@ -106,7 +106,7 @@ class CustomTool_Tools implements INode {
 
         try {
             const tool = await appDataSource.getRepository(databaseEntities['Tool']).findOneBy({
-                id: selectedToolId
+                guid: selectedToolId
             })
 
             if (!tool) throw new Error(`Tool ${selectedToolId} not found`)

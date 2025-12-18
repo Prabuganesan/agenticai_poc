@@ -1,38 +1,44 @@
 /* eslint-disable */
-import { Entity, Column, CreateDateColumn, UpdateDateColumn, PrimaryGeneratedColumn } from 'typeorm'
+import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm'
 import { ITool } from '../../Interface'
+import { getTextColumnType } from '../utils/column-types'
 
-@Entity()
+@Entity('auto_tool')
 export class Tool implements ITool {
-    @PrimaryGeneratedColumn('uuid')
-    id: string
+    @PrimaryGeneratedColumn({ type: 'numeric', name: 'id' })
+    id: number
 
-    @Column()
+    @Column({ type: 'varchar', length: 15, name: 'guid' })
+    guid: string
+
+    @Column({ name: 'name' })
     name: string
 
-    @Column({ type: 'text' })
+    @Column({ type: getTextColumnType(), name: 'description' })
     description: string
 
-    @Column()
+    @Column({ name: 'color' })
     color: string
 
-    @Column({ nullable: true })
+    @Column({ nullable: true, name: 'iconsrc' })
     iconSrc?: string
 
-    @Column({ nullable: true, type: 'text' })
+    @Column({ nullable: true, type: getTextColumnType(), name: 'schema' })
     schema?: string
 
-    @Column({ nullable: true, type: 'text' })
+    @Column({ nullable: true, type: getTextColumnType(), name: 'func' })
     func?: string
 
-    @Column({ type: 'timestamp' })
-    @CreateDateColumn()
-    createdDate: Date
+    @Index()
+    @Column({ type: 'numeric', name: 'created_by' })
+    created_by: number
 
-    @Column({ type: 'timestamp' })
-    @UpdateDateColumn()
-    updatedDate: Date
+    @Column({ type: 'numeric', precision: 25, scale: 0, name: 'created_on' })
+    created_on: number
 
-    @Column({ nullable: false, type: 'text' })
-    workspaceId: string
+    @Column({ nullable: true, type: 'numeric', name: 'last_modified_by' })
+    last_modified_by?: number
+
+    @Column({ nullable: true, type: 'numeric', precision: 25, scale: 0, name: 'last_modified_on' })
+    last_modified_on?: number
 }

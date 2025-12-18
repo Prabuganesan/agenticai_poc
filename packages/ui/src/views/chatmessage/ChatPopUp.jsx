@@ -1,10 +1,8 @@
-import { memo, useState, useRef, useEffect, useContext } from 'react'
-import { useDispatch } from 'react-redux'
+import { memo, useState, useRef, useEffect } from 'react'
 import PropTypes from 'prop-types'
 
-import { ClickAwayListener, Paper, Popper, Button } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
-import { IconMessage, IconX, IconEraser, IconArrowsMaximize } from '@tabler/icons-react'
+import { ClickAwayListener, Paper, Box } from '@mui/material'
+import { IconMessage } from '@tabler/icons-react'
 
 // project import
 import { StyledFab } from '@/ui-component/button/StyledFab'
@@ -12,54 +10,32 @@ import MainCard from '@/ui-component/cards/MainCard'
 import Transitions from '@/ui-component/extended/Transitions'
 import ChatMessage from './ChatMessage'
 import ChatExpandDialog from './ChatExpandDialog'
-
-// api
-import chatmessageApi from '@/api/chatmessage'
-
-// Hooks
-import useConfirm from '@/hooks/useConfirm'
-import useNotifier from '@/utils/useNotifier'
-import { flowContext } from '@/store/context/ReactFlowContext'
-
-// Const
-import { enqueueSnackbar as enqueueSnackbarAction, closeSnackbar as closeSnackbarAction } from '@/store/actions'
-
-// Utils
-import { getLocalStorageChatflow, removeLocalStorageChatHistory } from '@/utils/genericHelper'
+import './ChatMessage.css'
 
 const ChatPopUp = ({ chatflowid, isAgentCanvas, onOpenChange }) => {
-    const theme = useTheme()
-    const { confirm } = useConfirm()
-    const dispatch = useDispatch()
-    const { clearAgentflowNodeStatus } = useContext(flowContext)
-
-    useNotifier()
-    const enqueueSnackbar = (...args) => dispatch(enqueueSnackbarAction(...args))
-    const closeSnackbar = (...args) => dispatch(closeSnackbarAction(...args))
-
     const [open, setOpen] = useState(false)
     const [showExpandDialog, setShowExpandDialog] = useState(false)
     const [expandDialogProps, setExpandDialogProps] = useState({})
     const [previews, setPreviews] = useState([])
 
-    const anchorRef = useRef(null)
     const prevOpen = useRef(open)
+    const anchorRef = useRef(null)
 
-    const handleClose = (event) => {
-        if (anchorRef.current && anchorRef.current.contains(event.target)) {
-            return
-        }
+    const handleClose = () => {
         setOpen(false)
         if (onOpenChange) onOpenChange(false)
     }
 
-    const handleToggle = () => {
-        const newOpenState = !open
-        setOpen(newOpenState)
-        if (onOpenChange) onOpenChange(newOpenState)
+    const handleOpen = () => {
+        setOpen(true)
+        if (onOpenChange) onOpenChange(true)
     }
 
     const expandChat = () => {
+        // Close the popup when expanding
+        setOpen(false)
+        if (onOpenChange) onOpenChange(false)
+
         const props = {
             open: true,
             chatflowid: chatflowid
@@ -68,71 +44,11 @@ const ChatPopUp = ({ chatflowid, isAgentCanvas, onOpenChange }) => {
         setShowExpandDialog(true)
     }
 
-    const resetChatDialog = () => {
-        const props = {
-            ...expandDialogProps,
-            open: false
-        }
-        setExpandDialogProps(props)
-        clearAgentflowNodeStatus()
-        setTimeout(() => {
-            const resetProps = {
-                ...expandDialogProps,
-                open: true
-            }
-            setExpandDialogProps(resetProps)
-        }, 500)
-    }
-
-    const clearChat = async () => {
-        const confirmPayload = {
-            title: `Clear Chat History`,
-            description: `Are you sure you want to clear all chat history?`,
-            confirmButtonName: 'Clear',
-            cancelButtonName: 'Cancel'
-        }
-        const isConfirmed = await confirm(confirmPayload)
-
-        if (isConfirmed) {
-            try {
-                const objChatDetails = getLocalStorageChatflow(chatflowid)
-                if (!objChatDetails.chatId) return
-                await chatmessageApi.deleteChatmessage(chatflowid, { chatId: objChatDetails.chatId, chatType: 'INTERNAL' })
-                removeLocalStorageChatHistory(chatflowid)
-                resetChatDialog()
-                enqueueSnackbar({
-                    message: 'Succesfully cleared all chat history',
-                    options: {
-                        key: new Date().getTime() + Math.random(),
-                        variant: 'success',
-                        action: (key) => (
-                            <Button style={{ color: 'white' }} onClick={() => closeSnackbar(key)}>
-                                <IconX />
-                            </Button>
-                        )
-                    }
-                })
-            } catch (error) {
-                enqueueSnackbar({
-                    message: typeof error.response.data === 'object' ? error.response.data.message : error.response.data,
-                    options: {
-                        key: new Date().getTime() + Math.random(),
-                        variant: 'error',
-                        persist: true,
-                        action: (key) => (
-                            <Button style={{ color: 'white' }} onClick={() => closeSnackbar(key)}>
-                                <IconX />
-                            </Button>
-                        )
-                    }
-                })
-            }
-        }
-    }
-
     useEffect(() => {
         if (prevOpen.current === true && open === false) {
-            anchorRef.current.focus()
+            if (anchorRef.current) {
+                anchorRef.current.focus()
+            }
             if (onOpenChange) onOpenChange(false)
         }
         prevOpen.current = open
@@ -142,72 +58,57 @@ const ChatPopUp = ({ chatflowid, isAgentCanvas, onOpenChange }) => {
 
     return (
         <>
-            <StyledFab
-                sx={{ position: 'absolute', right: 20, top: 20 }}
-                ref={anchorRef}
-                size='small'
-                color='secondary'
-                aria-label='chat'
-                title='Chat'
-                onClick={handleToggle}
-            >
-                {open ? <IconX /> : <IconMessage />}
-            </StyledFab>
-
-            {open && (
+            {!open && (
                 <StyledFab
-                    sx={{ position: 'absolute', right: 80, top: 20 }}
-                    onClick={clearChat}
+                    sx={{ position: 'absolute', right: 20, top: 20 }}
+                    ref={anchorRef}
                     size='small'
-                    color='error'
-                    aria-label='clear'
-                    title='Clear Chat History'
+                    color='secondary'
+                    aria-label='chat'
+                    title='Open Chat'
+                    onClick={handleOpen}
                 >
-                    <IconEraser />
+                    <IconMessage />
                 </StyledFab>
             )}
             {open && (
-                <StyledFab
-                    sx={{ position: 'absolute', right: 140, top: 20 }}
-                    onClick={expandChat}
-                    size='small'
-                    color='primary'
-                    aria-label='expand'
-                    title='Expand Chat'
-                >
-                    <IconArrowsMaximize />
-                </StyledFab>
-            )}
-            <Popper
-                placement='bottom-end'
-                open={open}
-                anchorEl={anchorRef.current}
-                role={undefined}
-                transition
-                disablePortal
-                popperOptions={{
-                    modifiers: [
-                        {
-                            name: 'offset',
-                            options: {
-                                offset: [40, 14]
-                            }
-                        }
-                    ]
-                }}
-                sx={{ zIndex: 1000 }}
-            >
-                {({ TransitionProps }) => (
-                    <Transitions in={open} {...TransitionProps}>
-                        <Paper>
+                <Box className='chat-popup-root'>
+                    <Transitions in={open} type='grow' direction='left'>
+                        <Paper
+                            elevation={16}
+                            sx={{
+                                width: '100%',
+                                height: '100%',
+                                maxHeight: '100%',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                overflow: 'hidden',
+                                borderRadius: 2,
+                                boxSizing: 'border-box'
+                            }}
+                        >
                             <ClickAwayListener onClickAway={handleClose}>
                                 <MainCard
                                     border={false}
                                     className='cloud-wrapper'
-                                    elevation={16}
+                                    elevation={0}
                                     content={false}
-                                    boxShadow
-                                    shadow={theme.shadows[16]}
+                                    boxShadow={false}
+                                    sx={{
+                                        width: '100% !important',
+                                        height: '100% !important',
+                                        minWidth: '100% !important',
+                                        maxWidth: '100% !important',
+                                        minHeight: 0, // Don't force minimum height
+                                        maxHeight: '100% !important',
+                                        display: 'flex !important',
+                                        flexDirection: 'column !important',
+                                        overflow: 'hidden !important',
+                                        position: 'relative !important',
+                                        margin: 0,
+                                        padding: 0,
+                                        boxSizing: 'border-box !important'
+                                    }}
                                 >
                                     <ChatMessage
                                         isAgentCanvas={isAgentCanvas}
@@ -215,18 +116,20 @@ const ChatPopUp = ({ chatflowid, isAgentCanvas, onOpenChange }) => {
                                         open={open}
                                         previews={previews}
                                         setPreviews={setPreviews}
+                                        isDialog={false}
+                                        onExpand={expandChat}
+                                        onClose={handleClose}
                                     />
                                 </MainCard>
                             </ClickAwayListener>
                         </Paper>
                     </Transitions>
-                )}
-            </Popper>
+                </Box>
+            )}
             <ChatExpandDialog
                 show={showExpandDialog}
                 dialogProps={expandDialogProps}
                 isAgentCanvas={isAgentCanvas}
-                onClear={clearChat}
                 onCancel={() => setShowExpandDialog(false)}
                 previews={previews}
                 setPreviews={setPreviews}

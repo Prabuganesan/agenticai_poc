@@ -182,3 +182,16 @@ TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
    of your accepting any such warranty or additional liability.
 
 END OF TERMS AND CONDITIONS
+
+------------------------------------------------------------
+ChainSys Modifications
+------------------------------------------------------------
+This autonomous server contains proprietary modifications by
+ChainSys Corporation.
+
+Modifications Copyright © 2025 ChainSys Corporation.
+This version includes enhancements and extensions developed by ChainSys.
+
+These modifications are owned by ChainSys and are not covered under
+the Flowise commercial or Apache 2.0 licenses. Redistribution or
+extraction of these modifications without authorization is prohibited.

@@ -22,10 +22,7 @@ const refreshLoader = (storeId) => client.post(`/document-store/refresh/${storeI
 const insertIntoVectorStore = (body) => client.post(`/document-store/vectorstore/insert`, body)
 const saveVectorStoreConfig = (body) => client.post(`/document-store/vectorstore/save`, body)
 const updateVectorStoreConfig = (body) => client.post(`/document-store/vectorstore/update`, body)
-const deleteVectorStoreDataFromStore = (storeId, docId) => {
-    const url = docId ? `/document-store/vectorstore/${storeId}?docId=${docId}` : `/document-store/vectorstore/${storeId}`
-    return client.delete(url)
-}
+const deleteVectorStoreDataFromStore = (storeId) => client.delete(`/document-store/vectorstore/${storeId}`)
 const queryVectorStore = (body) => client.post(`/document-store/vectorstore/query`, body)
 const getVectorStoreProviders = () => client.get('/document-store/components/vectorstore')
 const getEmbeddingProviders = () => client.get('/document-store/components/embeddings')

@@ -9,7 +9,6 @@ import Security from '@/ui-component/extended/Security'
 import ChatFeedback from '@/ui-component/extended/ChatFeedback'
 import AnalyseFlow from '@/ui-component/extended/AnalyseFlow'
 import StarterPrompts from '@/ui-component/extended/StarterPrompts'
-import Leads from '@/ui-component/extended/Leads'
 import FollowUpPrompts from '@/ui-component/extended/FollowUpPrompts'
 import FileUpload from '@/ui-component/extended/FileUpload'
 import PostProcessing from '@/ui-component/extended/PostProcessing'
@@ -40,20 +39,22 @@ const CHATFLOW_CONFIGURATION_TABS = [
         id: 'chatFeedback'
     },
     {
-        label: 'Analyse Chatflow',
+        label: 'Analyse Agent',
         id: 'analyseChatflow'
     },
-    {
-        label: 'Leads',
-        id: 'leads'
-    },
+    // Leads feature removed for autonomous server deployment
+    // {
+    //     label: 'Leads',
+    //     id: 'leads'
+    // },
     {
         label: 'File Upload',
         id: 'fileUpload'
     },
     {
         label: 'Post Processing',
-        id: 'postProcessing'
+        id: 'postProcessing',
+        hideInAgentFlow: true
     }
 ]
 
@@ -144,7 +145,8 @@ const ChatflowConfigurationDialog = ({ show, isAgentCanvas, dialogProps, onCance
                         {item.id === 'textToSpeech' ? <TextToSpeech dialogProps={dialogProps} /> : null}
                         {item.id === 'chatFeedback' ? <ChatFeedback dialogProps={dialogProps} /> : null}
                         {item.id === 'analyseChatflow' ? <AnalyseFlow dialogProps={dialogProps} /> : null}
-                        {item.id === 'leads' ? <Leads dialogProps={dialogProps} /> : null}
+                        {/* Leads feature removed for autonomous server deployment */}
+                        {/* {item.id === 'leads' ? <Leads dialogProps={dialogProps} /> : null} */}
                         {item.id === 'fileUpload' ? <FileUpload dialogProps={dialogProps} /> : null}
                         {item.id === 'postProcessing' ? <PostProcessing dialogProps={dialogProps} /> : null}
                     </TabPanel>

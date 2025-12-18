@@ -1,5 +1,6 @@
 import { Request } from 'express'
 import * as path from 'path'
+import { logWarn } from './logger/system-helper'
 import {
     addArrayFilesToStorage,
     getFileFromUpload,
@@ -7,17 +8,15 @@ import {
     mapExtToInputField,
     mapMimeTypeToInputField,
     removeSpecificFileFromUpload,
-    isValidUUID,
     isPathTraversal
-} from 'flowise-components'
+} from 'kodivian-components'
 import { getRunningExpressApp } from './getRunningExpressApp'
 import { getErrorMessage } from '../errors/utils'
 import { checkStorage, updateStorageUsage } from './quotaUsage'
 import { ChatFlow } from '../database/entities/ChatFlow'
-import { Workspace } from '../enterprise/database/entities/workspace.entity'
-import { Organization } from '../enterprise/database/entities/organization.entity'
-import { InternalFlowiseError } from '../errors/internalFlowiseError'
+import { InternalAutonomousError } from '../errors/internalAutonomousError'
 import { StatusCodes } from 'http-status-codes'
+import { validateFileContent, validateFileSize } from './fileValidation'
 
 /**
  * Create attachment
@@ -29,45 +28,33 @@ export const createFileAttachment = async (req: Request) => {
     const chatflowid = req.params.chatflowId
     const chatId = req.params.chatId
 
-    if (!chatflowid || !isValidUUID(chatflowid)) {
-        throw new InternalFlowiseError(StatusCodes.BAD_REQUEST, 'Invalid chatflowId format - must be a valid UUID')
+    // Validate GUID format (15 characters) instead of UUID
+    if (!chatflowid || typeof chatflowid !== 'string' || chatflowid.length !== 15) {
+        throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Invalid chatflowId format - must be a valid 15-character GUID')
     }
     if (isPathTraversal(chatflowid) || (chatId && isPathTraversal(chatId))) {
-        throw new InternalFlowiseError(StatusCodes.BAD_REQUEST, 'Invalid path characters detected')
+        throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Invalid path characters detected')
     }
 
-    // Validate chatflow exists and check API key
-    const chatflow = await appServer.AppDataSource.getRepository(ChatFlow).findOneBy({
-        id: chatflowid
+    // Require orgId upfront - no cross-org search
+    // Get orgId from request object (set by session validation middleware) - single source
+    const { getDataSource } = await import('../DataSource')
+    const authReq = req as any
+    const orgId: string | undefined = authReq.orgId
+    if (!orgId) {
+        throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+    }
+
+    // Get org-specific DataSource from pool for subsequent operations
+    const orgDataSource = getDataSource(parseInt(orgId))
+
+    // Get chatflow from org-specific database
+    const chatflow = await orgDataSource.getRepository(ChatFlow).findOneBy({
+        guid: chatflowid
     })
+
     if (!chatflow) {
-        throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowid} not found`)
-    }
-
-    let orgId = req.user?.activeOrganizationId || ''
-    let workspaceId = req.user?.activeWorkspaceId || ''
-    let subscriptionId = req.user?.activeOrganizationSubscriptionId || ''
-
-    // This is one of the WHITELIST_URLS, API can be public and there might be no req.user
-    if (!orgId || !workspaceId) {
-        const chatflowWorkspaceId = chatflow.workspaceId
-        const workspace = await appServer.AppDataSource.getRepository(Workspace).findOneBy({
-            id: chatflowWorkspaceId
-        })
-        if (!workspace) {
-            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Workspace ${chatflowWorkspaceId} not found`)
-        }
-        workspaceId = workspace.id
-
-        const org = await appServer.AppDataSource.getRepository(Organization).findOneBy({
-            id: workspace.organizationId
-        })
-        if (!org) {
-            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Organization ${workspace.organizationId} not found`)
-        }
-
-        orgId = org.id
-        subscriptionId = org.subscriptionId as string
+        throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowid} not found`)
     }
 
     // Parse chatbot configuration to get file upload settings
@@ -106,7 +93,7 @@ export const createFileAttachment = async (req: Request) => {
 
     // Check if file upload is enabled
     if (!fileUploadEnabled) {
-        throw new InternalFlowiseError(StatusCodes.BAD_REQUEST, 'File upload is not enabled for this chatflow')
+        throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'File upload is not enabled for this chatflow')
     }
 
     // Find FileLoader node
@@ -116,8 +103,7 @@ export const createFileAttachment = async (req: Request) => {
     const fileLoaderNodeInstance = new fileLoaderNodeModule.nodeClass()
     const options = {
         retrieveAttachmentChatId: true,
-        orgId,
-        workspaceId,
+        orgId: orgId,
         chatflowid,
         chatId
     }
@@ -127,7 +113,7 @@ export const createFileAttachment = async (req: Request) => {
         const isBase64 = req.body.base64
         for (const file of files) {
             if (!allowedFileTypes.length) {
-                throw new InternalFlowiseError(
+                throw new InternalAutonomousError(
                     StatusCodes.BAD_REQUEST,
                     `File type '${file.mimetype}' is not allowed. Allowed types: ${allowedFileTypes.join(', ')}`
                 )
@@ -135,15 +121,25 @@ export const createFileAttachment = async (req: Request) => {
 
             // Validate file type against allowed types
             if (allowedFileTypes.length > 0 && !allowedFileTypes.includes(file.mimetype)) {
-                throw new InternalFlowiseError(
+                throw new InternalAutonomousError(
                     StatusCodes.BAD_REQUEST,
                     `File type '${file.mimetype}' is not allowed. Allowed types: ${allowedFileTypes.join(', ')}`
                 )
             }
 
-            await checkStorage(orgId, subscriptionId, appServer.usageCacheManager)
+            await checkStorage(orgId, appServer.usageCacheManager)
 
             const fileBuffer = await getFileFromUpload(file.path ?? file.key)
+
+            const maxFileSizeBytes = parseFileSizeLimit(process.env.AUTONOMOUS_FILE_SIZE_LIMIT || '50mb')
+            validateFileSize(fileBuffer.length, maxFileSizeBytes)
+
+            try {
+                await validateFileContent(fileBuffer, file.mimetype, allowedFileTypes)
+            } catch (validationError) {
+                logWarn(`File validation failed for ${file.originalname}: ${getErrorMessage(validationError)}`).catch(() => {})
+                throw validationError
+            }
             const fileNames: string[] = []
             // Address file name with special characters: https://github.com/expressjs/multer/issues/1104
             file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8')
@@ -156,7 +152,7 @@ export const createFileAttachment = async (req: Request) => {
                 chatflowid,
                 chatId
             )
-            await updateStorageUsage(orgId, workspaceId, totalSize, appServer.usageCacheManager)
+            await updateStorageUsage(orgId, totalSize, appServer.usageCacheManager)
 
             const fileInputFieldFromMimeType = mapMimeTypeToInputField(file.mimetype)
 
@@ -210,4 +206,25 @@ export const createFileAttachment = async (req: Request) => {
     }
 
     return fileAttachments
+}
+
+function parseFileSizeLimit(sizeStr: string): number {
+    const match = sizeStr.match(/^(\d+)([kmg]?b)$/i)
+    if (!match) {
+        return 50 * 1024 * 1024 // Default 50MB
+    }
+
+    const size = parseInt(match[1], 10)
+    const unit = match[2].toLowerCase()
+
+    switch (unit) {
+        case 'kb':
+            return size * 1024
+        case 'mb':
+            return size * 1024 * 1024
+        case 'gb':
+            return size * 1024 * 1024 * 1024
+        default:
+            return size
+    }
 }

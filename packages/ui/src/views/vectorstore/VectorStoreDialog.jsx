@@ -47,7 +47,7 @@ import useNotifier from '@/utils/useNotifier'
 // Store
 import { flowContext } from '@/store/context/ReactFlowContext'
 import { HIDE_CANVAS_DIALOG, SHOW_CANVAS_DIALOG } from '@/store/actions'
-import { baseURL } from '@/store/constant'
+import { baseURL, getAutonomousDocsPath } from '@/store/constant'
 import { enqueueSnackbar as enqueueSnackbarAction, closeSnackbar as closeSnackbarAction } from '@/store/actions'
 
 function TabPanel(props) {
@@ -152,16 +152,15 @@ query({
         } else if (codeLang === 'cURL') {
             return `curl ${baseURL}/api/v1/vector/upsert/${dialogProps.chatflowid} \\
       -X POST \\
-      ${
-          isMultiple
-              ? `-d '{"stopNodeId": "${vectorNodeId}", "overrideConfig": {${getConfigExamplesForCurl(
-                    configData,
-                    'json',
-                    isMultiple,
-                    vectorNodeId
-                )}}' \\`
-              : `-d '{"overrideConfig": {${getConfigExamplesForCurl(configData, 'json', isMultiple, vectorNodeId)}}' \\`
-      }
+      ${isMultiple
+                    ? `-d '{"stopNodeId": "${vectorNodeId}", "overrideConfig": {${getConfigExamplesForCurl(
+                        configData,
+                        'json',
+                        isMultiple,
+                        vectorNodeId
+                    )}}' \\`
+                    : `-d '{"overrideConfig": {${getConfigExamplesForCurl(configData, 'json', isMultiple, vectorNodeId)}}' \\`
+                }
       -H "Content-Type: application/json"`
         }
         return ''
@@ -529,17 +528,17 @@ formData.append("openAIApiKey[openAIEmbeddings_0]", "sk-my-openai-2nd-key")`
                                                                     text={
                                                                         isFormDataRequired[data.vectorNode.data.id]
                                                                             ? getCodeWithFormData(
-                                                                                  codeLang,
-                                                                                  data.vectorNode.data.id,
-                                                                                  nodes.length > 1 ? true : false,
-                                                                                  configData[data.vectorNode.data.id]
-                                                                              )
+                                                                                codeLang,
+                                                                                data.vectorNode.data.id,
+                                                                                nodes.length > 1 ? true : false,
+                                                                                configData[data.vectorNode.data.id]
+                                                                            )
                                                                             : getCode(
-                                                                                  codeLang,
-                                                                                  data.vectorNode.data.id,
-                                                                                  nodes.length > 1 ? true : false,
-                                                                                  configData[data.vectorNode.data.id]
-                                                                              )
+                                                                                codeLang,
+                                                                                data.vectorNode.data.id,
+                                                                                nodes.length > 1 ? true : false,
+                                                                                configData[data.vectorNode.data.id]
+                                                                            )
                                                                     }
                                                                     language={getLang(codeLang)}
                                                                     showLineNumbers={false}
@@ -578,7 +577,7 @@ formData.append("openAIApiKey[openAIEmbeddings_0]", "sk-my-openai-2nd-key")`
                                                                             <a
                                                                                 rel='noreferrer'
                                                                                 target='_blank'
-                                                                                href='https://docs.flowiseai.com/using-flowise/api#override-config'
+                                                                                href={`${getAutonomousDocsPath()}/using-autonomous/api#override-config`}
                                                                             >
                                                                                 here
                                                                             </a>{' '}

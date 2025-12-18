@@ -4,9 +4,12 @@ import { BaseMessage } from '@langchain/core/messages'
 import { ChainValues } from '@langchain/core/utils/types'
 import { RunnableSequence } from '@langchain/core/runnables'
 import { BaseChatModel } from '@langchain/core/language_models/chat_models'
+import { BaseRetriever } from '@langchain/core/retrievers'
+import { CallbackManagerForToolRun } from '@langchain/core/callbacks/manager'
 import { ChatPromptTemplate, MessagesPlaceholder, HumanMessagePromptTemplate, PromptTemplate } from '@langchain/core/prompts'
 import { formatToOpenAIToolMessages } from 'langchain/agents/format_scratchpad/openai_tools'
 import { type ToolsAgentStep } from 'langchain/agents/openai/output_parser'
+import { DataSource } from 'typeorm'
 import {
     extractOutputFromArray,
     getBaseClasses,
@@ -14,21 +17,113 @@ import {
     removeInvalidImageMarkdown,
     transformBracesWithColon
 } from '../../../src/utils'
+import { getErrorMessage } from '../../../src/error'
 import {
-    FlowiseMemory,
+    AutonomousMemory,
     ICommonObject,
     INode,
     INodeData,
     INodeParams,
     IServerSideEventStreamer,
     IUsedTool,
-    IVisionChatModal
+    IVisionChatModal,
+    IDatabaseEntity
 } from '../../../src/Interface'
 import { ConsoleCallbackHandler, CustomChainHandler, CustomStreamingHandler, additionalCallbacks } from '../../../src/handler'
 import { AgentExecutor, ToolCallingAgentOutputParser } from '../../../src/agents'
 import { Moderation, checkInputs, streamResponse } from '../../moderation/Moderation'
 import { formatResponse } from '../../outputparsers/OutputParserHelpers'
 import { addImagesToMessages, llmSupportsVision } from '../../../src/multiModalUtils'
+import path from 'path'
+
+const SOURCE_DOCUMENTS_PREFIX = '\n\n----AUTONOMOUS_SOURCE_DOCUMENTS----\n\n'
+
+/**
+ * Retriever Tool Implementation (replaces removed RetrieverTool node)
+ * This allows document stores to be used as tools by the agent
+ */
+class RetrieverToolImpl extends Tool {
+    name: string
+    description: string
+    retriever: BaseRetriever
+    returnSourceDocuments: boolean
+
+    constructor(name: string, description: string, retriever: BaseRetriever, returnSourceDocuments: boolean = false) {
+        super()
+        this.name = name
+        this.description = description
+        this.retriever = retriever
+        this.returnSourceDocuments = returnSourceDocuments
+    }
+
+    async _call(input: string, runManager?: CallbackManagerForToolRun, options?: ICommonObject): Promise<string> {
+        const parsed = typeof input === 'string' ? (input.startsWith('{') ? JSON.parse(input || '{}') : { input }) : input
+        const query = parsed.input || input
+
+        console.log('[RetrieverTool] Document store query started:', {
+            toolName: this.name,
+            query: typeof query === 'string' ? query.substring(0, 200) : JSON.stringify(query).substring(0, 200),
+            returnSourceDocuments: this.returnSourceDocuments,
+            orgId: options?.orgId || 'unknown',
+            chatflowId: options?.chatflowid || 'unknown'
+        })
+
+        const startTime = Date.now()
+        let docs: any[] = []
+        try {
+            docs = await this.retriever.invoke(query)
+            const executionTime = Date.now() - startTime
+
+            console.log('[RetrieverTool] Document store query completed:', {
+                toolName: this.name,
+                query: typeof query === 'string' ? query.substring(0, 200) : JSON.stringify(query).substring(0, 200),
+                documentCount: docs.length,
+                executionTimeMs: executionTime,
+                orgId: options?.orgId || 'unknown',
+                chatflowId: options?.chatflowid || 'unknown',
+                documentPreviews: docs.slice(0, 3).map((doc: any) => ({
+                    contentLength: doc.pageContent?.length || 0,
+                    contentPreview: doc.pageContent?.substring(0, 100) || 'N/A',
+                    metadata: doc.metadata || {}
+                }))
+            })
+
+            const content = docs.map((doc) => doc.pageContent).join('\n\n')
+            const sourceDocuments = JSON.stringify(docs)
+            const result = this.returnSourceDocuments ? content + SOURCE_DOCUMENTS_PREFIX + sourceDocuments : content
+
+            console.log('[RetrieverTool] Document store result prepared:', {
+                toolName: this.name,
+                resultLength: result.length,
+                hasSourceDocuments: this.returnSourceDocuments,
+                resultPreview: result.substring(0, 300),
+                orgId: options?.orgId || 'unknown',
+                chatflowId: options?.chatflowid || 'unknown'
+            })
+
+            return result
+        } catch (error) {
+            const executionTime = Date.now() - startTime
+            console.error('[RetrieverTool] Document store query failed:', {
+                toolName: this.name,
+                query: typeof query === 'string' ? query.substring(0, 200) : JSON.stringify(query).substring(0, 200),
+                error: getErrorMessage(error),
+                errorStack: error instanceof Error ? error.stack : undefined,
+                executionTimeMs: executionTime,
+                orgId: options?.orgId || 'unknown',
+                chatflowId: options?.chatflowid || 'unknown'
+            })
+            throw error
+        }
+    }
+}
+
+/**
+ * Creates a retriever tool from a BaseRetriever (replaces removed RetrieverTool node)
+ */
+function createRetrieverTool(name: string, description: string, retriever: BaseRetriever, returnSourceDocuments: boolean = false): Tool {
+    return new RetrieverToolImpl(name, description, retriever, returnSourceDocuments)
+}
 
 class ToolAgent_Agents implements INode {
     label: string
@@ -110,17 +205,81 @@ class ToolAgent_Agents implements INode {
                 description: 'Stream detailed intermediate steps during agent execution',
                 optional: true,
                 additionalParams: true
+            },
+            {
+                label: 'Knowledge (Document Stores)',
+                name: 'documentStores',
+                type: 'array',
+                description: 'Connect document stores to provide knowledge to the agent',
+                optional: true,
+                array: [
+                    {
+                        label: 'Document Store',
+                        name: 'documentStore',
+                        type: 'asyncOptions',
+                        loadMethod: 'listStores'
+                    },
+                    {
+                        label: 'Description',
+                        name: 'docStoreDescription',
+                        type: 'string',
+                        description: 'Description of what the document store contains (helps the agent decide when to use it)',
+                        rows: 3,
+                        placeholder: 'Contains company leave policies and procedures'
+                    },
+                    {
+                        label: 'Return Source Documents',
+                        name: 'returnSourceDocuments',
+                        type: 'boolean',
+                        description: 'Return source documents in the response',
+                        optional: true
+                    }
+                ]
             }
         ]
         this.sessionId = fields?.sessionId
     }
 
+    //@ts-ignore
+    loadMethods = {
+        async listStores(_: INodeData, options: ICommonObject): Promise<any[]> {
+            const returnData: any[] = []
+
+            const appDataSource = options.appDataSource as DataSource
+            const databaseEntities = options.databaseEntities as IDatabaseEntity
+
+            if (appDataSource === undefined || !appDataSource) {
+                return returnData
+            }
+
+            const searchOptions = options.searchOptions || {}
+            const stores = await appDataSource.getRepository(databaseEntities['DocumentStore']).findBy(searchOptions)
+            for (const store of stores) {
+                if (store.status === 'UPSERTED') {
+                    const obj = {
+                        name: `${store.id}:${store.name}`,
+                        label: store.name,
+                        description: store.description
+                    }
+                    returnData.push(obj)
+                }
+            }
+            return returnData
+        }
+    }
+
+    private executor: any = null
+
     async init(nodeData: INodeData, input: string, options: ICommonObject): Promise<any> {
-        return prepareAgent(nodeData, options, { sessionId: this.sessionId, chatId: options.chatId, input })
+        // Create executor once in init and cache it
+        if (!this.executor) {
+            this.executor = await prepareAgent(nodeData, options, { sessionId: this.sessionId, chatId: options.chatId, input })
+        }
+        return this.executor
     }
 
     async run(nodeData: INodeData, input: string, options: ICommonObject): Promise<string | ICommonObject> {
-        const memory = nodeData.inputs?.memory as FlowiseMemory
+        const memory = nodeData.inputs?.memory as AutonomousMemory
         const moderations = nodeData.inputs?.inputModeration as Moderation[]
         const enableDetailedStreaming = nodeData.inputs?.enableDetailedStreaming as boolean
 
@@ -141,7 +300,12 @@ class ToolAgent_Agents implements INode {
             }
         }
 
-        const executor = await prepareAgent(nodeData, options, { sessionId: this.sessionId, chatId: options.chatId, input })
+        // Use cached executor from init, or create new one if not available
+        let executor = this.executor
+        if (!executor) {
+            executor = await prepareAgent(nodeData, options, { sessionId: this.sessionId, chatId: options.chatId, input })
+            this.executor = executor
+        }
 
         const loggerHandler = new ConsoleCallbackHandler(options.logger, options?.orgId)
         const callbacks = await additionalCallbacks(nodeData, options)
@@ -157,6 +321,9 @@ class ToolAgent_Agents implements INode {
         let sourceDocuments: ICommonObject[] = []
         let usedTools: IUsedTool[] = []
         let artifacts = []
+
+        // Track start time BEFORE LLM execution
+        const startTime = Date.now()
 
         if (shouldStreamResponse) {
             const handler = new CustomChainHandler(sseStreamer, chatId)
@@ -217,6 +384,10 @@ class ToolAgent_Agents implements INode {
             }
         }
 
+        // Track end time AFTER LLM execution
+        const endTime = Date.now()
+        const timeDelta = endTime - startTime
+
         let output = res?.output
         output = extractOutputFromArray(res?.output)
         output = removeInvalidImageMarkdown(output)
@@ -245,6 +416,54 @@ class ToolAgent_Agents implements INode {
             this.sessionId
         )
 
+        // Track LLM usage
+        try {
+            if (options.orgId && res) {
+                // Dynamic import from server package
+                const llmUsageTrackerPath = path.resolve(__dirname, '../../../../server/src/utils/llm-usage-tracker')
+                const { trackLLMUsage, extractProviderAndModel, extractUsageMetadata } = await import(llmUsageTrackerPath)
+
+                // Get model from nodeData
+                const model = nodeData.inputs?.model as BaseChatModel
+                const { provider, model: modelName } = extractProviderAndModel(nodeData, { model })
+
+                // Extract usage metadata from result
+                const { promptTokens, completionTokens, totalTokens } = extractUsageMetadata(res)
+
+                await trackLLMUsage({
+                    requestId: (options.apiMessageId as string) || (options.chatId as string),
+                    executionId: options.parentExecutionId as string,
+                    orgId: (options.orgId as string) || '',
+                    userId: (options.incomingInput?.userId as string) || (options.userId as string) || '0',
+                    chatflowId: options.chatflowid as string,
+                    chatId: options.chatId as string,
+                    sessionId: options.sessionId as string,
+                    feature: 'chatflow',
+                    nodeId: nodeData.id,
+                    nodeType: 'AgentExecutor',
+                    nodeName: 'ToolAgent',
+                    location: 'main_flow',
+                    provider,
+                    model: modelName,
+                    requestType: 'chat',
+                    promptTokens: promptTokens || 0,
+                    completionTokens: completionTokens || 0,
+                    totalTokens: totalTokens || 0,
+                    processingTimeMs: timeDelta,
+                    responseLength: output?.length || 0,
+                    success: true,
+                    cacheHit: false,
+                    metadata: {
+                        usedTools: usedTools.length > 0 ? usedTools : undefined,
+                        sourceDocuments: sourceDocuments.length > 0 ? sourceDocuments.length : undefined,
+                        artifacts: artifacts.length > 0 ? artifacts.length : undefined
+                    }
+                })
+            }
+        } catch (trackError) {
+            // Silently fail - tracking should not break the main flow
+        }
+
         let finalRes = output
 
         if (sourceDocuments.length || usedTools.length || artifacts.length) {
@@ -265,17 +484,67 @@ class ToolAgent_Agents implements INode {
     }
 }
 
-const prepareAgent = async (
-    nodeData: INodeData,
-    options: ICommonObject,
-    flowObj: { sessionId?: string; chatId?: string; input?: string }
-) => {
+async function prepareAgent(nodeData: INodeData, options: ICommonObject, flowObj: { sessionId?: string; chatId?: string; input?: string }) {
     const model = nodeData.inputs?.model as BaseChatModel
     const maxIterations = nodeData.inputs?.maxIterations as string
-    const memory = nodeData.inputs?.memory as FlowiseMemory
+    const memory = nodeData.inputs?.memory as AutonomousMemory
     let systemMessage = nodeData.inputs?.systemMessage as string
     let tools = nodeData.inputs?.tools
     tools = flatten(tools)
+
+    // Process document stores and convert them to retriever tools
+    const documentStores = nodeData.inputs?.agentKnowledgeDocumentStores as any[]
+
+    if (documentStores && documentStores.length > 0 && options.componentNodes) {
+        for (const docStore of documentStores) {
+            try {
+                const [storeId, storeName] = docStore.documentStore.split(':')
+
+                // Initialize the document store vector instance
+                const docStoreVectorInstanceFilePath = options.componentNodes['documentStoreVS'].filePath as string
+                const docStoreVectorModule = await import(docStoreVectorInstanceFilePath)
+                const newDocStoreVectorInstance = new docStoreVectorModule.nodeClass()
+
+                const docStoreVectorInstance = (await newDocStoreVectorInstance.init(
+                    {
+                        ...nodeData,
+                        inputs: {
+                            ...nodeData.inputs,
+                            selectedStore: storeId
+                        },
+                        outputs: {
+                            output: 'retriever'
+                        }
+                    },
+                    '',
+                    options
+                )) as BaseRetriever
+
+                // Create a retriever tool from the document store
+                const toolName = storeName
+                    .toLowerCase()
+                    .replace(/ /g, '_')
+                    .replace(/[^a-z0-9_-]/g, '')
+
+                // Enhance description to make it clearer when to use this tool
+                const enhancedDescription = docStore.docStoreDescription
+                    ? `${docStore.docStoreDescription}. Use this tool to search the ${storeName} knowledge base for information before searching the web.`
+                    : `Search the ${storeName} knowledge base for relevant information. Use this tool to find information from internal documents before searching the web.`
+
+                const retrieverTool = createRetrieverTool(
+                    toolName,
+                    enhancedDescription,
+                    docStoreVectorInstance,
+                    docStore.returnSourceDocuments || false
+                )
+
+                tools.push(retrieverTool)
+            } catch (error) {
+                // Continue with other document stores even if one fails
+            }
+        }
+    }
+
     const memoryKey = memory.memoryKey ? memory.memoryKey : 'chat_history'
     const inputKey = memory.inputKey ? memory.inputKey : 'input'
     const prependMessages = options?.prependMessages

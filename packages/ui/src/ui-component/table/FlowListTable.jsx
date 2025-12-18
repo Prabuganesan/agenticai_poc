@@ -60,10 +60,11 @@ export const FlowListTable = ({
     setError,
     isAgentCanvas,
     isAgentflowV2,
-    currentPage,
-    pageLimit
+    currentPage = 1,
+    pageLimit = 12
 }) => {
     const { hasPermission } = useAuth()
+    const currentUser = useSelector((state) => state.auth.user)
     const isActionsAvailable = isAgentCanvas
         ? hasPermission('agentflows:update,agentflows:delete,agentflows:config,agentflows:domains,templates:flowexport,agentflows:export')
         : hasPermission('chatflows:update,chatflows:delete,chatflows:config,chatflows:domains,templates:flowexport,chatflows:export')
@@ -95,15 +96,15 @@ export const FlowListTable = ({
 
     const sortedData = data
         ? [...data].sort((a, b) => {
-              if (orderBy === 'name') {
-                  return order === 'asc' ? (a.name || '').localeCompare(b.name || '') : (b.name || '').localeCompare(a.name || '')
-              } else if (orderBy === 'updatedDate') {
-                  return order === 'asc'
-                      ? new Date(a.updatedDate) - new Date(b.updatedDate)
-                      : new Date(b.updatedDate) - new Date(a.updatedDate)
-              }
-              return 0
-          })
+            if (orderBy === 'name') {
+                return order === 'asc' ? (a.name || '').localeCompare(b.name || '') : (b.name || '').localeCompare(a.name || '')
+            } else if (orderBy === 'updatedDate') {
+                return order === 'asc'
+                    ? new Date(a.updatedDate) - new Date(b.updatedDate)
+                    : new Date(b.updatedDate) - new Date(a.updatedDate)
+            }
+            return 0
+        })
         : []
 
     return (
@@ -317,7 +318,9 @@ export const FlowListTable = ({
                                             )}
                                         </StyledTableCell>
                                         <StyledTableCell key='3'>
-                                            {moment(row.updatedDate).format('MMMM Do, YYYY HH:mm:ss')}
+                                            {row.updatedDate || row.createdDate
+                                                ? moment(row.updatedDate || row.createdDate).format('MMMM Do, YYYY HH:mm:ss')
+                                                : 'N/A'}
                                         </StyledTableCell>
                                         {isActionsAvailable && (
                                             <StyledTableCell key='4'>
@@ -333,6 +336,7 @@ export const FlowListTable = ({
                                                         chatflow={row}
                                                         setError={setError}
                                                         updateFlowsApi={updateFlowsApi}
+                                                        isCreator={currentUser && row.created_by ? Number(row.created_by) === Number(currentUser.id) : (row.isCreator !== false)}
                                                         currentPage={currentPage}
                                                         pageLimit={pageLimit}
                                                     />

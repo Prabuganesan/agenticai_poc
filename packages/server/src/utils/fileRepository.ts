@@ -1,6 +1,6 @@
 import { ChatFlow } from '../database/entities/ChatFlow'
 import { IReactFlowObject } from '../Interface'
-import { addBase64FilesToStorage } from 'flowise-components'
+import { addBase64FilesToStorage } from 'kodivian-components'
 import { checkStorage, updateStorageUsage } from './quotaUsage'
 import { UsageCacheManager } from '../UsageCacheManager'
 
@@ -52,8 +52,6 @@ export const updateFlowDataWithFilePaths = async (
     chatflowid: string,
     flowData: string,
     orgId: string,
-    workspaceId: string,
-    subscriptionId: string,
     usageCacheManager: UsageCacheManager
 ) => {
     try {
@@ -85,20 +83,20 @@ export const updateFlowDataWithFilePaths = async (
                             for (let j = 0; j < files.length; j++) {
                                 const file = files[j]
                                 if (re.test(file)) {
-                                    await checkStorage(orgId, subscriptionId, usageCacheManager)
+                                    await checkStorage(orgId, usageCacheManager)
                                     const { path, totalSize } = await addBase64FilesToStorage(file, chatflowid, fileNames, orgId)
                                     node.data.inputs[key] = path
-                                    await updateStorageUsage(orgId, workspaceId, totalSize, usageCacheManager)
+                                    await updateStorageUsage(orgId, totalSize, usageCacheManager)
                                 }
                             }
                         } catch (e) {
                             continue
                         }
                     } else if (re.test(input)) {
-                        await checkStorage(orgId, subscriptionId, usageCacheManager)
+                        await checkStorage(orgId, usageCacheManager)
                         const { path, totalSize } = await addBase64FilesToStorage(input, chatflowid, fileNames, orgId)
                         node.data.inputs[key] = path
-                        await updateStorageUsage(orgId, workspaceId, totalSize, usageCacheManager)
+                        await updateStorageUsage(orgId, totalSize, usageCacheManager)
                     }
                 }
             }

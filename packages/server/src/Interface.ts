@@ -8,15 +8,14 @@ import {
     INodeExecutionData,
     INodeParams,
     IServerSideEventStreamer
-} from 'flowise-components'
+} from 'kodivian-components'
 import { DataSource } from 'typeorm'
 import { CachePool } from './CachePool'
-import { Telemetry } from './utils/telemetry'
 import { UsageCacheManager } from './UsageCacheManager'
 
 export type MessageType = 'apiMessage' | 'userMessage'
 
-export type ChatflowType = 'CHATFLOW' | 'MULTIAGENT' | 'ASSISTANT' | 'AGENTFLOW'
+export type ChatflowType = 'CHATFLOW' | 'ASSISTANT' | 'AGENTFLOW'
 
 export type AssistantType = 'CUSTOM' | 'OPENAI' | 'AZURE'
 
@@ -29,8 +28,7 @@ export enum MODE {
 
 export enum ChatType {
     INTERNAL = 'INTERNAL',
-    EXTERNAL = 'EXTERNAL',
-    EVALUATION = 'EVALUATION'
+    EXTERNAL = 'EXTERNAL'
 }
 
 export enum ChatMessageRatingType {
@@ -54,11 +52,15 @@ export enum UserPlan {
  * Databases
  */
 export interface IChatFlow {
-    id: string
+    id: number
+    guid: string
     name: string
+    display_name?: string
     flowData: string
-    updatedDate: Date
-    createdDate: Date
+    created_by: number
+    created_on: number
+    last_modified_by?: number
+    last_modified_on?: number
     deployed?: boolean
     isPublic?: boolean
     apikeyid?: string
@@ -70,11 +72,11 @@ export interface IChatFlow {
     apiConfig?: string
     category?: string
     type?: ChatflowType
-    workspaceId: string
 }
 
 export interface IChatMessage {
-    id: string
+    id: number
+    guid: string
     role: MessageType
     content: string
     chatflowid: string
@@ -89,95 +91,112 @@ export interface IChatMessage {
     chatId: string
     memoryType?: string
     sessionId?: string
-    createdDate: Date
-    leadEmail?: string
+    created_by: number
+    created_on: number
     action?: string | null
     followUpPrompts?: string
 }
 
 export interface IChatMessageFeedback {
-    id: string
+    id: number
+    guid: string
     content?: string
     chatflowid: string
     chatId: string
     messageId: string
     rating: ChatMessageRatingType
-    createdDate: Date
+    created_by: number
+    created_on: number
+}
+
+export interface IChatSession {
+    id: number
+    guid: string
+    chatflowId: string
+    chatId: string
+    title?: string
+    created_by: number
+    created_on: number
+    messageCount: number
+    preview?: string
 }
 
 export interface ITool {
-    id: string
+    id: number
+    guid: string
     name: string
     description: string
     color: string
     iconSrc?: string
     schema?: string
     func?: string
-    updatedDate: Date
-    createdDate: Date
-    workspaceId: string
+    created_by: number
+    created_on: number
+    last_modified_by?: number
+    last_modified_on?: number
 }
 
 export interface IAssistant {
-    id: string
+    id: number
+    guid: string
+    display_name?: string
     details: string
-    credential: string
+    credential?: string
     iconSrc?: string
-    updatedDate: Date
-    createdDate: Date
-    workspaceId: string
+    created_by: number
+    created_on: number
+    last_modified_by?: number
+    last_modified_on?: number
 }
 
 export interface ICredential {
-    id: string
+    id: number
+    guid: string
     name: string
     credentialName: string
     encryptedData: string
-    updatedDate: Date
-    createdDate: Date
-    workspaceId: string
+    created_by: number
+    created_on: number
+    last_modified_by?: number
+    last_modified_on?: number
 }
 
 export interface IVariable {
-    id: string
+    id: number
+    guid: string
     name: string
     value: string
     type: string
-    updatedDate: Date
-    createdDate: Date
-    workspaceId: string
-}
-
-export interface ILead {
-    id: string
-    name?: string
-    email?: string
-    phone?: string
-    chatflowid: string
-    chatId: string
-    createdDate: Date
+    created_by: number
+    created_on: number
+    last_modified_by?: number
+    last_modified_on?: number
 }
 
 export interface IUpsertHistory {
-    id: string
+    id: number
+    guid: string
     chatflowid: string
     result: string
     flowData: string
-    date: Date
+    created_by: number
+    created_on: number
 }
 
 export interface IExecution {
-    id: string
+    id: number
+    guid: string
     executionData: string
     state: ExecutionState
     agentflowId: string
     sessionId: string
     isPublic?: boolean
     action?: string
-    createdDate: Date
-    updatedDate: Date
-    stoppedDate: Date
-    workspaceId: string
+    created_by: number
+    created_on: number
+    last_modified_by?: number
+    last_modified_on?: number
+    stoppedDate?: number
 }
 
 export interface IComponentNodes {
@@ -291,7 +310,6 @@ export interface IncomingInput {
     sessionId?: string
     stopNodeId?: string
     uploads?: IFileUpload[]
-    leadEmail?: string
     history?: IMessage[]
     action?: IAction
     streaming?: boolean
@@ -327,13 +345,15 @@ export interface IOverrideConfig {
 }
 
 export type ICredentialDataDecrypted = ICommonObject
+// Re-export ICommonObject for use in other files
+export type { ICommonObject } from 'kodivian-components'
 
 // Plain credential object sent to server
 export interface ICredentialReqBody {
     name: string
     credentialName: string
     plainDataObj: ICredentialDataDecrypted
-    workspaceId: string
+    orgId?: string
 }
 
 // Decrypted credential object sent back to client
@@ -347,26 +367,33 @@ export interface IUploadFileSizeAndTypes {
 }
 
 export interface IApiKey {
-    id: string
+    id: number
+    guid: string
     keyName: string
     apiKey: string
     apiSecret: string
-    updatedDate: Date
-    workspaceId: string
+    created_by: number
+    created_on: number
+    last_modified_by?: number
+    last_modified_on?: number
+    orgId?: string
 }
 
 export interface ICustomTemplate {
-    id: string
+    id: number
+    guid: string
     name: string
     flowData: string
-    updatedDate: Date
-    createdDate: Date
+    created_by: number
+    created_on: number
+    last_modified_by?: number
+    last_modified_on?: number
     description?: string
     type?: string
     badge?: string
     framework?: string
     usecases?: string
-    workspaceId: string
+    orgId?: string
 }
 
 export interface IFlowConfig {
@@ -385,7 +412,6 @@ export interface IPredictionQueueAppServer {
     appDataSource: DataSource
     componentNodes: IComponentNodes
     sseStreamer: IServerSideEventStreamer
-    telemetry: Telemetry
     cachePool: CachePool
     usageCacheManager: UsageCacheManager
 }
@@ -394,14 +420,10 @@ export interface IExecuteFlowParams extends IPredictionQueueAppServer {
     incomingInput: IncomingInput
     chatflow: IChatFlow
     chatId: string
-    orgId: string
-    workspaceId: string
-    subscriptionId: string
+    orgId?: string
     productId: string
     baseURL: string
     isInternal: boolean
-    isEvaluation?: boolean
-    evaluationRunId?: string
     signal?: AbortController
     files?: Express.Multer.File[]
     fileUploads?: IFileUpload[]
@@ -431,6 +453,3 @@ export interface IVariableOverride {
 
 // DocumentStore related
 export * from './Interface.DocumentStore'
-
-// Evaluations related
-export * from './Interface.Evaluation'

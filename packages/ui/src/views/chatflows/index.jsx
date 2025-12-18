@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 
 // material-ui
-import { Box, Skeleton, Stack, ToggleButton, ToggleButtonGroup } from '@mui/material'
+import { Box, Skeleton, Stack, ToggleButton, ToggleButtonGroup, Typography, Collapse, IconButton } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 
 // project imports
@@ -28,13 +29,15 @@ import { baseURL } from '@/store/constant'
 import { useError } from '@/store/context/ErrorContext'
 
 // icons
-import { IconPlus, IconLayoutGrid, IconList } from '@tabler/icons-react'
+import { IconPlus, IconLayoutGrid, IconList, IconChevronDown, IconChevronRight } from '@tabler/icons-react'
 
 // ==============================|| CHATFLOWS ||============================== //
 
 const Chatflows = () => {
     const navigate = useNavigate()
     const theme = useTheme()
+    const customization = useSelector((state) => state.customization)
+    const currentUser = useSelector((state) => state.auth.user)
 
     const [isLoading, setLoading] = useState(true)
     const [images, setImages] = useState({})
@@ -43,6 +46,10 @@ const Chatflows = () => {
 
     const getAllChatflowsApi = useApi(chatflowsApi.getAllChatflows)
     const [view, setView] = useState(localStorage.getItem('flowDisplayStyle') || 'card')
+
+    // Section collapse states
+    const [myAgentsOpen, setMyAgentsOpen] = useState(true)
+    const [sharedAgentsOpen, setSharedAgentsOpen] = useState(true)
 
     /* Table Pagination */
     const [currentPage, setCurrentPage] = useState(1)
@@ -74,11 +81,28 @@ const Chatflows = () => {
     }
 
     function filterFlows(data) {
+        if (!data) return false
+        const searchLower = search.toLowerCase()
         return (
-            data?.name.toLowerCase().indexOf(search.toLowerCase()) > -1 ||
-            (data.category && data.category.toLowerCase().indexOf(search.toLowerCase()) > -1) ||
-            data?.id.toLowerCase().indexOf(search.toLowerCase()) > -1
+            (data.name && data.name.toLowerCase().indexOf(searchLower) > -1) ||
+            (data.category && data.category.toLowerCase().indexOf(searchLower) > -1) ||
+            (data.id && data.id.toLowerCase().indexOf(searchLower) > -1)
         )
+    }
+
+    // Split flows into my creation and others creation
+    const getMyAgents = (data) => {
+        if (!data || !currentUser) return []
+        const currentUserId = Number(currentUser.id)
+        const myFlows = data.filter((flow) => Number(flow.created_by) === currentUserId)
+        return search ? myFlows.filter(filterFlows) : myFlows
+    }
+
+    const getSharedAgents = (data) => {
+        if (!data || !currentUser) return []
+        const currentUserId = Number(currentUser.id)
+        const sharedFlows = data.filter((flow) => Number(flow.created_by) !== currentUserId)
+        return search ? sharedFlows.filter(filterFlows) : sharedFlows
     }
 
     const addNew = () => {
@@ -101,23 +125,27 @@ const Chatflows = () => {
     useEffect(() => {
         if (getAllChatflowsApi.data) {
             try {
-                const chatflows = getAllChatflowsApi.data?.data
-                const total = getAllChatflowsApi.data?.total
-                setTotal(total)
+                // Handle both response formats: array or {data: [], total: number}
+                const responseData = getAllChatflowsApi.data
+                const chatflows = Array.isArray(responseData) ? responseData : (responseData?.data || [])
+                const total = Array.isArray(responseData) ? responseData.length : (responseData?.total || 0)
+                setTotal(total || 0)
                 const images = {}
-                for (let i = 0; i < chatflows.length; i += 1) {
-                    const flowDataStr = chatflows[i].flowData
-                    const flowData = JSON.parse(flowDataStr)
-                    const nodes = flowData.nodes || []
-                    images[chatflows[i].id] = []
-                    for (let j = 0; j < nodes.length; j += 1) {
-                        if (nodes[j].data.name === 'stickyNote' || nodes[j].data.name === 'stickyNoteAgentflow') continue
-                        const imageSrc = `${baseURL}/api/v1/node-icon/${nodes[j].data.name}`
-                        if (!images[chatflows[i].id].some((img) => img.imageSrc === imageSrc)) {
-                            images[chatflows[i].id].push({
-                                imageSrc,
-                                label: nodes[j].data.label
-                            })
+                if (chatflows && Array.isArray(chatflows)) {
+                    for (let i = 0; i < chatflows.length; i += 1) {
+                        const flowDataStr = chatflows[i].flowData
+                        const flowData = JSON.parse(flowDataStr)
+                        const nodes = flowData.nodes || []
+                        images[chatflows[i].id] = []
+                        for (let j = 0; j < nodes.length; j += 1) {
+                            if (nodes[j].data.name === 'stickyNote' || nodes[j].data.name === 'stickyNoteAgentflow') continue
+                            const imageSrc = `${baseURL}/api/v1/node-icon/${nodes[j].data.name}`
+                            if (!images[chatflows[i].id].some((img) => img.imageSrc === imageSrc)) {
+                                images[chatflows[i].id].push({
+                                    imageSrc,
+                                    label: nodes[j].data.label
+                                })
+                            }
                         }
                     }
                 }
@@ -127,6 +155,78 @@ const Chatflows = () => {
             }
         }
     }, [getAllChatflowsApi.data])
+
+    // Section header component
+    const SectionHeader = ({ title, count, isOpen, onToggle }) => (
+        <Box
+            onClick={onToggle}
+            sx={{
+                display: 'flex',
+                alignItems: 'center',
+                cursor: 'pointer',
+                py: 1.5,
+                px: 2.5,
+                mb: 2,
+                borderRadius: 1.5,
+                backgroundColor: theme.palette.mode === 'dark' ? theme.palette.grey[800] : theme.palette.grey[50],
+                border: `1px solid ${theme.palette.mode === 'dark' ? theme.palette.grey[700] : theme.palette.grey[200]}`,
+                transition: 'all 0.2s ease-in-out',
+                '&:hover': {
+                    backgroundColor: theme.palette.mode === 'dark' ? theme.palette.grey[700] : theme.palette.grey[100],
+                    borderColor: theme.palette.mode === 'dark' ? theme.palette.grey[600] : theme.palette.grey[300]
+                }
+            }}
+        >
+            <IconButton 
+                size="small" 
+                sx={{ 
+                    mr: 1.5, 
+                    p: 0.5,
+                    color: theme.palette.text.secondary,
+                    '&:hover': {
+                        backgroundColor: 'transparent'
+                    }
+                }}
+            >
+                {isOpen ? <IconChevronDown size={18} /> : <IconChevronRight size={18} />}
+            </IconButton>
+            <Typography 
+                variant="h5" 
+                sx={{ 
+                    fontWeight: 600, 
+                    flex: 1,
+                    color: theme.palette.text.primary
+                }}
+            >
+                {title}
+            </Typography>
+            <Box
+                sx={{
+                    px: 1.5,
+                    py: 0.5,
+                    borderRadius: 1,
+                    backgroundColor: theme.palette.primary.main,
+                    color: theme.palette.primary.contrastText,
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    minWidth: '32px',
+                    textAlign: 'center'
+                }}
+            >
+                {count}
+            </Box>
+        </Box>
+    )
+
+    // Get filtered and split data - handle both response formats
+    // Support: array, {data: []}, or {data: [], total: number}
+    const responseData = getAllChatflowsApi.data
+    const allData = Array.isArray(responseData) 
+        ? responseData 
+        : (responseData?.data && Array.isArray(responseData.data) ? responseData.data : [])
+    const myAgents = getMyAgents(allData)
+    const sharedAgents = getSharedAgents(allData)
+    const hasResults = myAgents.length > 0 || sharedAgents.length > 0
 
     return (
         <MainCard>
@@ -138,8 +238,8 @@ const Chatflows = () => {
                         onSearchChange={onSearchChange}
                         search={true}
                         searchPlaceholder='Search Name or Category'
-                        title='Chatflows'
-                        description='Build single-agent systems, chatbots and simple LLM flows'
+                        title='Agent'
+                        description='Build intelligent single-agent automations and conversational workflows'
                     >
                         <ToggleButtonGroup
                             sx={{ borderRadius: 2, maxHeight: 40 }}
@@ -153,7 +253,7 @@ const Chatflows = () => {
                                 sx={{
                                     borderColor: theme.palette.grey[900] + 25,
                                     borderRadius: 2,
-                                    color: theme?.customization?.isDarkMode ? 'white' : 'inherit'
+                                    color: customization.isDarkMode ? 'white' : 'inherit'
                                 }}
                                 variant='contained'
                                 value='card'
@@ -165,7 +265,7 @@ const Chatflows = () => {
                                 sx={{
                                     borderColor: theme.palette.grey[900] + 25,
                                     borderRadius: 2,
-                                    color: theme?.customization?.isDarkMode ? 'white' : 'inherit'
+                                    color: customization.isDarkMode ? 'white' : 'inherit'
                                 }}
                                 variant='contained'
                                 value='list'
@@ -194,29 +294,120 @@ const Chatflows = () => {
                     )}
                     {!isLoading && total > 0 && (
                         <>
-                            {!view || view === 'card' ? (
+                            {/* My Creation Section */}
+                            {(myAgents.length > 0 || !search) && (
+                                <Box>
+                                    <SectionHeader
+                                        title="My Creation"
+                                        count={myAgents.length}
+                                        isOpen={myAgentsOpen}
+                                        onToggle={() => setMyAgentsOpen(!myAgentsOpen)}
+                                    />
+                                    <Collapse in={myAgentsOpen}>
+                                        {myAgents.length > 0 ? (
+                                            !view || view === 'card' ? (
                                 <Box display='grid' gridTemplateColumns='repeat(3, 1fr)' gap={gridSpacing}>
-                                    {getAllChatflowsApi.data?.data?.filter(filterFlows).map((data, index) => (
-                                        <ItemCard key={index} onClick={() => goToCanvas(data)} data={data} images={images[data.id]} />
+                                                    {myAgents.map((data, index) => (
+                                                        <ItemCard 
+                                                            key={data.id || index} 
+                                                            onClick={() => goToCanvas(data)} 
+                                                            data={data} 
+                                                            images={images[data.id]} 
+                                                        />
                                     ))}
                                 </Box>
                             ) : (
                                 <FlowListTable
-                                    data={getAllChatflowsApi.data?.data}
+                                                    data={myAgents}
+                                                    images={images}
+                                                    isLoading={isLoading}
+                                                    filterFunction={() => true}
+                                                    updateFlowsApi={getAllChatflowsApi}
+                                                    setError={setError}
+                                                    currentPage={currentPage}
+                                                    pageLimit={pageLimit}
+                                                />
+                                            )
+                                        ) : (
+                                            <Typography 
+                                                sx={{ 
+                                                    color: theme.palette.text.secondary, 
+                                                    pl: 2, 
+                                                    pb: 2,
+                                                    fontStyle: 'italic'
+                                                }}
+                                            >
+                                                {search ? 'No matching agents found in your creations' : 'No agents created by you yet'}
+                                            </Typography>
+                                        )}
+                                    </Collapse>
+                                </Box>
+                            )}
+
+                            {/* Others Creation Section */}
+                            {(sharedAgents.length > 0 || !search) && (
+                                <Box>
+                                    <SectionHeader
+                                        title="Others Creation"
+                                        count={sharedAgents.length}
+                                        isOpen={sharedAgentsOpen}
+                                        onToggle={() => setSharedAgentsOpen(!sharedAgentsOpen)}
+                                    />
+                                    <Collapse in={sharedAgentsOpen}>
+                                        {sharedAgents.length > 0 ? (
+                                            !view || view === 'card' ? (
+                                                <Box display='grid' gridTemplateColumns='repeat(3, 1fr)' gap={gridSpacing}>
+                                                    {sharedAgents.map((data, index) => (
+                                                        <ItemCard 
+                                                            key={data.id || index} 
+                                                            onClick={() => goToCanvas(data)} 
+                                                            data={data} 
+                                                            images={images[data.id]} 
+                                                        />
+                                                    ))}
+                                                </Box>
+                                            ) : (
+                                                <FlowListTable
+                                                    data={sharedAgents}
                                     images={images}
                                     isLoading={isLoading}
-                                    filterFunction={filterFlows}
+                                                    filterFunction={() => true}
                                     updateFlowsApi={getAllChatflowsApi}
                                     setError={setError}
                                     currentPage={currentPage}
                                     pageLimit={pageLimit}
                                 />
+                                            )
+                                        ) : (
+                                            <Typography 
+                                                sx={{ 
+                                                    color: theme.palette.text.secondary, 
+                                                    pl: 2, 
+                                                    pb: 2,
+                                                    fontStyle: 'italic'
+                                                }}
+                                            >
+                                                {search ? 'No matching shared agents found' : 'No shared agents available'}
+                                            </Typography>
+                                        )}
+                                    </Collapse>
+                                </Box>
                             )}
+
+                            {/* Show message when search has no results */}
+                            {search && !hasResults && total > 0 && (
+                                <Box sx={{ textAlign: 'center', py: 4 }}>
+                                    <Typography sx={{ color: theme.palette.text.secondary }}>
+                                        No results found matching "{search}"
+                                    </Typography>
+                                </Box>
+                            )}
+
                             {/* Pagination and Page Size Controls */}
                             <TablePagination currentPage={currentPage} limit={pageLimit} total={total} onChange={onChange} />
                         </>
                     )}
-                    {!isLoading && (!getAllChatflowsApi.data?.data || getAllChatflowsApi.data?.data.length === 0) && (
+                    {!isLoading && total === 0 && (
                         <Stack sx={{ alignItems: 'center', justifyContent: 'center' }} flexDirection='column'>
                             <Box sx={{ p: 2, height: 'auto' }}>
                                 <img
@@ -225,7 +416,7 @@ const Chatflows = () => {
                                     alt='WorkflowEmptySVG'
                                 />
                             </Box>
-                            <div>No Chatflows Yet</div>
+                            <div>No Agents Yet</div>
                         </Stack>
                     )}
                 </Stack>

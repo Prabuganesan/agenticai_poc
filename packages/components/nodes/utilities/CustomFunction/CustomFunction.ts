@@ -84,16 +84,11 @@ class CustomFunction_Utilities implements INode {
 
         const variables = await getVars(appDataSource, databaseEntities, nodeData, options)
         const flow = {
-            input,
             chatflowId: options.chatflowid,
             sessionId: options.sessionId,
             chatId: options.chatId,
-            rawOutput: options.postProcessing?.rawOutput || '',
-            chatHistory: options.postProcessing?.chatHistory || [],
-            sourceDocuments: options.postProcessing?.sourceDocuments,
-            usedTools: options.postProcessing?.usedTools,
-            artifacts: options.postProcessing?.artifacts,
-            fileAnnotations: options.postProcessing?.fileAnnotations
+            rawOutput: options.rawOutput || '',
+            input
         }
 
         let inputVars: ICommonObject = {}

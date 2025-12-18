@@ -18,6 +18,7 @@ import { getBaseClasses, handleEscapeCharacters } from '../../../src/utils'
 import { checkInputs, Moderation, streamResponse } from '../../moderation/Moderation'
 import { formatResponse, injectOutputParser } from '../../outputparsers/OutputParserHelpers'
 import { addImagesToMessages, llmSupportsVision } from '../../../src/multiModalUtils'
+import path from 'path'
 
 class LLMChain_Chains implements INode {
     label: string
@@ -118,13 +119,8 @@ class LLMChain_Chains implements INode {
             })
             const inputVariables = chain.prompt.inputVariables as string[] // ["product"]
             promptValues = injectOutputParser(this.outputParser, chain, promptValues)
-            // Disable streaming because its not final chain
             const disableStreaming = true
             const res = await runPrediction(inputVariables, chain, input, promptValues, options, nodeData, disableStreaming)
-            // eslint-disable-next-line no-console
-            console.log('\x1b[92m\x1b[1m\n*****OUTPUT PREDICTION*****\n\x1b[0m\x1b[0m')
-            // eslint-disable-next-line no-console
-            console.log(res)
 
             let finalRes = res
             if (this.outputParser && typeof res === 'object' && Object.prototype.hasOwnProperty.call(res, 'json')) {
@@ -134,7 +130,7 @@ class LLMChain_Chains implements INode {
             /**
              * Apply string transformation to convert special chars:
              * FROM: hello i am ben\n\n\thow are you?
-             * TO: hello i am benFLOWISE_NEWLINEFLOWISE_NEWLINEFLOWISE_TABhow are you?
+             * TO: hello i am benAUTONOMOUS_NEWLINEAUTONOMOUS_NEWLINEAUTONOMOUS_TABhow are you?
              */
             return handleEscapeCharacters(finalRes, false)
         }
@@ -150,11 +146,59 @@ class LLMChain_Chains implements INode {
         }
         promptValues = injectOutputParser(this.outputParser, chain, promptValues)
         const res = await runPrediction(inputVariables, chain, input, promptValues, options, nodeData)
-        // eslint-disable-next-line no-console
-        console.log('\x1b[93m\x1b[1m\n*****FINAL RESULT*****\n\x1b[0m\x1b[0m')
-        // eslint-disable-next-line no-console
-        console.log(res)
         return res
+    }
+}
+
+/**
+ * Helper function to track LLM usage for chain nodes
+ */
+async function trackLLMUsageForChain(nodeData: INodeData, options: ICommonObject, result: any, timeDelta: number, llm: any): Promise<void> {
+    try {
+        if (options.orgId && result) {
+            // Dynamic import from server package
+            const llmUsageTrackerPath = path.resolve(__dirname, '../../../../server/src/utils/llm-usage-tracker')
+            const { trackLLMUsage, extractProviderAndModel, extractUsageMetadata } = await import(llmUsageTrackerPath)
+
+            // Get model from chain
+            const { provider, model: modelName } = extractProviderAndModel(nodeData, { model: llm })
+
+            // Extract usage metadata from result
+            const { promptTokens, completionTokens, totalTokens } = extractUsageMetadata({
+                usageMetadata: result?.usageMetadata,
+                usage_metadata: result?.usage_metadata,
+                llmOutput: result?.llmOutput,
+                tokenUsage: result?.tokenUsage
+            })
+
+            await trackLLMUsage({
+                requestId: (options.apiMessageId as string) || (options.chatId as string),
+                executionId: options.parentExecutionId as string,
+                orgId: (options.orgId as string) || '',
+                userId: (options.incomingInput?.userId as string) || (options.userId as string) || '0',
+                chatflowId: options.chatflowid as string,
+                chatId: options.chatId as string,
+                sessionId: options.sessionId as string,
+                feature: 'chatflow',
+                nodeId: nodeData.id,
+                nodeType: 'LLMChain',
+                nodeName: 'LLMChain',
+                location: 'main_flow',
+                provider,
+                model: modelName,
+                requestType: 'chat',
+                promptTokens: promptTokens || 0,
+                completionTokens: completionTokens || 0,
+                totalTokens: totalTokens || 0,
+                processingTimeMs: timeDelta,
+                responseLength: (result?.text as string)?.length || (typeof result === 'string' ? result.length : 0),
+                success: true,
+                cacheHit: false,
+                metadata: {}
+            })
+        }
+    } catch (trackError) {
+        // Silently fail - tracking should not break the main flow
     }
 }
 
@@ -192,7 +236,7 @@ const runPrediction = async (
 
     /**
      * Apply string transformation to reverse converted special chars:
-     * FROM: { "value": "hello i am benFLOWISE_NEWLINEFLOWISE_NEWLINEFLOWISE_TABhow are you?" }
+     * FROM: { "value": "hello i am benAUTONOMOUS_NEWLINEAUTONOMOUS_NEWLINEAUTONOMOUS_TABhow are you?" }
      * TO: { "value": "hello i am ben\n\n\thow are you?" }
      */
     const promptValues = handleEscapeCharacters(promptValuesRaw, true)
@@ -256,44 +300,78 @@ const runPrediction = async (
 
         if (seen.length === 0) {
             // All inputVariables have fixed values specified
-            const options = { ...promptValues }
+            const chainOptions = { ...promptValues }
+
+            // Track start time BEFORE LLM execution
+            const startTime = Date.now()
+
+            let res
             if (shouldStreamResponse) {
                 const handler = new CustomChainHandler(sseStreamer, chatId)
-                const res = await chain.call(options, [loggerHandler, handler, ...callbacks])
-                return formatResponse(res?.text)
+                res = await chain.call(chainOptions, [loggerHandler, handler, ...callbacks])
             } else {
-                const res = await chain.call(options, [loggerHandler, ...callbacks])
-                return formatResponse(res?.text)
+                res = await chain.call(chainOptions, [loggerHandler, ...callbacks])
             }
+
+            // Track end time AFTER LLM execution
+            const endTime = Date.now()
+            const timeDelta = endTime - startTime
+
+            // Track LLM usage (use original options parameter, not local chainOptions)
+            await trackLLMUsageForChain(nodeData, options, res, timeDelta, chain.llm)
+
+            return formatResponse(res?.text)
         } else if (seen.length === 1) {
             // If one inputVariable is not specify, use input (user's question) as value
             const lastValue = seen.pop()
             if (!lastValue) throw new Error('Please provide Prompt Values')
-            const options = {
+            const chainOptions = {
                 ...promptValues,
                 [lastValue]: input
             }
+
+            // Track start time BEFORE LLM execution
+            const startTime = Date.now()
+
+            let res
             if (shouldStreamResponse) {
                 const handler = new CustomChainHandler(sseStreamer, chatId)
-                const res = await chain.call(options, [loggerHandler, handler, ...callbacks])
-                return formatResponse(res?.text)
+                res = await chain.call(chainOptions, [loggerHandler, handler, ...callbacks])
             } else {
-                const res = await chain.call(options, [loggerHandler, ...callbacks])
-                return formatResponse(res?.text)
+                res = await chain.call(chainOptions, [loggerHandler, ...callbacks])
             }
+
+            // Track end time AFTER LLM execution
+            const endTime = Date.now()
+            const timeDelta = endTime - startTime
+
+            // Track LLM usage (use original options parameter, not local chainOptions)
+            await trackLLMUsageForChain(nodeData, options, res, timeDelta, chain.llm)
+
+            return formatResponse(res?.text)
         } else {
             throw new Error(`Please provide Prompt Values for: ${seen.join(', ')}`)
         }
     } else {
+        // Track start time BEFORE LLM execution
+        const startTime = Date.now()
+
+        let res
         if (shouldStreamResponse) {
             const handler = new CustomChainHandler(sseStreamer, chatId)
-
-            const res = await chain.run(input, [loggerHandler, handler, ...callbacks])
-            return formatResponse(res)
+            res = await chain.run(input, [loggerHandler, handler, ...callbacks])
         } else {
-            const res = await chain.run(input, [loggerHandler, ...callbacks])
-            return formatResponse(res)
+            res = await chain.run(input, [loggerHandler, ...callbacks])
         }
+
+        // Track end time AFTER LLM execution
+        const endTime = Date.now()
+        const timeDelta = endTime - startTime
+
+        // Track LLM usage
+        await trackLLMUsageForChain(nodeData, options, res, timeDelta, chain.llm)
+
+        return formatResponse(res)
     }
 }
 

@@ -1,12 +1,11 @@
 // assets
-import { IconTrash, IconMessage, IconAdjustmentsHorizontal, IconUsers } from '@tabler/icons-react'
+import { IconTrash, IconMessage, IconAdjustmentsHorizontal } from '@tabler/icons-react'
 
 // constant
 const icons = {
     IconTrash,
     IconMessage,
-    IconAdjustmentsHorizontal,
-    IconUsers
+    IconAdjustmentsHorizontal
 }
 
 // ==============================|| SETTINGS MENU ITEMS ||============================== //
@@ -23,13 +22,14 @@ const customAssistantSettings = {
             url: '',
             icon: icons.IconMessage
         },
-        {
-            id: 'viewLeads',
-            title: 'View Leads',
-            type: 'item',
-            url: '',
-            icon: icons.IconUsers
-        },
+        // Leads feature removed for autonomous server deployment
+        // {
+        //     id: 'viewLeads',
+        //     title: 'View Leads',
+        //     type: 'item',
+        //     url: '',
+        //     icon: icons.IconUsers
+        // },
         {
             id: 'chatflowConfiguration',
             title: 'Configuration',

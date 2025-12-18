@@ -1,9 +1,9 @@
 import { StatusCodes } from 'http-status-codes'
-import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
-import { InternalFlowiseError } from '../../errors/internalFlowiseError'
+import { InternalAutonomousError } from '../../errors/internalAutonomousError'
 import { getErrorMessage } from '../../errors/utils'
-import { getVoices } from 'flowise-components'
+import { getVoices } from 'kodivian-components'
 import { databaseEntities } from '../../utils'
+import { getDataSource } from '../../DataSource'
 
 export enum TextToSpeechProvider {
     OPENAI = 'openai',
@@ -23,24 +23,28 @@ export interface TTSResponse {
     contentType: string
 }
 
-const getVoicesForProvider = async (provider: string, credentialId?: string): Promise<any[]> => {
+const getVoicesForProvider = async (provider: string, orgId: string, credentialId?: string): Promise<any[]> => {
     try {
         if (!credentialId) {
-            throw new InternalFlowiseError(StatusCodes.BAD_REQUEST, 'Credential ID required for this provider')
+            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Credential ID required for this provider')
+        }
+        if (!orgId) {
+            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'orgId is required')
         }
 
-        const appServer = getRunningExpressApp()
+        const appDataSource = getDataSource(parseInt(orgId))
+
         const options = {
-            orgId: '',
+            orgId: orgId,
             chatflowid: '',
             chatId: '',
-            appDataSource: appServer.AppDataSource,
+            appDataSource: appDataSource,
             databaseEntities: databaseEntities
         }
 
         return await getVoices(provider, credentialId, options)
     } catch (error) {
-        throw new InternalFlowiseError(
+        throw new InternalAutonomousError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: textToSpeechService.getVoices - ${getErrorMessage(error)}`
         )

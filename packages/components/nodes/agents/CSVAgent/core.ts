@@ -1,13 +1,19 @@
 import type { PyodideInterface } from 'pyodide'
 import * as path from 'path'
-import { getUserHome } from '../../../src/utils'
+import { getAutonomousDataPath } from '../../../src/utils'
 
 let pyodideInstance: PyodideInterface | undefined
 
 export async function LoadPyodide(): Promise<PyodideInterface> {
     if (pyodideInstance === undefined) {
         const { loadPyodide } = await import('pyodide')
-        const obj: any = { packageCacheDir: path.join(getUserHome(), '.flowise', 'pyodideCacheDir') }
+        const pyodideCacheDir = path.join(getAutonomousDataPath(), 'pyodideCacheDir')
+        // Ensure directory exists
+        const fs = await import('fs')
+        if (!fs.existsSync(pyodideCacheDir)) {
+            fs.mkdirSync(pyodideCacheDir, { recursive: true })
+        }
+        const obj: any = { packageCacheDir: pyodideCacheDir }
         pyodideInstance = await loadPyodide(obj)
         await pyodideInstance.loadPackage(['pandas', 'numpy'])
     }

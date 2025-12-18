@@ -1,4 +1,4 @@
-import { InternalFlowiseError } from '../errors/internalFlowiseError'
+import { InternalAutonomousError } from '../errors/internalAutonomousError'
 import { StatusCodes } from 'http-status-codes'
 import { Request } from 'express'
 
@@ -11,18 +11,21 @@ export const getPageAndLimitParams = (req: Request): Pagination => {
     // by default assume no pagination
     let page = -1
     let limit = -1
-    if (req.query.page) {
+    const pageParam = req.query.page || req.body?.page
+    const limitParam = req.query.limit || req.body?.limit
+
+    if (pageParam) {
         // if page is provided, make sure it's a positive number
-        page = parseInt(req.query.page as string)
+        page = parseInt(pageParam as string)
         if (page < 0) {
-            throw new InternalFlowiseError(StatusCodes.PRECONDITION_FAILED, `Error: page cannot be negative!`)
+            throw new InternalAutonomousError(StatusCodes.PRECONDITION_FAILED, `Error: page cannot be negative!`)
         }
     }
-    if (req.query.limit) {
+    if (limitParam) {
         // if limit is provided, make sure it's a positive number
-        limit = parseInt(req.query.limit as string)
+        limit = parseInt(limitParam as string)
         if (limit < 0) {
-            throw new InternalFlowiseError(StatusCodes.PRECONDITION_FAILED, `Error: limit cannot be negative!`)
+            throw new InternalAutonomousError(StatusCodes.PRECONDITION_FAILED, `Error: limit cannot be negative!`)
         }
     }
     return { page, limit }

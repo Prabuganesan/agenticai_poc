@@ -79,7 +79,7 @@ export const generateOAuth2ResponsePage = (options: OAuth2PageOptions): string =
                         })}, '*');
                     }
                 } catch (error) {
-                    console.log('Could not notify parent window:', error);
+                    // Silently handle notification error
                 }
                 
                 // Close window after delay

@@ -30,7 +30,7 @@ import EmbedChat from './EmbedChat'
 import { Available } from '@/ui-component/rbac/available'
 
 // Const
-import { baseURL } from '@/store/constant'
+import { baseURL, getAutonomousDocsPath } from '@/store/constant'
 import { SET_CHATFLOW } from '@/store/actions'
 
 // Images
@@ -792,7 +792,7 @@ formData.append("openAIApiKey[openAIEmbeddings_0]", "sk-my-openai-2nd-key")`
                                                     <a
                                                         rel='noreferrer'
                                                         target='_blank'
-                                                        href='https://docs.flowiseai.com/using-flowise/prediction#configuration-override'
+                                                        href={`${getAutonomousDocsPath()}/using-autonomous/prediction#configuration-override`}
                                                     >
                                                         here
                                                     </a>{' '}
@@ -858,8 +858,8 @@ formData.append("openAIApiKey[openAIEmbeddings_0]", "sk-my-openai-2nd-key")`
                                                                     columns={
                                                                         nodeOverrides[nodeLabel].length > 0
                                                                             ? Object.keys(nodeOverrides[nodeLabel][0]).filter(
-                                                                                  (key) => key !== 'schema'
-                                                                              )
+                                                                                (key) => key !== 'schema'
+                                                                            )
                                                                             : []
                                                                     }
                                                                 />
@@ -883,8 +883,8 @@ formData.append("openAIApiKey[openAIEmbeddings_0]", "sk-my-openai-2nd-key")`
                                                         ? getConfigCodeWithFormDataWithAuth(codeLang, getConfigApi.data)
                                                         : getConfigCodeWithAuthorization(codeLang, getConfigApi.data)
                                                     : dialogProps.isFormDataRequired
-                                                    ? getConfigCodeWithFormData(codeLang, getConfigApi.data)
-                                                    : getConfigCode(codeLang, getConfigApi.data)
+                                                        ? getConfigCodeWithFormData(codeLang, getConfigApi.data)
+                                                        : getConfigCode(codeLang, getConfigApi.data)
                                             }
                                             language={getLang(codeLang)}
                                             showLineNumbers={false}
@@ -932,7 +932,7 @@ formData.append("openAIApiKey[openAIEmbeddings_0]", "sk-my-openai-2nd-key")`
                                 {getIsChatflowStreamingApi.data?.isStreaming && (
                                     <p>
                                         Read&nbsp;
-                                        <a rel='noreferrer' target='_blank' href='https://docs.flowiseai.com/using-flowise/streaming'>
+                                        <a rel='noreferrer' target='_blank' href={`${getAutonomousDocsPath()}/using-autonomous/streaming`}>
                                             here
                                         </a>
                                         &nbsp;on how to stream response back to application

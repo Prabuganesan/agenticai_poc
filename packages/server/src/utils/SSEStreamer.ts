@@ -1,5 +1,7 @@
 import { Response } from 'express'
-import { IServerSideEventStreamer } from 'flowise-components'
+import { IServerSideEventStreamer } from 'kodivian-components'
+import { sanitizeErrorMessage } from '../errors/utils'
+import { logError } from './logger/system-helper'
 
 // define a new type that has a client type (INTERNAL or EXTERNAL) and Response type
 type Client = {
@@ -8,17 +10,58 @@ type Client = {
     response: Response
     // optional property with default value
     started?: boolean
+    // Store orgId and userId for logging purposes
+    orgId?: string | number
+    userId?: string | number
 }
 
 export class SSEStreamer implements IServerSideEventStreamer {
     clients: { [id: string]: Client } = {}
 
-    addExternalClient(chatId: string, res: Response) {
-        this.clients[chatId] = { clientType: 'EXTERNAL', response: res, started: false }
+    addExternalClient(chatId: string, res: Response, orgId?: string | number, userId?: string | number) {
+        this.clients[chatId] = { 
+            clientType: 'EXTERNAL', 
+            response: res, 
+            started: false,
+            orgId: orgId,
+            userId: userId
+        }
+        
+        // Log streaming operation - client added
+        try {
+            const { streamingLog } = require('./logger/module-methods')
+            streamingLog('info', 'Streaming client added (external)', {
+                userId: userId?.toString() || 'unknown',
+                orgId: orgId?.toString() || 'unknown',
+                chatId: chatId,
+                clientType: 'EXTERNAL'
+            }).catch(() => {})
+        } catch (logError) {
+            // Silently fail - logging should not break streaming
+        }
     }
 
-    addClient(chatId: string, res: Response) {
-        this.clients[chatId] = { clientType: 'INTERNAL', response: res, started: false }
+    addClient(chatId: string, res: Response, orgId?: string | number, userId?: string | number) {
+        this.clients[chatId] = { 
+            clientType: 'INTERNAL', 
+            response: res, 
+            started: false,
+            orgId: orgId,
+            userId: userId
+        }
+        
+        // Log streaming operation - client added
+        try {
+            const { streamingLog } = require('./logger/module-methods')
+            streamingLog('info', 'Streaming client added (internal)', {
+                userId: userId?.toString() || 'unknown',
+                orgId: orgId?.toString() || 'unknown',
+                chatId: chatId,
+                clientType: 'INTERNAL'
+            }).catch(() => {})
+        } catch (logError) {
+            // Silently fail - logging should not break streaming
+        }
     }
 
     removeClient(chatId: string) {
@@ -30,6 +73,20 @@ export class SSEStreamer implements IServerSideEventStreamer {
             }
             client.response.write('message\ndata:' + JSON.stringify(clientResponse) + '\n\n')
             client.response.end()
+            
+            // Log streaming operation - stream ended
+            try {
+                const { streamingLog } = require('./logger/module-methods')
+                streamingLog('info', 'Streaming ended', {
+                    userId: client.userId?.toString() || 'unknown',
+                    orgId: client.orgId?.toString() || 'unknown',
+                    chatId: chatId,
+                    clientType: client.clientType
+                }).catch(() => {})
+            } catch (logError) {
+                // Silently fail - logging should not break streaming
+            }
+            
             delete this.clients[chatId]
         }
     }
@@ -55,6 +112,20 @@ export class SSEStreamer implements IServerSideEventStreamer {
             }
             client.response.write('message:\ndata:' + JSON.stringify(clientResponse) + '\n\n')
             client.started = true
+            
+            // Log streaming operation - stream started
+            try {
+                const { streamingLog } = require('./logger/module-methods')
+                streamingLog('info', 'Streaming started', {
+                    userId: 'unknown',
+                    orgId: 'unknown', // Will be set by caller if available
+                    chatId: chatId,
+                    clientType: client.clientType,
+                    dataLength: data?.length || 0
+                }).catch(() => {})
+            } catch (logError) {
+                // Silently fail - logging should not break streaming
+            }
         }
     }
 
@@ -206,12 +277,17 @@ export class SSEStreamer implements IServerSideEventStreamer {
     }
 
     streamErrorEvent(chatId: string, msg: string) {
-        if (msg.includes('401 Incorrect API key provided')) msg = '401 Invalid model key or Incorrect local model configuration.'
+        // Log full error details server-side before sanitizing
+        logError(`[SSEStreamer] Full error details for chatId ${chatId}:`, msg).catch(() => {})
+        
+        // Sanitize error message for frontend (full error already logged above)
+        const sanitizedMsg = sanitizeErrorMessage(msg, logError)
+        
         const client = this.clients[chatId]
         if (client) {
             const clientResponse = {
                 event: 'error',
-                data: msg
+                data: sanitizedMsg
             }
             client.response.write('message\ndata:' + JSON.stringify(clientResponse) + '\n\n')
         }

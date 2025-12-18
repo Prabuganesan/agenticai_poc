@@ -1,5 +1,7 @@
 import { IActiveCache, MODE } from './Interface'
 import Redis from 'ioredis'
+import { OrganizationConfigService } from './services/org-config.service'
+import { logInfo, logWarn } from './utils/logger/system-helper'
 
 /**
  * This pool is to keep track of in-memory cache used for LLM and Embeddings
@@ -10,37 +12,52 @@ export class CachePool {
     activeEmbeddingCache: IActiveCache = {}
     activeMCPCache: { [key: string]: any } = {}
     ssoTokenCache: { [key: string]: any } = {}
+    private orgConfigService?: OrganizationConfigService
 
-    constructor() {
+    constructor(orgConfigService?: OrganizationConfigService) {
+        this.orgConfigService = orgConfigService
         if (process.env.MODE === MODE.QUEUE) {
-            if (process.env.REDIS_URL) {
-                this.redisClient = new Redis(process.env.REDIS_URL, {
-                    keepAlive:
-                        process.env.REDIS_KEEP_ALIVE && !isNaN(parseInt(process.env.REDIS_KEEP_ALIVE, 10))
-                            ? parseInt(process.env.REDIS_KEEP_ALIVE, 10)
-                            : undefined
-                })
-            } else {
+            // Get Redis config from first org's config (loaded from main database)
+            const redisConfig = this.getRedisConfigFromOrg()
+
+            if (redisConfig) {
                 this.redisClient = new Redis({
-                    host: process.env.REDIS_HOST || 'localhost',
-                    port: parseInt(process.env.REDIS_PORT || '6379'),
-                    username: process.env.REDIS_USERNAME || undefined,
-                    password: process.env.REDIS_PASSWORD || undefined,
-                    tls:
-                        process.env.REDIS_TLS === 'true'
-                            ? {
-                                  cert: process.env.REDIS_CERT ? Buffer.from(process.env.REDIS_CERT, 'base64') : undefined,
-                                  key: process.env.REDIS_KEY ? Buffer.from(process.env.REDIS_KEY, 'base64') : undefined,
-                                  ca: process.env.REDIS_CA ? Buffer.from(process.env.REDIS_CA, 'base64') : undefined
-                              }
-                            : undefined,
+                    host: redisConfig.host,
+                    port: redisConfig.port,
+                    password: redisConfig.password,
                     keepAlive:
                         process.env.REDIS_KEEP_ALIVE && !isNaN(parseInt(process.env.REDIS_KEEP_ALIVE, 10))
                             ? parseInt(process.env.REDIS_KEEP_ALIVE, 10)
                             : undefined
                 })
+                logInfo(`[CachePool] Using Redis config from org config: ${redisConfig.host}:${redisConfig.port}`).catch(() => {})
+            } else {
+                logWarn('[CachePool] No Redis config found from org configs, cache will use in-memory store').catch(() => {})
             }
         }
+    }
+
+    private getRedisConfigFromOrg(): { host: string; port: number; password?: string } | null {
+        if (this.orgConfigService) {
+            const orgIds = this.orgConfigService.getAllOrgIds()
+            if (orgIds.length > 0) {
+                const firstOrgId = orgIds[0]
+                const orgConfig = this.orgConfigService.getOrgConfig(firstOrgId)
+                const redisConfigData = orgConfig?.redis
+
+                if (redisConfigData) {
+                    return {
+                        host: redisConfigData.host,
+                        port: redisConfigData.port,
+                        password:
+                            redisConfigData.password && redisConfigData.password.trim().length > 0
+                                ? redisConfigData.password.trim()
+                                : undefined
+                    }
+                }
+            }
+        }
+        return null
     }
 
     /**
@@ -96,6 +113,21 @@ export class CachePool {
             }
         } else {
             this.activeLLMCache[chatflowid] = value
+        }
+
+        // Log cache operation
+        try {
+            const { cacheLog } = await import('./utils/logger/module-methods')
+            // Extract orgId from chatflowid if possible, otherwise use 'unknown'
+            await cacheLog('info', 'LLM cache added', {
+                userId: 'system',
+                orgId: 'unknown', // Cache operations don't have direct orgId access
+                cacheKey: `llmCache:${chatflowid}`,
+                cacheType: 'LLM',
+                mode: process.env.MODE === MODE.QUEUE ? 'redis' : 'memory'
+            }).catch(() => {})
+        } catch (logError) {
+            // Silently fail - logging should not break cache operations
         }
     }
 

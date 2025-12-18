@@ -1,87 +1,96 @@
 import OpenAI from 'openai'
 import { StatusCodes } from 'http-status-codes'
 import { Credential } from '../../database/entities/Credential'
-import { InternalFlowiseError } from '../../errors/internalFlowiseError'
+import { InternalAutonomousError } from '../../errors/internalAutonomousError'
 import { getErrorMessage } from '../../errors/utils'
-import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
 import { decryptCredentialData } from '../../utils'
-import { getFileFromUpload, removeSpecificFileFromUpload } from 'flowise-components'
+import { getFileFromUpload, removeSpecificFileFromUpload } from 'kodivian-components'
+import { getDataSource } from '../../DataSource'
 
-const getAssistantVectorStore = async (credentialId: string, vectorStoreId: string) => {
+const getAssistantVectorStore = async (credentialId: string, vectorStoreId: string, orgId: string) => {
     try {
-        const appServer = getRunningExpressApp()
-        const credential = await appServer.AppDataSource.getRepository(Credential).findOneBy({
-            id: credentialId
+        if (!orgId) {
+            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+        }
+        const dataSource = getDataSource(parseInt(orgId))
+        const credential = await dataSource.getRepository(Credential).findOneBy({
+            guid: credentialId
         })
         if (!credential) {
-            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Credential ${credentialId} not found in the database!`)
+            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Credential ${credentialId} not found in the database!`)
         }
         // Decrpyt credentialData
         const decryptedCredentialData = await decryptCredentialData(credential.encryptedData)
         const openAIApiKey = decryptedCredentialData['openAIApiKey']
         if (!openAIApiKey) {
-            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `OpenAI ApiKey not found`)
+            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `OpenAI ApiKey not found`)
         }
 
         const openai = new OpenAI({ apiKey: openAIApiKey })
         const dbResponse = await openai.vectorStores.retrieve(vectorStoreId)
         return dbResponse
     } catch (error) {
-        throw new InternalFlowiseError(
+        throw new InternalAutonomousError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: openaiAssistantsVectorStoreService.getAssistantVectorStore - ${getErrorMessage(error)}`
         )
     }
 }
 
-const listAssistantVectorStore = async (credentialId: string) => {
+const listAssistantVectorStore = async (credentialId: string, orgId: string) => {
     try {
-        const appServer = getRunningExpressApp()
-        const credential = await appServer.AppDataSource.getRepository(Credential).findOneBy({
-            id: credentialId
+        if (!orgId) {
+            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+        }
+        const dataSource = getDataSource(parseInt(orgId))
+        const credential = await dataSource.getRepository(Credential).findOneBy({
+            guid: credentialId
         })
         if (!credential) {
-            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Credential ${credentialId} not found in the database!`)
+            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Credential ${credentialId} not found in the database!`)
         }
         // Decrpyt credentialData
         const decryptedCredentialData = await decryptCredentialData(credential.encryptedData)
         const openAIApiKey = decryptedCredentialData['openAIApiKey']
         if (!openAIApiKey) {
-            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `OpenAI ApiKey not found`)
+            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `OpenAI ApiKey not found`)
         }
 
         const openai = new OpenAI({ apiKey: openAIApiKey })
         const dbResponse = await openai.vectorStores.list()
         return dbResponse.data
     } catch (error) {
-        throw new InternalFlowiseError(
+        throw new InternalAutonomousError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: openaiAssistantsVectorStoreService.listAssistantVectorStore - ${getErrorMessage(error)}`
         )
     }
 }
 
-const createAssistantVectorStore = async (credentialId: string, obj: OpenAI.VectorStores.VectorStoreCreateParams) => {
+const createAssistantVectorStore = async (credentialId: string, orgId: string, obj: OpenAI.VectorStores.VectorStoreCreateParams) => {
     try {
-        const appServer = getRunningExpressApp()
-        const credential = await appServer.AppDataSource.getRepository(Credential).findOneBy({
-            id: credentialId
+        if (!orgId) {
+            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+        }
+        const dataSource = getDataSource(parseInt(orgId))
+        const credential = await dataSource.getRepository(Credential).findOneBy({
+            guid: credentialId
         })
         if (!credential) {
-            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Credential ${credentialId} not found in the database!`)
+            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Credential ${credentialId} not found in the database!`)
         }
         // Decrpyt credentialData
         const decryptedCredentialData = await decryptCredentialData(credential.encryptedData)
         const openAIApiKey = decryptedCredentialData['openAIApiKey']
         if (!openAIApiKey) {
-            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `OpenAI ApiKey not found`)
+            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `OpenAI ApiKey not found`)
         }
 
         const openai = new OpenAI({ apiKey: openAIApiKey })
         const dbResponse = await openai.vectorStores.create(obj)
         return dbResponse
     } catch (error) {
-        throw new InternalFlowiseError(
+        throw new InternalAutonomousError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: openaiAssistantsVectorStoreService.createAssistantVectorStore - ${getErrorMessage(error)}`
         )
@@ -91,21 +100,25 @@ const createAssistantVectorStore = async (credentialId: string, obj: OpenAI.Vect
 const updateAssistantVectorStore = async (
     credentialId: string,
     vectorStoreId: string,
+    orgId: string,
     obj: OpenAI.VectorStores.VectorStoreUpdateParams
 ) => {
     try {
-        const appServer = getRunningExpressApp()
-        const credential = await appServer.AppDataSource.getRepository(Credential).findOneBy({
-            id: credentialId
+        if (!orgId) {
+            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+        }
+        const dataSource = getDataSource(parseInt(orgId))
+        const credential = await dataSource.getRepository(Credential).findOneBy({
+            guid: credentialId
         })
         if (!credential) {
-            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Credential ${credentialId} not found in the database!`)
+            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Credential ${credentialId} not found in the database!`)
         }
         // Decrpyt credentialData
         const decryptedCredentialData = await decryptCredentialData(credential.encryptedData)
         const openAIApiKey = decryptedCredentialData['openAIApiKey']
         if (!openAIApiKey) {
-            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `OpenAI ApiKey not found`)
+            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `OpenAI ApiKey not found`)
         }
 
         const openai = new OpenAI({ apiKey: openAIApiKey })
@@ -121,34 +134,37 @@ const updateAssistantVectorStore = async (
         }
         return dbResponse
     } catch (error) {
-        throw new InternalFlowiseError(
+        throw new InternalAutonomousError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: openaiAssistantsVectorStoreService.updateAssistantVectorStore - ${getErrorMessage(error)}`
         )
     }
 }
 
-const deleteAssistantVectorStore = async (credentialId: string, vectorStoreId: string) => {
+const deleteAssistantVectorStore = async (credentialId: string, vectorStoreId: string, orgId: string) => {
     try {
-        const appServer = getRunningExpressApp()
-        const credential = await appServer.AppDataSource.getRepository(Credential).findOneBy({
-            id: credentialId
+        if (!orgId) {
+            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+        }
+        const dataSource = getDataSource(parseInt(orgId))
+        const credential = await dataSource.getRepository(Credential).findOneBy({
+            guid: credentialId
         })
         if (!credential) {
-            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Credential ${credentialId} not found in the database!`)
+            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Credential ${credentialId} not found in the database!`)
         }
         // Decrpyt credentialData
         const decryptedCredentialData = await decryptCredentialData(credential.encryptedData)
         const openAIApiKey = decryptedCredentialData['openAIApiKey']
         if (!openAIApiKey) {
-            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `OpenAI ApiKey not found`)
+            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `OpenAI ApiKey not found`)
         }
 
         const openai = new OpenAI({ apiKey: openAIApiKey })
         const dbResponse = await openai.vectorStores.del(vectorStoreId)
         return dbResponse
     } catch (error) {
-        throw new InternalFlowiseError(
+        throw new InternalAutonomousError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: openaiAssistantsVectorStoreService.deleteAssistantVectorStore - ${getErrorMessage(error)}`
         )
@@ -158,21 +174,25 @@ const deleteAssistantVectorStore = async (credentialId: string, vectorStoreId: s
 const uploadFilesToAssistantVectorStore = async (
     credentialId: string,
     vectorStoreId: string,
+    orgId: string,
     files: { filePath: string; fileName: string }[]
 ): Promise<any> => {
     try {
-        const appServer = getRunningExpressApp()
-        const credential = await appServer.AppDataSource.getRepository(Credential).findOneBy({
-            id: credentialId
+        if (!orgId) {
+            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+        }
+        const dataSource = getDataSource(parseInt(orgId))
+        const credential = await dataSource.getRepository(Credential).findOneBy({
+            guid: credentialId
         })
         if (!credential) {
-            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Credential ${credentialId} not found in the database!`)
+            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Credential ${credentialId} not found in the database!`)
         }
         // Decrpyt credentialData
         const decryptedCredentialData = await decryptCredentialData(credential.encryptedData)
         const openAIApiKey = decryptedCredentialData['openAIApiKey']
         if (!openAIApiKey) {
-            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `OpenAI ApiKey not found`)
+            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `OpenAI ApiKey not found`)
         }
 
         const openai = new OpenAI({ apiKey: openAIApiKey })
@@ -195,37 +215,40 @@ const uploadFilesToAssistantVectorStore = async (
         })
         if (res.status === 'completed' && res.file_counts.completed === uploadedFiles.length) return uploadedFiles
         else if (res.status === 'failed')
-            throw new InternalFlowiseError(
+            throw new InternalAutonomousError(
                 StatusCodes.INTERNAL_SERVER_ERROR,
                 'Error: openaiAssistantsVectorStoreService.uploadFilesToAssistantVectorStore - Upload failed!'
             )
         else
-            throw new InternalFlowiseError(
+            throw new InternalAutonomousError(
                 StatusCodes.INTERNAL_SERVER_ERROR,
                 'Error: openaiAssistantsVectorStoreService.uploadFilesToAssistantVectorStore - Upload cancelled!'
             )
     } catch (error) {
-        throw new InternalFlowiseError(
+        throw new InternalAutonomousError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: openaiAssistantsVectorStoreService.uploadFilesToAssistantVectorStore - ${getErrorMessage(error)}`
         )
     }
 }
 
-const deleteFilesFromAssistantVectorStore = async (credentialId: string, vectorStoreId: string, file_ids: string[]) => {
+const deleteFilesFromAssistantVectorStore = async (credentialId: string, vectorStoreId: string, orgId: string, file_ids: string[]) => {
     try {
-        const appServer = getRunningExpressApp()
-        const credential = await appServer.AppDataSource.getRepository(Credential).findOneBy({
-            id: credentialId
+        if (!orgId) {
+            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+        }
+        const dataSource = getDataSource(parseInt(orgId))
+        const credential = await dataSource.getRepository(Credential).findOneBy({
+            guid: credentialId
         })
         if (!credential) {
-            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Credential ${credentialId} not found in the database!`)
+            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Credential ${credentialId} not found in the database!`)
         }
         // Decrpyt credentialData
         const decryptedCredentialData = await decryptCredentialData(credential.encryptedData)
         const openAIApiKey = decryptedCredentialData['openAIApiKey']
         if (!openAIApiKey) {
-            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `OpenAI ApiKey not found`)
+            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `OpenAI ApiKey not found`)
         }
 
         const openai = new OpenAI({ apiKey: openAIApiKey })
@@ -241,7 +264,7 @@ const deleteFilesFromAssistantVectorStore = async (credentialId: string, vectorS
 
         return { deletedFileIds, count }
     } catch (error) {
-        throw new InternalFlowiseError(
+        throw new InternalAutonomousError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: openaiAssistantsVectorStoreService.uploadFilesToAssistantVectorStore - ${getErrorMessage(error)}`
         )

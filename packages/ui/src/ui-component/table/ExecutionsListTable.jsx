@@ -93,8 +93,19 @@ export const ExecutionsListTable = ({ data, isLoading, onExecutionRowClick, onSe
     const localStorageKeyOrder = 'executions_order'
     const localStorageKeyOrderBy = 'executions_orderBy'
 
-    const [order, setOrder] = useState(localStorage.getItem(localStorageKeyOrder) || 'desc')
-    const [orderBy, setOrderBy] = useState(localStorage.getItem(localStorageKeyOrderBy) || 'updatedDate')
+    // Default to DESC order by createdDate to match backend ordering (latest first)
+    // Backend orders by created_on DESC, so frontend should default to createdDate DESC
+    // Only use localStorage if it matches our default (createdDate), otherwise use backend default
+    const savedOrderBy = localStorage.getItem(localStorageKeyOrderBy)
+    const savedOrder = localStorage.getItem(localStorageKeyOrder)
+    
+    // If saved orderBy is not 'createdDate', ignore localStorage and use backend default
+    // This ensures we always match backend ordering unless user explicitly sorted by createdDate
+    const defaultOrderBy = savedOrderBy === 'createdDate' ? savedOrderBy : 'createdDate'
+    const defaultOrder = (savedOrderBy === 'createdDate' && savedOrder) ? savedOrder : 'desc'
+    
+    const [order, setOrder] = useState(defaultOrder)
+    const [orderBy, setOrderBy] = useState(defaultOrderBy)
     const [selected, setSelected] = useState([])
 
     const handleRequestSort = (property) => {
@@ -140,15 +151,22 @@ export const ExecutionsListTable = ({ data, isLoading, onExecutionRowClick, onSe
 
     const sortedData = data
         ? [...data].sort((a, b) => {
-              if (orderBy === 'name') {
-                  return order === 'asc' ? (a.name || '').localeCompare(b.name || '') : (b.name || '').localeCompare(a.name || '')
-              } else if (orderBy === 'updatedDate') {
-                  return order === 'asc'
-                      ? new Date(a.updatedDate) - new Date(b.updatedDate)
-                      : new Date(b.updatedDate) - new Date(a.updatedDate)
-              }
-              return 0
-          })
+            if (orderBy === 'name') {
+                return order === 'asc' ? (a.name || '').localeCompare(b.name || '') : (b.name || '').localeCompare(a.name || '')
+            } else if (orderBy === 'updatedDate') {
+                // Use createdDate as fallback if updatedDate is not available
+                const dateA = a.updatedDate || a.createdDate
+                const dateB = b.updatedDate || b.createdDate
+                return order === 'asc'
+                    ? new Date(dateA) - new Date(dateB)
+                    : new Date(dateB) - new Date(dateA)
+            } else if (orderBy === 'createdDate') {
+                return order === 'asc'
+                    ? new Date(a.createdDate) - new Date(b.createdDate)
+                    : new Date(b.createdDate) - new Date(a.createdDate)
+            }
+            return 0
+        })
         : []
 
     return (
@@ -274,7 +292,9 @@ export const ExecutionsListTable = ({ data, isLoading, onExecutionRowClick, onSe
                                                 />
                                             </StyledTableCell>
                                             <StyledTableCell onClick={() => onExecutionRowClick(row)}>
-                                                {moment(row.updatedDate).format('MMM D, YYYY h:mm A')}
+                                                {row.updatedDate || row.createdDate
+                                                    ? moment(row.updatedDate || row.createdDate).format('MMM D, YYYY h:mm A')
+                                                    : 'N/A'}
                                             </StyledTableCell>
                                             <StyledTableCell onClick={() => onExecutionRowClick(row)}>
                                                 {row.agentflow?.name}

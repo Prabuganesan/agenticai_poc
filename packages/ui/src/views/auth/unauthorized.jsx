@@ -4,6 +4,7 @@ import unauthorizedSVG from '@/assets/images/unauthorized.svg'
 import { StyledButton } from '@/ui-component/button/StyledButton'
 import { Link } from 'react-router-dom'
 import { useSelector } from 'react-redux'
+import config from '@/config'
 
 // ==============================|| UnauthorizedPage ||============================== //
 
@@ -46,9 +47,18 @@ const UnauthorizedPage = () => {
                                 <StyledButton sx={{ px: 2, py: 1 }}>Back to Home</StyledButton>
                             </Link>
                         ) : (
-                            <Link to='/login'>
-                                <StyledButton sx={{ px: 2, py: 1 }}>Back to Login</StyledButton>
-                            </Link>
+                            <StyledButton 
+                                sx={{ px: 2, py: 1 }}
+                                onClick={() => {
+                                    // Temporary_Hardcoded params for testing
+                                    // Future: Will implement proper authentication flow
+                                    const hardcodedParams = 'eyJvcmdJZCI6MzAsImNoYWluc3lzU2Vzc2lvbklkIjoiWkdROXVsQjNiTTlLM3hhIn0='
+                                    const sessionHandlerUrl = `${config.basename}/api/v1/sessionhandler?params=${encodeURIComponent(hardcodedParams)}`
+                                    window.location.href = sessionHandlerUrl
+                                }}
+                            >
+                                Authenticate
+                            </StyledButton>
                         )}
                     </Stack>
                 </Box>

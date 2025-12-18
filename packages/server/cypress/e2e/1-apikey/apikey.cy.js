@@ -3,7 +3,7 @@
 *
 describe('E2E suite for api/v1/apikey API endpoint', () => {
     beforeEach(() => {
-        cy.visit('http://localhost:3000/apikey')
+        cy.visit('http://localhost:3030/apikey')
     })
 
     // DEFAULT TEST ON PAGE LOAD

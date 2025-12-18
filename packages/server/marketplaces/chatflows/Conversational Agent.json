@@ -1,7 +1,11 @@
 {
     "description": "A conversational agent designed to use tools and chat model to provide responses",
-    "usecases": ["Agent"],
-    "framework": ["Langchain"],
+    "usecases": [
+        "Agent"
+    ],
+    "framework": [
+        "Langchain"
+    ],
     "nodes": [
         {
             "width": 300,
@@ -18,7 +22,12 @@
                 "version": 1,
                 "name": "calculator",
                 "type": "Calculator",
-                "baseClasses": ["Calculator", "Tool", "StructuredTool", "BaseLangChain"],
+                "baseClasses": [
+                    "Calculator",
+                    "Tool",
+                    "StructuredTool",
+                    "BaseLangChain"
+                ],
                 "category": "Tools",
                 "description": "Perform calculations on response",
                 "inputParams": [],
@@ -57,7 +66,11 @@
                 "version": 2,
                 "name": "bufferMemory",
                 "type": "BufferMemory",
-                "baseClasses": ["BufferMemory", "BaseChatMemory", "BaseMemory"],
+                "baseClasses": [
+                    "BufferMemory",
+                    "BaseChatMemory",
+                    "BaseMemory"
+                ],
                 "category": "Memory",
                 "description": "Retrieve chat messages stored in database",
                 "inputParams": [
@@ -65,7 +78,7 @@
                         "label": "Session Id",
                         "name": "sessionId",
                         "type": "string",
-                        "description": "If not specified, a random id will be used. Learn <a target=\"_blank\" href=\"https://docs.flowiseai.com/memory#ui-and-embedded-chat\">more</a>",
+                        "description": "If not specified, a random id will be used. Learn <a target=\"_blank\" href=\"[AUTONOMOUS_DOCS]/memory#ui-and-embedded-chat\">more</a>",
                         "default": "",
                         "additionalParams": true,
                         "optional": true,
@@ -118,7 +131,11 @@
                 "version": 1,
                 "name": "serpAPI",
                 "type": "SerpAPI",
-                "baseClasses": ["SerpAPI", "Tool", "StructuredTool"],
+                "baseClasses": [
+                    "SerpAPI",
+                    "Tool",
+                    "StructuredTool"
+                ],
                 "category": "Tools",
                 "description": "Wrapper around SerpAPI - a real-time API to access Google search results",
                 "inputParams": [
@@ -126,7 +143,9 @@
                         "label": "Connect Credential",
                         "name": "credential",
                         "type": "credential",
-                        "credentialNames": ["serpApi"],
+                        "credentialNames": [
+                            "serpApi"
+                        ],
                         "id": "serpAPI_0-input-credential-credential"
                     }
                 ],
@@ -165,7 +184,11 @@
                 "version": 6,
                 "name": "chatOpenAI",
                 "type": "ChatOpenAI",
-                "baseClasses": ["ChatOpenAI", "BaseChatModel", "BaseLanguageModel"],
+                "baseClasses": [
+                    "ChatOpenAI",
+                    "BaseChatModel",
+                    "BaseLanguageModel"
+                ],
                 "category": "Chat Models",
                 "description": "Wrapper around OpenAI large language models that use the Chat endpoint",
                 "inputParams": [
@@ -173,7 +196,9 @@
                         "label": "Connect Credential",
                         "name": "credential",
                         "type": "credential",
-                        "credentialNames": ["openAIApi"],
+                        "credentialNames": [
+                            "openAIApi"
+                        ],
                         "id": "chatOpenAI_0-input-credential-credential"
                     },
                     {
@@ -337,7 +362,11 @@
                 "version": 3,
                 "name": "conversationalAgent",
                 "type": "AgentExecutor",
-                "baseClasses": ["AgentExecutor", "BaseChain", "Runnable"],
+                "baseClasses": [
+                    "AgentExecutor",
+                    "BaseChain",
+                    "Runnable"
+                ],
                 "category": "Agents",
                 "description": "Conversational agent for a chat model. It will utilize chat specific prompts",
                 "inputParams": [
@@ -392,7 +421,10 @@
                 ],
                 "inputs": {
                     "inputModeration": "",
-                    "tools": ["{{calculator_1.data.instance}}", "{{serpAPI_0.data.instance}}"],
+                    "tools": [
+                        "{{calculator_1.data.instance}}",
+                        "{{serpAPI_0.data.instance}}"
+                    ],
                     "model": "{{chatOpenAI_0.data.instance}}",
                     "memory": "{{bufferMemory_1.data.instance}}",
                     "systemMessage": "Assistant is a large language model trained by OpenAI.\n\nAssistant is designed to be able to assist with a wide range of tasks, from answering simple questions to providing in-depth explanations and discussions on a wide range of topics. As a language model, Assistant is able to generate human-like text based on the input it receives, allowing it to engage in natural-sounding conversations and provide responses that are coherent and relevant to the topic at hand.\n\nAssistant is constantly learning and improving, and its capabilities are constantly evolving. It is able to process and understand large amounts of text, and can use this knowledge to provide accurate and informative responses to a wide range of questions. Additionally, Assistant is able to generate its own text based on the input it receives, allowing it to engage in discussions and provide explanations and descriptions on a wide range of topics.\n\nOverall, Assistant is a powerful system that can help with a wide range of tasks and provide valuable insights and information on a wide range of topics. Whether you need help with a specific question or just want to have a conversation about a particular topic, Assistant is here to assist."
@@ -428,8 +460,12 @@
                 "version": 2,
                 "name": "stickyNote",
                 "type": "StickyNote",
-                "baseClasses": ["StickyNote"],
-                "tags": ["Utilities"],
+                "baseClasses": [
+                    "StickyNote"
+                ],
+                "tags": [
+                    "Utilities"
+                ],
                 "category": "Utilities",
                 "description": "Add a sticky note",
                 "inputParams": [

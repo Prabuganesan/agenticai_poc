@@ -1,6 +1,6 @@
-import { handleEscapeCharacters, ICommonObject } from 'flowise-components'
+import { handleEscapeCharacters, ICommonObject } from 'kodivian-components'
 import { databaseEntities } from '.'
-import { InternalFlowiseError } from '../errors/internalFlowiseError'
+import { InternalAutonomousError } from '../errors/internalAutonomousError'
 import { StatusCodes } from 'http-status-codes'
 import { getErrorMessage } from '../errors/utils'
 import { DataSource } from 'typeorm'
@@ -10,13 +10,11 @@ export const executeCustomNodeFunction = async ({
     appDataSource,
     componentNodes,
     data,
-    workspaceId,
     orgId
 }: {
     appDataSource: DataSource
     componentNodes: IComponentNodes
     data: any
-    workspaceId?: string
     orgId?: string
 }) => {
     try {
@@ -42,7 +40,6 @@ export const executeCustomNodeFunction = async ({
                 const options: ICommonObject = {
                     appDataSource,
                     databaseEntities,
-                    workspaceId,
                     orgId
                 }
 
@@ -51,13 +48,13 @@ export const executeCustomNodeFunction = async ({
 
                 return dbResponse
             } catch (error) {
-                throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, `Error running custom function: ${error}`)
+                throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error running custom function: ${error}`)
             }
         } else {
-            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Node customFunction not found`)
+            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Node customFunction not found`)
         }
     } catch (error) {
-        throw new InternalFlowiseError(
+        throw new InternalAutonomousError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: nodesService.executeCustomFunction - ${getErrorMessage(error)}`
         )

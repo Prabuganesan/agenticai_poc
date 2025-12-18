@@ -17,10 +17,11 @@ import useNotifier from '@/utils/useNotifier'
 
 // API
 import chatflowsApi from '@/api/chatflows'
+import { getAutonomousDocsPath } from '@/store/constant'
 
 const message = `The full contents of uploaded files will be converted to text and sent to the Agent.
 <br />
-Refer <a href='https://docs.flowiseai.com/using-flowise/uploads#files' target='_blank'>docs</a> for more details.`
+Refer <a href='${getAutonomousDocsPath()}/using-autonomous/uploads#files' target='_blank'>docs</a> for more details.`
 
 const availableFileTypes = [
     { name: 'CSS', ext: 'text/css', extension: '.css' },
@@ -107,9 +108,8 @@ const FileUpload = ({ dialogProps }) => {
             }
         } catch (error) {
             enqueueSnackbar({
-                message: `Failed to save File Upload Configuration: ${
-                    typeof error.response.data === 'object' ? error.response.data.message : error.response.data
-                }`,
+                message: `Failed to save File Upload Configuration: ${typeof error.response.data === 'object' ? error.response.data.message : error.response.data
+                    }`,
                 options: {
                     key: new Date().getTime() + Math.random(),
                     variant: 'error',
@@ -154,7 +154,7 @@ const FileUpload = ({ dialogProps }) => {
             }
         }
 
-        return () => {}
+        return () => { }
     }, [dialogProps])
 
     return (

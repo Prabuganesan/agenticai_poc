@@ -61,7 +61,8 @@ class DocStore_VectorStores implements INode {
             for (const store of stores) {
                 if (store.status === 'UPSERTED') {
                     const obj = {
-                        name: store.id,
+                        // Use guid (not id) as the name, since lookup uses guid
+                        name: (store as any).guid || store.id,
                         label: store.name,
                         description: store.description
                     }
@@ -78,9 +79,37 @@ class DocStore_VectorStores implements INode {
         const databaseEntities = options.databaseEntities as IDatabaseEntity
         const output = nodeData.outputs?.output as string
 
-        const entity = await appDataSource.getRepository(databaseEntities['DocumentStore']).findOneBy({ id: selectedStore })
+        // Validate inputs
+        if (!selectedStore || typeof selectedStore !== 'string' || selectedStore.trim() === '') {
+            const error = `Invalid selectedStore: "${selectedStore}". Store ID is required.`
+            return { error }
+        }
+
+        if (!appDataSource) {
+            const error = 'Database connection (appDataSource) is not available'
+            return { error }
+        }
+
+        if (!databaseEntities || !databaseEntities['DocumentStore']) {
+            const error = 'DocumentStore entity not found in databaseEntities'
+            return { error }
+        }
+
+        // Try to find store by guid
+        let entity = await appDataSource.getRepository(databaseEntities['DocumentStore']).findOneBy({ guid: selectedStore.trim() })
         if (!entity) {
-            return { error: 'Store not found' }
+            // Try alternative: find by id if guid doesn't match
+            const entityById = await appDataSource.getRepository(databaseEntities['DocumentStore']).findOneBy({ id: selectedStore.trim() })
+            if (!entityById) {
+                const error =
+                    `Store not found. ` +
+                    `Searched for guid: "${selectedStore.trim()}", ` +
+                    `Database: ${appDataSource.options.database || 'unknown'}, ` +
+                    `Entity: ${databaseEntities['DocumentStore'].name || 'DocumentStore'}`
+                return { error }
+            }
+            // Use entity found by id
+            entity = entityById
         }
         const data: ICommonObject = {}
         data.output = output
@@ -89,9 +118,11 @@ class DocStore_VectorStores implements INode {
         const embeddingConfig = JSON.parse(entity.embeddingConfig)
         data.embeddingName = embeddingConfig.name
         data.embeddingConfig = embeddingConfig.config
+
         let embeddingObj = await _createEmbeddingsObject(options.componentNodes, data, options)
         if (!embeddingObj) {
-            return { error: 'Failed to create EmbeddingObj' }
+            const error = 'Failed to create EmbeddingObj'
+            return { error }
         }
 
         // Prepare Vector Store Instance
@@ -109,8 +140,10 @@ class DocStore_VectorStores implements INode {
         const vectorStoreObj = await _createVectorStoreObject(options.componentNodes, data)
         const retrieverOrVectorStore = await vectorStoreObj.init(vStoreNodeData, '', options)
         if (!retrieverOrVectorStore) {
-            return { error: 'Failed to create vectorStore' }
+            const error = 'Failed to create vectorStore'
+            return { error }
         }
+
         return retrieverOrVectorStore
     }
 }

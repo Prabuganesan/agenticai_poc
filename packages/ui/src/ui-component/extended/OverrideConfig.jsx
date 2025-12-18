@@ -25,6 +25,7 @@ import { TooltipWithParser } from '@/ui-component/tooltip/TooltipWithParser'
 import { SwitchInput } from '@/ui-component/switch/Switch'
 import useNotifier from '@/utils/useNotifier'
 import { closeSnackbar as closeSnackbarAction, enqueueSnackbar as enqueueSnackbarAction, SET_CHATFLOW } from '@/store/actions'
+import { getAutonomousDocsPath } from '@/store/constant'
 
 // Icons
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
@@ -317,9 +318,8 @@ const OverrideConfig = ({ dialogProps }) => {
             }
         } catch (error) {
             enqueueSnackbar({
-                message: `Failed to save Override Configuration: ${
-                    typeof error.response.data === 'object' ? error.response.data.message : error.response.data
-                }`,
+                message: `Failed to save Override Configuration: ${typeof error.response.data === 'object' ? error.response.data.message : error.response.data
+                    }`,
                 options: {
                     key: new Date().getTime() + Math.random(),
                     variant: 'error',
@@ -340,7 +340,7 @@ const OverrideConfig = ({ dialogProps }) => {
             getAllVariablesApi.request()
         }
 
-        return () => {}
+        return () => { }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [dialogProps])
 
@@ -365,7 +365,7 @@ const OverrideConfig = ({ dialogProps }) => {
                 <TooltipWithParser
                     style={{ mb: 1, mt: 2, marginLeft: 10 }}
                     title={
-                        'Enable or disable which properties of the flow configuration can be overridden. Refer to the <a href="https://docs.flowiseai.com/using-flowise/api#override-config" target="_blank">documentation</a> for more information.'
+                        `Enable or disable which properties of the flow configuration can be overridden. Refer to the <a href="${getAutonomousDocsPath()}/using-autonomous/api#override-config" target="_blank">documentation</a> for more information.`
                     }
                 />
             </Typography>
@@ -429,8 +429,8 @@ const OverrideConfig = ({ dialogProps }) => {
                                                         columns={
                                                             nodeOverrides[nodeLabel].length > 0
                                                                 ? Object.keys(nodeOverrides[nodeLabel][0]).filter(
-                                                                      (key) => key !== 'schema' && key !== 'id'
-                                                                  )
+                                                                    (key) => key !== 'schema' && key !== 'id'
+                                                                )
                                                                 : []
                                                         }
                                                         onToggle={(property, status) =>

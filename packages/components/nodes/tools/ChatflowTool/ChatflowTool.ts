@@ -13,6 +13,7 @@ import {
 } from '../../../src/utils'
 import { isValidUUID, isValidURL } from '../../../src/validator'
 import { v4 as uuidv4 } from 'uuid'
+import { getServerURL } from '../../../src/constants'
 
 class ChatflowTool_Tools implements INode {
     label: string
@@ -83,8 +84,8 @@ class ChatflowTool_Tools implements INode {
                 name: 'baseURL',
                 type: 'string',
                 description:
-                    'Base URL to Flowise. By default, it is the URL of the incoming request. Useful when you need to execute the Chatflow through an alternative route.',
-                placeholder: 'http://localhost:3000',
+                    'Base URL to Autonomous. By default, it is the URL of the incoming request. Useful when you need to execute the Chatflow through an alternative route.',
+                placeholder: getServerURL(),
                 optional: true,
                 additionalParams: true
             },
@@ -139,8 +140,6 @@ class ChatflowTool_Tools implements INode {
                 let type = chatflows[i].type
                 if (type === 'AGENTFLOW') {
                     type = 'AgentflowV2'
-                } else if (type === 'MULTIAGENT') {
-                    type = 'AgentflowV1'
                 } else if (type === 'ASSISTANT') {
                     type = 'Custom Assistant'
                 } else {
@@ -231,7 +230,7 @@ class ChatflowTool extends StructuredTool {
 
     startNewSession = false
 
-    baseURL = 'http://localhost:3000'
+    baseURL = getServerURL()
 
     headers = {}
 
@@ -345,7 +344,7 @@ class ChatflowTool extends StructuredTool {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'flowise-tool': 'true',
+                'autonomous-tool': 'true',
                 ...this.headers
             },
             body: JSON.stringify(body)

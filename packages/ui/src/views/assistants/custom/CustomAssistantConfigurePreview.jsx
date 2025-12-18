@@ -35,7 +35,6 @@ import { MultiDropdown } from '@/ui-component/dropdown/MultiDropdown'
 import APICodeDialog from '@/views/chatflows/APICodeDialog'
 import ViewMessagesDialog from '@/ui-component/dialog/ViewMessagesDialog'
 import ChatflowConfigurationDialog from '@/ui-component/dialog/ChatflowConfigurationDialog'
-import ViewLeadsDialog from '@/ui-component/dialog/ViewLeadsDialog'
 import Settings from '@/views/settings'
 import ConfirmDialog from '@/ui-component/dialog/ConfirmDialog'
 import PromptGeneratorDialog from '@/ui-component/dialog/PromptGeneratorDialog'
@@ -106,8 +105,9 @@ const CustomAssistantConfigurePreview = () => {
     const [apiDialogProps, setAPIDialogProps] = useState({})
     const [viewMessagesDialogOpen, setViewMessagesDialogOpen] = useState(false)
     const [viewMessagesDialogProps, setViewMessagesDialogProps] = useState({})
-    const [viewLeadsDialogOpen, setViewLeadsDialogOpen] = useState(false)
-    const [viewLeadsDialogProps, setViewLeadsDialogProps] = useState({})
+    // Leads feature removed for autonomous server deployment
+    // const [viewLeadsDialogOpen, setViewLeadsDialogOpen] = useState(false)
+    // const [viewLeadsDialogProps, setViewLeadsDialogProps] = useState({})
     const [chatflowConfigurationDialogOpen, setChatflowConfigurationDialogOpen] = useState(false)
     const [chatflowConfigurationDialogProps, setChatflowConfigurationDialogProps] = useState({})
     const [isSettingsOpen, setSettingsOpen] = useState(false)
@@ -340,81 +340,9 @@ const CustomAssistantConfigurePreview = () => {
     }
 
     const addDocStore = async (toolAgentId) => {
-        const docStoreVSNode = await nodesApi.getSpecificNode('documentStoreVS')
-        const retrieverToolNode = await nodesApi.getSpecificNode('retrieverTool')
-
-        const nodes = []
-        const edges = []
-
-        for (let i = 0; i < selectedDocumentStores.length; i++) {
-            try {
-                const docStoreVSId = `documentStoreVS_${i}`
-                const retrieverToolId = `retrieverTool_${i}`
-
-                const docStoreVSNodeData = cloneDeep(initNode(docStoreVSNode.data, docStoreVSId))
-                const retrieverToolNodeData = cloneDeep(initNode(retrieverToolNode.data, retrieverToolId))
-
-                set(docStoreVSNodeData, 'inputs.selectedStore', selectedDocumentStores[i].id)
-                set(docStoreVSNodeData, 'outputs.output', 'retriever')
-
-                const docStoreOption = documentStoreOptions.find((ds) => ds.name === selectedDocumentStores[i].id)
-                // convert to small case and replace space with underscore
-                const name = (docStoreOption?.label || '')
-                    .toLowerCase()
-                    .replace(/ /g, '_')
-                    .replace(/[^a-z0-9_-]/g, '')
-                const desc = selectedDocumentStores[i].description || docStoreOption?.description || ''
-
-                set(retrieverToolNodeData, 'inputs', {
-                    name,
-                    description: desc,
-                    retriever: `{{${docStoreVSId}.data.instance}}`,
-                    returnSourceDocuments: selectedDocumentStores[i].returnSourceDocuments ?? false
-                })
-
-                const docStoreVS = {
-                    id: docStoreVSId,
-                    data: {
-                        ...docStoreVSNodeData,
-                        id: docStoreVSId
-                    }
-                }
-                nodes.push(docStoreVS)
-
-                const retrieverTool = {
-                    id: retrieverToolId,
-                    data: {
-                        ...retrieverToolNodeData,
-                        id: retrieverToolId
-                    }
-                }
-                nodes.push(retrieverTool)
-
-                const docStoreVSEdge = {
-                    source: docStoreVSId,
-                    sourceHandle: `${docStoreVSId}-output-retriever-BaseRetriever`,
-                    target: retrieverToolId,
-                    targetHandle: `${retrieverToolId}-input-retriever-BaseRetriever`,
-                    type: 'buttonedge',
-                    id: `${docStoreVSId}-${docStoreVSId}-output-retriever-BaseRetriever-${retrieverToolId}-${retrieverToolId}-input-retriever-BaseRetriever`
-                }
-                edges.push(docStoreVSEdge)
-
-                const retrieverToolEdge = {
-                    source: retrieverToolId,
-                    sourceHandle: `${retrieverToolId}-output-retrieverTool-RetrieverTool|DynamicTool|Tool|StructuredTool|Runnable`,
-                    target: toolAgentId,
-                    targetHandle: `${toolAgentId}-input-tools-Tool`,
-                    type: 'buttonedge',
-                    id: `${retrieverToolId}-${retrieverToolId}-output-retrieverTool-RetrieverTool|DynamicTool|Tool|StructuredTool|Runnable-${toolAgentId}-${toolAgentId}-input-tools-Tool`
-                }
-                edges.push(retrieverToolEdge)
-            } catch (error) {
-                console.error('Error adding doc store', error)
-            }
-        }
-
-        return { nodes, edges }
+        // RetrieverTool has been removed - document store functionality is not available for custom assistants
+        // Note: For Agentflow V2, use Knowledge nodes instead
+        return { nodes: [], edges: [] }
     }
 
     const prepareConfig = async () => {
@@ -444,15 +372,29 @@ const CustomAssistantConfigurePreview = () => {
             set(toolAgentNode.data.inputs, 'systemMessage', `${customAssistantInstruction}`)
 
             const agentTools = []
-            if (selectedDocumentStores.length > 0) {
-                const retrieverTools = selectedDocumentStores.map((_, index) => `{{retrieverTool_${index}}}`)
-                agentTools.push(...retrieverTools)
-            }
             if (selectedTools.length > 0) {
                 const tools = selectedTools.map((_, index) => `{{${selectedTools[index].id}}}`)
                 agentTools.push(...tools)
             }
             set(toolAgentNode.data.inputs, 'tools', agentTools)
+
+            // Add Document Stores to agentKnowledgeDocumentStores
+            if (selectedDocumentStores.length > 0) {
+                const knowledgeBases = selectedDocumentStores.map((ds) => {
+                    const docStoreOption = documentStoreOptions.find((option) => option.name === ds.id)
+                    const storeName = docStoreOption?.label || ds.id
+                    return {
+                        documentStore: `${ds.id}:${storeName}`,
+                        docStoreDescription: ds.description || docStoreOption?.description || `Knowledge base containing ${storeName} documents`,
+                        returnSourceDocuments: ds.returnSourceDocuments ?? false
+                    }
+                })
+                set(toolAgentNode.data.inputs, 'agentKnowledgeDocumentStores', knowledgeBases)
+                console.log('[Assistant Config] Added document stores to agentKnowledgeDocumentStores:', knowledgeBases)
+            } else {
+                // Clear document stores if none selected
+                set(toolAgentNode.data.inputs, 'agentKnowledgeDocumentStores', [])
+            }
 
             filteredNodes = filteredNodes.map((node) => (node.id === toolAgentNode.id ? toolAgentNode : node))
 
@@ -466,13 +408,6 @@ const CustomAssistantConfigurePreview = () => {
                 })
                 return newEdge
             })
-
-            // Add Doc Store
-            if (selectedDocumentStores.length > 0) {
-                const { nodes: newNodes, edges: newEdges } = await addDocStore(toolAgentId)
-                filteredNodes = [...filteredNodes, ...newNodes]
-                filteredEdges = [...filteredEdges, ...newEdges]
-            }
 
             // Add Tools
             if (selectedTools.length > 0) {
@@ -517,12 +452,13 @@ const CustomAssistantConfigurePreview = () => {
                 isChatflow: false
             })
             setViewMessagesDialogOpen(true)
-        } else if (setting === 'viewLeads') {
-            setViewLeadsDialogProps({
-                title: 'View Leads',
-                chatflow: canvas.chatflow
-            })
-            setViewLeadsDialogOpen(true)
+        // Leads feature removed for autonomous server deployment
+        // } else if (setting === 'viewLeads') {
+        //     setViewLeadsDialogProps({
+        //         title: 'View Leads',
+        //         chatflow: canvas.chatflow
+        //     })
+        //     setViewLeadsDialogOpen(true)
         } else if (setting === 'chatflowConfiguration') {
             setChatflowConfigurationDialogProps({
                 title: `Assistant Configuration`,
@@ -1404,7 +1340,8 @@ const CustomAssistantConfigurePreview = () => {
                 dialogProps={viewMessagesDialogProps}
                 onCancel={() => setViewMessagesDialogOpen(false)}
             />
-            <ViewLeadsDialog show={viewLeadsDialogOpen} dialogProps={viewLeadsDialogProps} onCancel={() => setViewLeadsDialogOpen(false)} />
+            {/* Leads feature removed for autonomous server deployment */}
+            {/* <ViewLeadsDialog show={viewLeadsDialogOpen} dialogProps={viewLeadsDialogProps} onCancel={() => setViewLeadsDialogOpen(false)} /> */}
             <ChatflowConfigurationDialog
                 key='chatflowConfiguration'
                 show={chatflowConfigurationDialogOpen}

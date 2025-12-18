@@ -9,8 +9,9 @@ import { ConsoleCallbackHandler, CustomChainHandler, additionalCallbacks } from 
 import { getBaseClasses, getInputVariables, transformBracesWithColon } from '../../../src/utils'
 import { checkInputs, Moderation, streamResponse } from '../../moderation/Moderation'
 import { formatResponse } from '../../outputparsers/OutputParserHelpers'
+import path from 'path'
 
-type DatabaseType = 'sqlite' | 'postgres' | 'mssql' | 'mysql'
+type DatabaseType = 'better-sqlite3' | 'postgres' | 'mssql' | 'mysql'
 
 class SqlDatabaseChain_Chains implements INode {
     label: string
@@ -45,7 +46,7 @@ class SqlDatabaseChain_Chains implements INode {
                 options: [
                     {
                         label: 'SQLite',
-                        name: 'sqlite'
+                        name: 'better-sqlite3'
                     },
                     {
                         label: 'PostgreSQL',
@@ -60,7 +61,7 @@ class SqlDatabaseChain_Chains implements INode {
                         name: 'mysql'
                     }
                 ],
-                default: 'sqlite'
+                default: 'better-sqlite3'
             },
             {
                 label: 'Connection string or file path (sqlite only)',
@@ -197,15 +198,70 @@ class SqlDatabaseChain_Chains implements INode {
         const loggerHandler = new ConsoleCallbackHandler(options.logger, options?.orgId)
         const callbacks = await additionalCallbacks(nodeData, options)
 
+        // Track start time BEFORE LLM execution
+        const startTime = Date.now()
+
+        let res
         if (shouldStreamResponse) {
             const handler = new CustomChainHandler(sseStreamer, chatId, 2)
-
-            const res = await chain.run(input, [loggerHandler, handler, ...callbacks])
-            return res
+            res = await chain.run(input, [loggerHandler, handler, ...callbacks])
         } else {
-            const res = await chain.run(input, [loggerHandler, ...callbacks])
-            return res
+            res = await chain.run(input, [loggerHandler, ...callbacks])
         }
+
+        // Track end time AFTER LLM execution
+        const endTime = Date.now()
+        const timeDelta = endTime - startTime
+
+        // Track LLM usage
+        try {
+            if (options.orgId && res) {
+                // Dynamic import from server package
+                const llmUsageTrackerPath = path.resolve(__dirname, '../../../../server/src/utils/llm-usage-tracker')
+                const { trackLLMUsage, extractProviderAndModel, extractUsageMetadata } = await import(llmUsageTrackerPath)
+
+                // Get model from nodeData
+                const { provider, model: modelName } = extractProviderAndModel(nodeData, { model })
+
+                // Extract usage metadata from result
+                const { promptTokens, completionTokens, totalTokens } = extractUsageMetadata({
+                    usageMetadata: (res as any)?.usageMetadata,
+                    usage_metadata: (res as any)?.usage_metadata,
+                    llmOutput: (res as any)?.llmOutput,
+                    tokenUsage: (res as any)?.tokenUsage
+                })
+
+                await trackLLMUsage({
+                    requestId: (options.apiMessageId as string) || (options.chatId as string),
+                    executionId: options.parentExecutionId as string,
+                    orgId: (options.orgId as string) || '',
+                    userId: (options.incomingInput?.userId as string) || (options.userId as string) || '0',
+                    chatflowId: options.chatflowid as string,
+                    chatId: options.chatId as string,
+                    sessionId: options.sessionId as string,
+                    feature: 'chatflow',
+                    nodeId: nodeData.id,
+                    nodeType: 'SqlDatabaseChain',
+                    nodeName: 'SqlDatabaseChain',
+                    location: 'main_flow',
+                    provider,
+                    model: modelName,
+                    requestType: 'chat',
+                    promptTokens: promptTokens || 0,
+                    completionTokens: completionTokens || 0,
+                    totalTokens: totalTokens || 0,
+                    processingTimeMs: timeDelta,
+                    responseLength: typeof res === 'string' ? res.length : 0,
+                    success: true,
+                    cacheHit: false,
+                    metadata: {}
+                })
+            }
+        } catch (trackError) {
+            // Silently fail - tracking should not break the main flow
+        }
+
+        return res
     }
 }
 
@@ -220,7 +276,7 @@ const getSQLDBChain = async (
     customPrompt?: string
 ) => {
     const datasource = new DataSource(
-        databaseType === 'sqlite'
+        databaseType === 'better-sqlite3'
             ? {
                   type: databaseType,
                   database: url

@@ -3,7 +3,7 @@ import { ChatMessageRatingType, ChatType } from '../../Interface'
 import { ChatMessage } from '../../database/entities/ChatMessage'
 import { utilGetChatMessage } from '../../utils/getChatMessage'
 import { ChatMessageFeedback } from '../../database/entities/ChatMessageFeedback'
-import { InternalFlowiseError } from '../../errors/internalFlowiseError'
+import { InternalAutonomousError } from '../../errors/internalAutonomousError'
 import { getErrorMessage } from '../../errors/utils'
 
 // get stats for showing in chatflow
@@ -15,7 +15,7 @@ const getChatflowStats = async (
     messageId?: string,
     feedback?: boolean,
     feedbackTypes?: ChatMessageRatingType[],
-    activeWorkspaceId?: string
+    activeOrgId?: string
 ): Promise<any> => {
     try {
         const chatmessages = (await utilGetChatMessage({
@@ -26,7 +26,7 @@ const getChatflowStats = async (
             messageId,
             feedback,
             feedbackTypes,
-            activeWorkspaceId
+            activeOrgId
         })) as Array<ChatMessage & { feedback?: ChatMessageFeedback }>
         const totalMessages = chatmessages.length
         const totalFeedback = chatmessages.filter((message) => message?.feedback).length
@@ -43,7 +43,7 @@ const getChatflowStats = async (
 
         return dbResponse
     } catch (error) {
-        throw new InternalFlowiseError(
+        throw new InternalAutonomousError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: statsService.getChatflowStats - ${getErrorMessage(error)}`
         )

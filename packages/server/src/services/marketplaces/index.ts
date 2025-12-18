@@ -4,12 +4,11 @@ import path from 'path'
 import { DeleteResult } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 import { CustomTemplate } from '../../database/entities/CustomTemplate'
-import { WorkspaceService } from '../../enterprise/services/workspace.service'
-import { getWorkspaceSearchOptions } from '../../enterprise/utils/ControllerServiceUtils'
-import { InternalFlowiseError } from '../../errors/internalFlowiseError'
+// Removed getWorkspaceSearchOptions import - using orgId directly
+import { InternalAutonomousError } from '../../errors/internalAutonomousError'
 import { getErrorMessage } from '../../errors/utils'
 import { IReactFlowEdge, IReactFlowNode } from '../../Interface'
-import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
+import { getDataSource } from '../../DataSource'
 import chatflowsService from '../chatflows'
 
 type ITemplate = {
@@ -52,6 +51,7 @@ const getAllTemplates = async () => {
 
         marketplaceDir = path.join(__dirname, '..', '..', '..', 'marketplaces', 'tools')
         jsonsInDir = fs.readdirSync(marketplaceDir).filter((file) => path.extname(file) === '.json')
+        const contextPath = process.env.CONTEXT_PATH || '/autonomous'
         jsonsInDir.forEach((file) => {
             const filePath = path.join(__dirname, '..', '..', '..', 'marketplaces', 'tools', file)
             const fileData = fs.readFileSync(filePath)
@@ -65,6 +65,11 @@ const getAllTemplates = async () => {
                 usecases: fileDataObj?.usecases,
                 categories: [],
                 templateName: file.split('.json')[0]
+            }
+            // Convert relative iconSrc paths to absolute URLs
+            if (template.iconSrc && !template.iconSrc.startsWith('http')) {
+                const iconFileName = path.basename(template.iconSrc)
+                template.iconSrc = `${contextPath}/api/v1/marketplace-icons/${iconFileName}`
             }
             templates.push(template)
         })
@@ -131,19 +136,19 @@ const getAllTemplates = async () => {
         const dbResponse = sortedTemplates
         return dbResponse
     } catch (error) {
-        throw new InternalFlowiseError(
+        throw new InternalAutonomousError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: marketplacesService.getAllTemplates - ${getErrorMessage(error)}`
         )
     }
 }
 
-const deleteCustomTemplate = async (templateId: string, workspaceId: string): Promise<DeleteResult> => {
+const deleteCustomTemplate = async (templateId: string, orgId: string): Promise<DeleteResult> => {
     try {
-        const appServer = getRunningExpressApp()
-        return await appServer.AppDataSource.getRepository(CustomTemplate).delete({ id: templateId, workspaceId: workspaceId })
+        const dataSource = getDataSource(parseInt(orgId))
+        return await dataSource.getRepository(CustomTemplate).delete({ guid: templateId })
     } catch (error) {
-        throw new InternalFlowiseError(
+        throw new InternalAutonomousError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: marketplacesService.deleteCustomTemplate - ${getErrorMessage(error)}`
         )
@@ -172,46 +177,50 @@ const _modifyTemplates = (templates: any[]) => {
     })
 }
 
-const getAllCustomTemplates = async (workspaceId?: string): Promise<any> => {
+const getAllCustomTemplates = async (orgId: string): Promise<any> => {
     try {
-        const appServer = getRunningExpressApp()
-        const templates: any[] = await appServer.AppDataSource.getRepository(CustomTemplate).findBy(getWorkspaceSearchOptions(workspaceId))
+        if (!orgId) {
+            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+        }
+        const dataSource = getDataSource(parseInt(orgId))
+        const templates: any[] = await dataSource.getRepository(CustomTemplate).findBy({})
         const dbResponse = []
         _modifyTemplates(templates)
         dbResponse.push(...templates)
-        // get shared credentials
-        if (workspaceId) {
-            const workspaceService = new WorkspaceService()
-            const sharedItems = (await workspaceService.getSharedItemsForWorkspace(workspaceId, 'custom_template')) as CustomTemplate[]
-            if (sharedItems && sharedItems.length) {
-                _modifyTemplates(sharedItems)
-                // add shared = true flag to all shared items, to differentiate them in the UI
-                sharedItems.forEach((sharedItem) => {
-                    // @ts-ignore
-                    sharedItem.shared = true
-                    dbResponse.push(sharedItem)
-                })
-            }
-        }
+        // Note: Removed workspace sharing logic - autonomous server doesn't support workspace sharing
         return dbResponse
     } catch (error) {
-        throw new InternalFlowiseError(
+        throw new InternalAutonomousError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: marketplacesService.getAllCustomTemplates - ${getErrorMessage(error)}`
         )
     }
 }
 
-const saveCustomTemplate = async (body: any): Promise<any> => {
+const saveCustomTemplate = async (body: any, orgId: string, userId?: string): Promise<any> => {
     try {
-        const appServer = getRunningExpressApp()
+        if (!orgId) {
+            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+        }
+        const dataSource = getDataSource(parseInt(orgId))
         let flowDataStr = ''
-        let derivedFramework = ''
         const customTemplate = new CustomTemplate()
         Object.assign(customTemplate, body)
+        // Generate GUID if not provided
+        if (!customTemplate.guid) {
+            const { generateGuid } = await import('../../utils/guidGenerator')
+            customTemplate.guid = generateGuid()
+        }
+        // Set created_by and created_on
+        const userIdNum = userId ? (typeof userId === 'number' ? userId : parseInt(userId)) : undefined
+        if (userIdNum === undefined) {
+            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'User ID is required')
+        }
+        customTemplate.created_by = userIdNum
+        customTemplate.created_on = Date.now()
 
         if (body.chatflowId) {
-            const chatflow = await chatflowsService.getChatflowById(body.chatflowId, body.workspaceId)
+            const chatflow = await chatflowsService.getChatflowById(body.chatflowId, orgId)
             const flowData = JSON.parse(chatflow.flowData)
             const { framework, exportJson } = _generateExportFlowData(flowData)
             flowDataStr = JSON.stringify(exportJson)
@@ -226,16 +235,15 @@ const saveCustomTemplate = async (body: any): Promise<any> => {
             customTemplate.type = 'Tool'
             flowDataStr = JSON.stringify(flowData)
         }
-        customTemplate.framework = derivedFramework
         if (customTemplate.usecases) {
             customTemplate.usecases = JSON.stringify(customTemplate.usecases)
         }
-        const entity = appServer.AppDataSource.getRepository(CustomTemplate).create(customTemplate)
+        const entity = dataSource.getRepository(CustomTemplate).create(customTemplate)
         entity.flowData = flowDataStr
-        const flowTemplate = await appServer.AppDataSource.getRepository(CustomTemplate).save(entity)
+        const flowTemplate = await dataSource.getRepository(CustomTemplate).save(entity)
         return flowTemplate
     } catch (error) {
-        throw new InternalFlowiseError(
+        throw new InternalAutonomousError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: marketplacesService.saveCustomTemplate - ${getErrorMessage(error)}`
         )
@@ -270,12 +278,6 @@ const _generateExportFlowData = (flowData: any) => {
             outputAnchors: node.data.outputAnchors,
             outputs: node.data.outputs,
             selected: false
-        }
-
-        if (node.data.tags && node.data.tags.length) {
-            if (node.data.tags.includes('LlamaIndex')) {
-                framework = 'LlamaIndex'
-            }
         }
 
         // Remove password, file & folder

@@ -75,14 +75,10 @@ class VectorStoreToDocument_DocumentLoaders implements INode {
         // If it is already pre-defined in lc_kwargs, then don't pass it again
         const filter = vectorStore.lc_kwargs.filter ? undefined : _filter
         if (vectorStore.lc_kwargs.filter) {
-            ;(vectorStore as any).filter = vectorStore.lc_kwargs.filter
+            ; (vectorStore as any).filter = vectorStore.lc_kwargs.filter
         }
 
         const docs = await vectorStore.similaritySearchWithScore(query ?? input, topK, filter)
-        // eslint-disable-next-line no-console
-        console.log('\x1b[94m\x1b[1m\n*****VectorStore Documents*****\n\x1b[0m\x1b[0m')
-        // eslint-disable-next-line no-console
-        console.log(JSON.stringify(docs, null, 2))
 
         if (output === 'document') {
             let finaldocs = []
@@ -92,11 +88,12 @@ class VectorStoreToDocument_DocumentLoaders implements INode {
             }
             return finaldocs
         } else {
-            let finaltext = ''
+            const finaltextParts = []
             for (const doc of docs) {
                 if (minScore && doc[1] < minScore / 100) continue
-                finaltext += `${doc[0].pageContent}\n`
+                finaltextParts.push(`${doc[0].pageContent}\n`)
             }
+            const finaltext = finaltextParts.join('')
             return handleEscapeCharacters(finaltext, false)
         }
     }

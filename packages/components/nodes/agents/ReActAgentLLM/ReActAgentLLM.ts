@@ -10,6 +10,7 @@ import { ICommonObject, INode, INodeData, INodeParams } from '../../../src/Inter
 import { createReactAgent } from '../../../src/agents'
 import { checkInputs, Moderation } from '../../moderation/Moderation'
 import { formatResponse } from '../../outputparsers/OutputParserHelpers'
+import path from 'path'
 
 class ReActAgentLLM_Agents implements INode {
     label: string
@@ -103,7 +104,57 @@ class ReActAgentLLM_Agents implements INode {
 
         const callbacks = await additionalCallbacks(nodeData, options)
 
+        // Track start time BEFORE LLM execution
+        const startTime = Date.now()
+
         const result = await executor.invoke({ input }, { callbacks })
+
+        // Track end time AFTER LLM execution
+        const endTime = Date.now()
+        const timeDelta = endTime - startTime
+
+        // Track LLM usage
+        try {
+            if (options.orgId && result) {
+                // Dynamic import from server package
+                const llmUsageTrackerPath = path.resolve(__dirname, '../../../../server/src/utils/llm-usage-tracker')
+                const { trackLLMUsage, extractProviderAndModel, extractUsageMetadata } = await import(llmUsageTrackerPath)
+
+                // Get model from nodeData
+                const { provider, model: modelName } = extractProviderAndModel(nodeData, { model })
+
+                // Extract usage metadata from result
+                const { promptTokens, completionTokens, totalTokens } = extractUsageMetadata(result)
+
+                await trackLLMUsage({
+                    requestId: (options.apiMessageId as string) || (options.chatId as string),
+                    executionId: options.parentExecutionId as string,
+                    orgId: (options.orgId as string) || '',
+                    userId: (options.incomingInput?.userId as string) || (options.userId as string) || '0',
+                    chatflowId: options.chatflowid as string,
+                    chatId: options.chatId as string,
+                    sessionId: options.sessionId as string,
+                    feature: 'chatflow',
+                    nodeId: nodeData.id,
+                    nodeType: 'AgentExecutor',
+                    nodeName: 'ReActAgentLLM',
+                    location: 'main_flow',
+                    provider,
+                    model: modelName,
+                    requestType: 'chat',
+                    promptTokens: promptTokens || 0,
+                    completionTokens: completionTokens || 0,
+                    totalTokens: totalTokens || 0,
+                    processingTimeMs: timeDelta,
+                    responseLength: (result?.output as string)?.length || 0,
+                    success: true,
+                    cacheHit: false,
+                    metadata: {}
+                })
+            }
+        } catch (trackError) {
+            // Silently fail - tracking should not break the main flow
+        }
 
         return result?.output
     }

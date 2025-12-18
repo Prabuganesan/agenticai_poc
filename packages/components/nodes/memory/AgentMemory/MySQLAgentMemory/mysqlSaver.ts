@@ -233,7 +233,7 @@ export class MySQLSaver extends BaseCheckpointSaver implements MemoryMethods {
                 chatflowid: this.config.chatflowid
             },
             order: {
-                createdDate: 'ASC'
+                created_on: 'ASC'
             }
         })
 

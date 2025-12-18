@@ -1,22 +1,29 @@
 /* eslint-disable */
-import { Entity, Column, PrimaryGeneratedColumn, Index, CreateDateColumn } from 'typeorm'
+import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm'
 import { IUpsertHistory } from '../../Interface'
 
-@Entity()
+@Entity('auto_upsert_history')
 export class UpsertHistory implements IUpsertHistory {
-    @PrimaryGeneratedColumn('uuid')
-    id: string
+    @PrimaryGeneratedColumn({ type: 'numeric', name: 'id' })
+    id: number
+
+    @Column({ type: 'varchar', length: 15, name: 'guid' })
+    guid: string
 
     @Index()
-    @Column()
+    @Column({ type: 'varchar', length: 15, name: 'chatflowid' })
     chatflowid: string
 
-    @Column()
+    @Column({ name: 'result' })
     result: string
 
-    @Column()
+    @Column({ name: 'flowdata' })
     flowData: string
 
-    @CreateDateColumn()
-    date: Date
+    @Index()
+    @Column({ type: 'numeric', name: 'created_by' })
+    created_by: number
+
+    @Column({ type: 'numeric', precision: 25, scale: 0, name: 'created_on' })
+    created_on: number
 }

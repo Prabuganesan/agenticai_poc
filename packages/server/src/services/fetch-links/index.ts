@@ -1,6 +1,6 @@
-import { webCrawl, xmlScrape, checkDenyList } from 'flowise-components'
+import { webCrawl, xmlScrape, checkDenyList } from 'kodivian-components'
 import { StatusCodes } from 'http-status-codes'
-import { InternalFlowiseError } from '../../errors/internalFlowiseError'
+import { InternalAutonomousError } from '../../errors/internalAutonomousError'
 import { getErrorMessage } from '../../errors/utils'
 
 const getAllLinks = async (requestUrl: string, relativeLinksMethod: string, queryLimit: string): Promise<any> => {
@@ -9,7 +9,7 @@ const getAllLinks = async (requestUrl: string, relativeLinksMethod: string, quer
         await checkDenyList(url)
 
         if (!relativeLinksMethod) {
-            throw new InternalFlowiseError(
+            throw new InternalAutonomousError(
                 StatusCodes.INTERNAL_SERVER_ERROR,
                 `Please choose a Relative Links Method in Additional Parameters!`
             )
@@ -24,7 +24,7 @@ const getAllLinks = async (requestUrl: string, relativeLinksMethod: string, quer
         }
         return dbResponse
     } catch (error) {
-        throw new InternalFlowiseError(
+        throw new InternalAutonomousError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: fetchLinksService.getAllLinks - ${getErrorMessage(error)}`
         )

@@ -426,13 +426,13 @@ const ShareChatbot = ({ isSessionMemory, isAgentCanvas }) => {
                     }}
                     variant='h5'
                 >
-                    {`${baseURL}/chatbot/${chatflowid}`}
+                    {`${baseURL}/api/v1/share-chatbot/${chatflowid}`}
                 </Typography>
                 <IconButton
                     title='Copy Link'
                     color='success'
                     onClick={(event) => {
-                        navigator.clipboard.writeText(`${baseURL}/chatbot/${chatflowid}`)
+                        navigator.clipboard.writeText(`${baseURL}/api/v1/share-chatbot/${chatflowid}`)
                         setCopyAnchorEl(event.currentTarget)
                         setTimeout(() => {
                             handleCloseCopyPopOver()
@@ -441,7 +441,7 @@ const ShareChatbot = ({ isSessionMemory, isAgentCanvas }) => {
                 >
                     <IconCopy />
                 </IconButton>
-                <IconButton title='Open New Tab' color='primary' onClick={() => window.open(`${baseURL}/chatbot/${chatflowid}`, '_blank')}>
+                <IconButton title='Open New Tab' color='primary' onClick={() => window.open(`${baseURL}/api/v1/share-chatbot/${chatflowid}`, '_blank')}>
                     <IconArrowUpRightCircle />
                 </IconButton>
                 <div style={{ flex: 1 }} />
@@ -467,13 +467,13 @@ const ShareChatbot = ({ isSessionMemory, isAgentCanvas }) => {
                 <Stack sx={{ mt: 1, mb: 2, alignItems: 'center' }} direction='row' spacing={2}>
                     <Typography variant='h4'>Title Settings</Typography>
                 </Stack>
-                {textField(title, 'title', 'Title', 'string', 'Flowise Assistant')}
+                {textField(title, 'title', 'Title', 'string', 'Autonomous Assistant')}
                 {textField(
                     titleAvatarSrc,
                     'titleAvatarSrc',
                     'Title Avatar Link',
                     'string',
-                    `https://raw.githubusercontent.com/FlowiseAI/Flowise/main/assets/FloWiseAI_dark.png`
+                    ''
                 )}
                 {colorField(titleBackgroundColor, 'titleBackgroundColor', 'Title Background Color')}
                 {colorField(titleTextColor, 'titleTextColor', 'Title TextColor')}
@@ -488,7 +488,7 @@ const ShareChatbot = ({ isSessionMemory, isAgentCanvas }) => {
                 {colorField(backgroundColor, 'backgroundColor', 'Background Color')}
                 {textField(fontSize, 'fontSize', 'Font Size', 'number')}
                 {colorField(poweredByTextColor, 'poweredByTextColor', 'PoweredBy TextColor')}
-                {isAgentCanvas && booleanField(showAgentMessages, 'showAgentMessages', 'Show agent reasonings when using Agentflow')}
+                {isAgentCanvas && booleanField(showAgentMessages, 'showAgentMessages', 'Show agent reasonings when using Multi-Agent')}
                 {booleanField(renderHTML, 'renderHTML', 'Render HTML on the chat')}
                 {isSessionMemory &&
                     booleanField(generateNewSession, 'generateNewSession', 'Start new session when chatbot link is opened or refreshed')}

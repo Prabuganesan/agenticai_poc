@@ -9,7 +9,6 @@ import { Avatar, Chip, ListItemButton, ListItemIcon, ListItemText, Typography, u
 
 // project imports
 import { MENU_OPEN, SET_MENU } from '@/store/actions'
-import config from '@/config'
 
 // assets
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord'
@@ -42,7 +41,8 @@ const NavItem = ({ item, level, navType, onClick, onUploadFile }) => {
 
     let listItemProps = {
         component: forwardRef(function ListItemPropsComponent(props, ref) {
-            return <Link ref={ref} {...props} to={`${config.basename}${item.url}`} target={itemTarget} />
+            // Don't add basename here - BrowserRouter already handles it
+            return <Link ref={ref} {...props} to={item.url} target={itemTarget} />
         })
     }
     if (item?.external) {
@@ -73,7 +73,8 @@ const NavItem = ({ item, level, navType, onClick, onUploadFile }) => {
             onClick(id)
         } else {
             dispatch({ type: MENU_OPEN, id })
-            if (matchesSM) dispatch({ type: SET_MENU, opened: false })
+            // Close sidebar on all screen sizes when navigating
+            dispatch({ type: SET_MENU, opened: false })
         }
     }
 
@@ -88,7 +89,7 @@ const NavItem = ({ item, level, navType, onClick, onUploadFile }) => {
                 dispatch({ type: MENU_OPEN, id: item.id })
             }
             if (!document.location.pathname.toString().split('/')[1]) {
-                itemHandler('chatflows')
+                itemHandler('home')
             }
         }
 

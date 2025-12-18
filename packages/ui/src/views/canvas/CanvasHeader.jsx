@@ -17,7 +17,6 @@ import APICodeDialog from '@/views/chatflows/APICodeDialog'
 import ViewMessagesDialog from '@/ui-component/dialog/ViewMessagesDialog'
 import ChatflowConfigurationDialog from '@/ui-component/dialog/ChatflowConfigurationDialog'
 import UpsertHistoryDialog from '@/views/vectorstore/UpsertHistoryDialog'
-import ViewLeadsDialog from '@/ui-component/dialog/ViewLeadsDialog'
 import ExportAsTemplateDialog from '@/ui-component/dialog/ExportAsTemplateDialog'
 import { Available } from '@/ui-component/rbac/available'
 
@@ -31,6 +30,7 @@ import useApi from '@/hooks/useApi'
 import { generateExportFlowData } from '@/utils/genericHelper'
 import { uiBaseURL } from '@/store/constant'
 import { closeSnackbar as closeSnackbarAction, enqueueSnackbar as enqueueSnackbarAction, SET_CHATFLOW } from '@/store/actions'
+import config from '@/config'
 
 // ==============================|| CANVAS HEADER ||============================== //
 
@@ -49,8 +49,9 @@ const CanvasHeader = ({ chatflow, isAgentCanvas, isAgentflowV2, handleSaveFlow, 
     const [apiDialogProps, setAPIDialogProps] = useState({})
     const [viewMessagesDialogOpen, setViewMessagesDialogOpen] = useState(false)
     const [viewMessagesDialogProps, setViewMessagesDialogProps] = useState({})
-    const [viewLeadsDialogOpen, setViewLeadsDialogOpen] = useState(false)
-    const [viewLeadsDialogProps, setViewLeadsDialogProps] = useState({})
+    // Leads feature removed for autonomous server deployment
+    // const [viewLeadsDialogOpen, setViewLeadsDialogOpen] = useState(false)
+    // const [viewLeadsDialogProps, setViewLeadsDialogProps] = useState({})
     const [upsertHistoryDialogOpen, setUpsertHistoryDialogOpen] = useState(false)
     const [upsertHistoryDialogProps, setUpsertHistoryDialogProps] = useState({})
     const [chatflowConfigurationDialogOpen, setChatflowConfigurationDialogOpen] = useState(false)
@@ -63,7 +64,7 @@ const CanvasHeader = ({ chatflow, isAgentCanvas, isAgentflowV2, handleSaveFlow, 
 
     const [savePermission, setSavePermission] = useState(isAgentCanvas ? 'agentflows:create' : 'chatflows:create')
 
-    const title = isAgentCanvas ? 'Agents' : 'Chatflow'
+    const title = isAgentCanvas ? 'Multi-Agent' : 'Agent'
 
     const updateChatflowApi = useApi(chatflowsApi.updateChatflow)
     const canvas = useSelector((state) => state.canvas)
@@ -80,12 +81,13 @@ const CanvasHeader = ({ chatflow, isAgentCanvas, isAgentflowV2, handleSaveFlow, 
                 isChatflow: isAgentflowV2 ? false : true
             })
             setViewMessagesDialogOpen(true)
-        } else if (setting === 'viewLeads') {
-            setViewLeadsDialogProps({
-                title: 'View Leads',
-                chatflow: chatflow
-            })
-            setViewLeadsDialogOpen(true)
+            // Leads feature removed for autonomous server deployment
+            // } else if (setting === 'viewLeads') {
+            //     setViewLeadsDialogProps({
+            //         title: 'View Leads',
+            //         chatflow: chatflow
+            //     })
+            //     setViewLeadsDialogOpen(true)
         } else if (setting === 'saveAsTemplate') {
             if (canvas.isDirty) {
                 enqueueSnackbar({
@@ -126,12 +128,13 @@ const CanvasHeader = ({ chatflow, isAgentCanvas, isAgentflowV2, handleSaveFlow, 
                 const parsedFlowData = JSON.parse(flowData)
                 flowData = JSON.stringify(parsedFlowData)
                 localStorage.setItem('duplicatedFlowData', flowData)
+                const basename = config.basename || ''
                 if (isAgentflowV2) {
-                    window.open(`${uiBaseURL}/v2/agentcanvas`, '_blank')
+                    window.open(`${uiBaseURL}${basename}/v2/agentcanvas`, '_blank')
                 } else if (isAgentCanvas) {
-                    window.open(`${uiBaseURL}/agentcanvas`, '_blank')
+                    window.open(`${uiBaseURL}${basename}/agentcanvas`, '_blank')
                 } else {
-                    window.open(`${uiBaseURL}/canvas`, '_blank')
+                    window.open(`${uiBaseURL}${basename}/canvas`, '_blank')
                 }
             } catch (e) {
                 console.error(e)
@@ -272,7 +275,7 @@ const CanvasHeader = ({ chatflow, isAgentCanvas, isAgentflowV2, handleSaveFlow, 
                                     if (window.history.state && window.history.state.idx > 0) {
                                         navigate(-1)
                                     } else {
-                                        navigate('/', { replace: true })
+                                        navigate(isAgentCanvas ? '/multiagent' : '/agent')
                                     }
                                 }}
                             >
@@ -478,7 +481,8 @@ const CanvasHeader = ({ chatflow, isAgentCanvas, isAgentflowV2, handleSaveFlow, 
                 dialogProps={viewMessagesDialogProps}
                 onCancel={() => setViewMessagesDialogOpen(false)}
             />
-            <ViewLeadsDialog show={viewLeadsDialogOpen} dialogProps={viewLeadsDialogProps} onCancel={() => setViewLeadsDialogOpen(false)} />
+            {/* Leads feature removed for autonomous server deployment */}
+            {/* <ViewLeadsDialog show={viewLeadsDialogOpen} dialogProps={viewLeadsDialogProps} onCancel={() => setViewLeadsDialogOpen(false)} /> */}
             {exportAsTemplateDialogOpen && (
                 <ExportAsTemplateDialog
                     show={exportAsTemplateDialogOpen}

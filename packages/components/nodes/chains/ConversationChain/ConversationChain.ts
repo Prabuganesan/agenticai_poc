@@ -15,10 +15,10 @@ import { ConsoleCallbackHandler as LCConsoleCallbackHandler } from '@langchain/c
 import { checkInputs, Moderation, streamResponse } from '../../moderation/Moderation'
 import { formatResponse } from '../../outputparsers/OutputParserHelpers'
 import { addImagesToMessages, llmSupportsVision } from '../../../src/multiModalUtils'
-import { ChatOpenAI } from '../../chatmodels/ChatOpenAI/FlowiseChatOpenAI'
+import { ChatOpenAI } from '../../chatmodels/ChatOpenAI/AutonomousChatOpenAI'
 import {
     IVisionChatModal,
-    FlowiseMemory,
+    AutonomousMemory,
     ICommonObject,
     INode,
     INodeData,
@@ -28,6 +28,7 @@ import {
 } from '../../../src/Interface'
 import { ConsoleCallbackHandler, CustomChainHandler, additionalCallbacks } from '../../../src/handler'
 import { getBaseClasses, handleEscapeCharacters, transformBracesWithColon } from '../../../src/utils'
+import path from 'path'
 
 let systemMessage = `The following is a friendly conversation between a human and an AI. The AI is talkative and provides lots of specific details from its context. If the AI does not know the answer to a question, it truthfully says it does not know.`
 const inputKey = 'input'
@@ -142,12 +143,68 @@ class ConversationChain_Chains implements INode {
             callbacks.push(new LCConsoleCallbackHandler())
         }
 
+        // Track start time BEFORE LLM execution
+        const startTime = Date.now()
+
         if (shouldStreamResponse) {
             const handler = new CustomChainHandler(sseStreamer, chatId)
             callbacks.push(handler)
             res = await chain.invoke({ input }, { callbacks })
         } else {
             res = await chain.invoke({ input }, { callbacks })
+        }
+
+        // Track end time AFTER LLM execution
+        const endTime = Date.now()
+        const timeDelta = endTime - startTime
+
+        // Track LLM usage
+        try {
+            if (options.orgId && res) {
+                // Dynamic import from server package
+                const llmUsageTrackerPath = path.resolve(__dirname, '../../../../server/src/utils/llm-usage-tracker')
+                const { trackLLMUsage, extractProviderAndModel, extractUsageMetadata } = await import(llmUsageTrackerPath)
+
+                // Get model from nodeData
+                const model = nodeData.inputs?.model as BaseChatModel
+                const { provider, model: modelName } = extractProviderAndModel(nodeData, { model })
+
+                // For chains, we need to extract usage from the chain result
+                // Chain results may not have direct usage metadata, so we construct a response-like object
+                const { promptTokens, completionTokens, totalTokens } = extractUsageMetadata({
+                    usageMetadata: (res as any)?.usageMetadata,
+                    usage_metadata: (res as any)?.usage_metadata,
+                    llmOutput: (res as any)?.llmOutput
+                })
+
+                await trackLLMUsage({
+                    requestId: (options.apiMessageId as string) || (options.chatId as string),
+                    executionId: options.parentExecutionId as string,
+                    orgId: (options.orgId as string) || '',
+                    userId: (options.incomingInput?.userId as string) || (options.userId as string) || '0',
+                    chatflowId: options.chatflowid as string,
+                    chatId: options.chatId as string,
+                    sessionId: options.sessionId as string,
+                    feature: 'chatflow',
+                    nodeId: nodeData.id,
+                    nodeType: 'ConversationChain',
+                    nodeName: 'ConversationChain',
+                    location: 'main_flow',
+                    provider,
+                    model: modelName,
+                    requestType: 'chat',
+                    promptTokens: promptTokens || 0,
+                    completionTokens: completionTokens || 0,
+                    totalTokens: totalTokens || 0,
+                    processingTimeMs: timeDelta,
+                    responseLength: (res as string)?.length || 0,
+                    success: true,
+                    cacheHit: false,
+                    metadata: {}
+                })
+            }
+        } catch (trackError) {
+            // Silently fail - tracking should not break the main flow
         }
 
         await memory.addChatMessages(
@@ -169,7 +226,7 @@ class ConversationChain_Chains implements INode {
 }
 
 const prepareChatPrompt = (nodeData: INodeData, humanImageMessages: MessageContentImageUrl[]) => {
-    const memory = nodeData.inputs?.memory as FlowiseMemory
+    const memory = nodeData.inputs?.memory as AutonomousMemory
     let prompt = nodeData.inputs?.systemMessagePrompt as string
     prompt = transformBracesWithColon(prompt)
     const chatPromptTemplate = nodeData.inputs?.chatPromptTemplate as ChatPromptTemplate
@@ -226,7 +283,7 @@ const prepareChatPrompt = (nodeData: INodeData, humanImageMessages: MessageConte
 
 const prepareChain = async (nodeData: INodeData, options: ICommonObject, sessionId?: string) => {
     let model = nodeData.inputs?.model as BaseChatModel
-    const memory = nodeData.inputs?.memory as FlowiseMemory
+    const memory = nodeData.inputs?.memory as AutonomousMemory
     const memoryKey = memory.memoryKey ?? 'chat_history'
     const prependMessages = options?.prependMessages
 

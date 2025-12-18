@@ -6,14 +6,14 @@ import {
     INodeParams,
     MemoryMethods,
     ICommonObject,
-    FlowiseSummaryBufferMemory
+    AutonomousSummaryBufferMemory
 } from '../../../src/Interface'
 import { getBaseClasses, mapChatMessageToBaseMessage } from '../../../src/utils'
 import { BaseLanguageModel } from '@langchain/core/language_models/base'
 import { BaseMessage, getBufferString, HumanMessage } from '@langchain/core/messages'
 import { ConversationSummaryBufferMemory, ConversationSummaryBufferMemoryInput } from 'langchain/memory'
 import { DataSource } from 'typeorm'
-import { ChatAnthropic } from '../../chatmodels/ChatAnthropic/FlowiseChatAnthropic'
+import { ChatAnthropic } from '../../chatmodels/ChatAnthropic/AutonomousChatAnthropic'
 
 class ConversationSummaryBufferMemory_Memory implements INode {
     label: string
@@ -53,7 +53,7 @@ class ConversationSummaryBufferMemory_Memory implements INode {
                 name: 'sessionId',
                 type: 'string',
                 description:
-                    'If not specified, a random id will be used. Learn <a target="_blank" href="https://docs.flowiseai.com/memory#ui-and-embedded-chat">more</a>',
+                    'If not specified, a random id will be used. Learn <a target="_blank" href="[AUTONOMOUS_DOCS]/memory#ui-and-embedded-chat">more</a>',
                 default: '',
                 optional: true,
                 additionalParams: true
@@ -104,7 +104,7 @@ interface BufferMemoryExtendedInput {
     orgId: string
 }
 
-class ConversationSummaryBufferMemoryExtended extends FlowiseSummaryBufferMemory implements MemoryMethods {
+class ConversationSummaryBufferMemoryExtended extends AutonomousSummaryBufferMemory implements MemoryMethods {
     appDataSource: DataSource
     databaseEntities: IDatabaseEntity
     chatflowid: string
@@ -134,7 +134,7 @@ class ConversationSummaryBufferMemoryExtended extends FlowiseSummaryBufferMemory
                 chatflowid: this.chatflowid
             },
             order: {
-                createdDate: 'ASC'
+                created_on: 'ASC'
             }
         })
 

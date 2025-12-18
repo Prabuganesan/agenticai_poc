@@ -1,13 +1,14 @@
 import { Request, Response, NextFunction } from 'express'
 import executionsService from '../../services/executions'
 import { ExecutionState } from '../../Interface'
+import { transformEntityForResponse, transformPaginatedResponse } from '../../utils/responseTransform'
 
 const getExecutionById = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const executionId = req.params.id
-        const workspaceId = req.user?.activeWorkspaceId
-        const execution = await executionsService.getExecutionById(executionId, workspaceId)
-        return res.json(execution)
+        const orgId = (req as any).orgId || req.user?.orgId
+        const execution = await executionsService.getExecutionById(executionId, orgId)
+        return res.json(transformEntityForResponse(execution))
     } catch (error) {
         next(error)
     }
@@ -17,7 +18,7 @@ const getPublicExecutionById = async (req: Request, res: Response, next: NextFun
     try {
         const executionId = req.params.id
         const execution = await executionsService.getPublicExecutionById(executionId)
-        return res.json(execution)
+        return res.json(transformEntityForResponse(execution))
     } catch (error) {
         next(error)
     }
@@ -26,9 +27,9 @@ const getPublicExecutionById = async (req: Request, res: Response, next: NextFun
 const updateExecution = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const executionId = req.params.id
-        const workspaceId = req.user?.activeWorkspaceId
-        const execution = await executionsService.updateExecution(executionId, req.body, workspaceId)
-        return res.json(execution)
+        const orgId = (req as any).orgId || req.user?.orgId
+        const execution = await executionsService.updateExecution(executionId, req.body, orgId)
+        return res.json(transformEntityForResponse(execution))
     } catch (error) {
         next(error)
     }
@@ -39,11 +40,13 @@ const getAllExecutions = async (req: Request, res: Response, next: NextFunction)
         // Extract all possible filters from query params
         const filters: any = {}
 
-        // Add workspace ID filter
-        filters.workspaceId = req.user?.activeWorkspaceId
+        // Add organization ID filter
+        filters.orgId = (req as any).orgId || req.user?.orgId
 
-        // ID filter
-        if (req.query.id) filters.id = req.query.id as string
+        // GUID filter (renamed from id for consistency)
+        if (req.query.guid) filters.guid = req.query.guid as string
+        // Also support id for backward compatibility
+        if (req.query.id) filters.guid = req.query.id as string
 
         // Flow and session filters
         if (req.query.agentflowId) filters.agentflowId = req.query.agentflowId as string
@@ -58,13 +61,13 @@ const getAllExecutions = async (req: Request, res: Response, next: NextFunction)
             }
         }
 
-        // Date filters
+        // Date filters (convert to numeric timestamps)
         if (req.query.startDate) {
-            filters.startDate = new Date(req.query.startDate as string)
+            filters.startDate = new Date(req.query.startDate as string).getTime()
         }
 
         if (req.query.endDate) {
-            filters.endDate = new Date(req.query.endDate as string)
+            filters.endDate = new Date(req.query.endDate as string).getTime()
         }
 
         // Pagination
@@ -78,7 +81,7 @@ const getAllExecutions = async (req: Request, res: Response, next: NextFunction)
 
         const apiResponse = await executionsService.getAllExecutions(filters)
 
-        return res.json(apiResponse)
+        return res.json(transformPaginatedResponse(apiResponse))
     } catch (error) {
         next(error)
     }
@@ -92,7 +95,7 @@ const getAllExecutions = async (req: Request, res: Response, next: NextFunction)
 const deleteExecutions = async (req: Request, res: Response, next: NextFunction) => {
     try {
         let executionIds: string[] = []
-        const workspaceId = req.user?.activeWorkspaceId
+        const orgId = (req as any).orgId || req.user?.orgId
 
         // Check if we're deleting a single execution from URL param
         if (req.params.id) {
@@ -105,7 +108,7 @@ const deleteExecutions = async (req: Request, res: Response, next: NextFunction)
             return res.status(400).json({ success: false, message: 'No execution IDs provided' })
         }
 
-        const result = await executionsService.deleteExecutions(executionIds, workspaceId)
+        const result = await executionsService.deleteExecutions(executionIds, orgId)
         return res.json(result)
     } catch (error) {
         next(error)

@@ -3,7 +3,7 @@
 # Refer https://www.artillery.io/docs
 
 config:
-    target: http://128.128.128.128:3000 # replace with your url
+    target: http://128.128.128.128:3030 # replace with your url
     phases:
         - duration: 1
           arrivalRate: 1

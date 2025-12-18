@@ -7,9 +7,10 @@ const ConfigContext = createContext()
 export const ConfigProvider = ({ children }) => {
     const [config, setConfig] = useState({})
     const [loading, setLoading] = useState(true)
-    const [isEnterpriseLicensed, setEnterpriseLicensed] = useState(false)
-    const [isCloud, setCloudLicensed] = useState(false)
-    const [isOpenSource, setOpenSource] = useState(false)
+    // For autonomous server, always treat as open source (no license checks)
+    const [isEnterpriseLicensed] = useState(false)
+    const [isCloud] = useState(false)
+    const [isOpenSource] = useState(true)
 
     useEffect(() => {
         const userSettings = platformsettingsApi.getSettings()
@@ -19,22 +20,7 @@ export const ConfigProvider = ({ children }) => {
                     ...currentSettingsData.data
                 }
                 setConfig(finalData)
-                if (finalData.PLATFORM_TYPE) {
-                    if (finalData.PLATFORM_TYPE === 'enterprise') {
-                        setEnterpriseLicensed(true)
-                        setCloudLicensed(false)
-                        setOpenSource(false)
-                    } else if (finalData.PLATFORM_TYPE === 'cloud') {
-                        setCloudLicensed(true)
-                        setEnterpriseLicensed(false)
-                        setOpenSource(false)
-                    } else {
-                        setOpenSource(true)
-                        setEnterpriseLicensed(false)
-                        setCloudLicensed(false)
-                    }
-                }
-
+                // Platform type always open source for autonomous server
                 setLoading(false)
             })
             .catch((error) => {

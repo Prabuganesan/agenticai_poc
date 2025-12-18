@@ -3,6 +3,7 @@ import * as path from 'path'
 import { DataSource } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 import { omit, cloneDeep } from 'lodash'
+import { generateGuid } from './guidGenerator'
 import {
     IFileUpload,
     convertSpeechToText,
@@ -10,16 +11,14 @@ import {
     ICommonObject,
     addSingleFileToStorage,
     generateFollowUpPrompts,
-    IAction,
     addArrayFilesToStorage,
     mapMimeTypeToInputField,
     mapExtToInputField,
     getFileFromUpload,
     removeSpecificFileFromUpload,
-    EvaluationRunner,
     handleEscapeCharacters,
     IServerSideEventStreamer
-} from 'flowise-components'
+} from 'kodivian-components'
 import { StatusCodes } from 'http-status-codes'
 import {
     IncomingInput,
@@ -38,17 +37,14 @@ import {
     IVariableOverride,
     MODE
 } from '../Interface'
-import { InternalFlowiseError } from '../errors/internalFlowiseError'
+import { InternalAutonomousError } from '../errors/internalAutonomousError'
 import { databaseEntities } from '.'
 import { ChatFlow } from '../database/entities/ChatFlow'
-import { ChatMessage } from '../database/entities/ChatMessage'
 import { Variable } from '../database/entities/Variable'
 import { getRunningExpressApp } from '../utils/getRunningExpressApp'
 import {
     isFlowValidForStream,
     buildFlow,
-    getTelemetryFlowObj,
-    getAppVersion,
     resolveVariables,
     getSessionChatHistory,
     findMemoryNode,
@@ -60,17 +56,15 @@ import {
     getAPIOverrideConfig
 } from '../utils'
 import { validateFlowAPIKey } from './validateKey'
-import logger from './logger'
+import { logDebug, logError, logInfo } from './logger/system-helper'
+import { chatflowLog } from './logger/module-methods'
 import { utilAddChatMessage } from './addChatMesage'
 import { checkPredictions, checkStorage, updatePredictionsUsage, updateStorageUsage } from './quotaUsage'
-import { buildAgentGraph } from './buildAgentGraph'
-import { getErrorMessage } from '../errors/utils'
-import { FLOWISE_METRIC_COUNTERS, FLOWISE_COUNTER_STATUS, IMetricsProvider } from '../Interface.Metrics'
-import { getWorkspaceSearchOptions } from '../enterprise/utils/ControllerServiceUtils'
+import { getErrorMessage, sanitizeErrorMessage } from '../errors/utils'
+import { AUTONOMOUS_METRIC_COUNTERS, AUTONOMOUS_COUNTER_STATUS, IMetricsProvider } from '../Interface.Metrics'
 import { OMIT_QUEUE_JOB_DATA } from './constants'
 import { executeAgentFlow } from './buildAgentflow'
-import { Workspace } from '../enterprise/database/entities/workspace.entity'
-import { Organization } from '../enterprise/database/entities/organization.entity'
+import chatSessionsService from '../services/chat-sessions'
 
 const shouldAutoPlayTTS = (textToSpeechConfig: string | undefined | null): boolean => {
     if (!textToSpeechConfig) return false
@@ -84,7 +78,7 @@ const shouldAutoPlayTTS = (textToSpeechConfig: string | undefined | null): boole
         }
         return false
     } catch (error) {
-        logger.error(`Error parsing textToSpeechConfig: ${getErrorMessage(error)}`)
+        logError(`Error parsing textToSpeechConfig: ${getErrorMessage(error)}`).catch(() => {})
         return false
     }
 }
@@ -135,7 +129,7 @@ const generateTTSForResponseStream = async (
             }
         )
     } catch (error) {
-        logger.error(`[server]: TTS streaming failed: ${getErrorMessage(error)}`)
+        logError(`[server]: TTS streaming failed: ${getErrorMessage(error)}`).catch(() => {})
         sseStreamer.streamTTSEndEvent(chatId, chatMessageId)
     }
 }
@@ -173,7 +167,7 @@ const initEndingNode = async ({
             : reactFlowNodes[reactFlowNodes.length - 1]
 
     if (!nodeToExecute) {
-        throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Node not found`)
+        throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Node not found`)
     }
 
     if (incomingInput.overrideConfig && apiOverrideStatus) {
@@ -191,7 +185,7 @@ const initEndingNode = async ({
         variableOverrides
     )
 
-    logger.debug(`[server]: Running ${reactFlowNodeData.label} (${reactFlowNodeData.id})`)
+    logDebug(`[server]: Running ${reactFlowNodeData.label} (${reactFlowNodeData.id})`).catch(() => {})
 
     const nodeInstanceFilePath = componentNodes[reactFlowNodeData.name].filePath as string
     const nodeModule = await import(nodeInstanceFilePath)
@@ -243,7 +237,7 @@ const getChatHistory = async ({
                 componentNodes,
                 appDataSource,
                 databaseEntities,
-                logger,
+                undefined,
                 prependMessages
             )
         }
@@ -269,7 +263,7 @@ const getChatHistory = async ({
             componentNodes,
             appDataSource,
             databaseEntities,
-            logger,
+            undefined,
             prependMessages
         )
     }
@@ -302,10 +296,7 @@ export const executeFlow = async ({
     incomingInput,
     chatflow,
     chatId,
-    isEvaluation,
-    evaluationRunId,
     appDataSource,
-    telemetry,
     cachePool,
     usageCacheManager,
     sseStreamer,
@@ -315,15 +306,19 @@ export const executeFlow = async ({
     signal,
     isTool,
     orgId,
-    workspaceId,
-    subscriptionId,
-    productId
-}: IExecuteFlowParams) => {
+    productId,
+    userId
+}: IExecuteFlowParams & { userId?: string }) => {
     // Ensure incomingInput has all required properties with default values
     incomingInput = {
         history: [],
         streaming: false,
         ...incomingInput
+    }
+
+    // Add userId to incomingInput so it can be used in agentflow execution
+    if (userId) {
+        ;(incomingInput as any).userId = userId
     }
 
     let question = incomingInput.question || '' // Ensure question is never undefined
@@ -332,7 +327,8 @@ export const executeFlow = async ({
     const prependMessages = incomingInput.history ?? []
     const streaming = incomingInput.streaming ?? false
     const userMessageDateTime = new Date()
-    const chatflowid = chatflow.id
+    const chatflowid = chatflow.guid
+    const userIdNum = userId ? parseInt(userId) : undefined
 
     /* Process file uploads from the chat
      * - Images
@@ -344,7 +340,10 @@ export const executeFlow = async ({
     if (uploads) {
         fileUploads = uploads
         for (let i = 0; i < fileUploads.length; i += 1) {
-            await checkStorage(orgId, subscriptionId, usageCacheManager)
+            if (!orgId) {
+                throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'orgId is required for file uploads')
+            }
+            await checkStorage(orgId, usageCacheManager)
 
             const upload = fileUploads[i]
 
@@ -355,7 +354,7 @@ export const executeFlow = async ({
                 const bf = Buffer.from(splitDataURI.pop() || '', 'base64')
                 const mime = splitDataURI[0].split(':')[1].split(';')[0]
                 const { totalSize } = await addSingleFileToStorage(mime, bf, filename, orgId, chatflowid, chatId)
-                await updateStorageUsage(orgId, workspaceId, totalSize, usageCacheManager)
+                await updateStorageUsage(orgId, totalSize, usageCacheManager)
                 upload.type = 'stored-file'
                 // Omit upload.data since we don't store the content in database
                 fileUploads[i] = omit(upload, ['data'])
@@ -369,7 +368,7 @@ export const executeFlow = async ({
 
             // Run Speech to Text conversion
             if (upload.mime === 'audio/webm' || upload.mime === 'audio/mp4' || upload.mime === 'audio/ogg') {
-                logger.debug(`[server]: [${orgId}]: Attempting a speech to text conversion...`)
+                logDebug(`[server]: [${orgId}]: Attempting a speech to text conversion...`).catch(() => {})
                 let speechToTextConfig: ICommonObject = {}
                 if (chatflow.speechToText) {
                     const speechToTextProviders = JSON.parse(chatflow.speechToText)
@@ -383,15 +382,17 @@ export const executeFlow = async ({
                     }
                 }
                 if (speechToTextConfig) {
+                    if (!orgId) {
+                        throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'orgId is required for speech to text')
+                    }
                     const options: ICommonObject = {
-                        orgId,
                         chatId,
                         chatflowid,
                         appDataSource,
                         databaseEntities: databaseEntities
                     }
                     const speechToTextResult = await convertSpeechToText(upload, speechToTextConfig, options)
-                    logger.debug(`[server]: [${orgId}]: Speech to text result: ${speechToTextResult}`)
+                    logDebug(`[server]: [${orgId}]: Speech to text result: ${speechToTextResult}`).catch(() => {})
                     if (speechToTextResult) {
                         incomingInput.question = speechToTextResult
                         question = speechToTextResult
@@ -410,9 +411,12 @@ export const executeFlow = async ({
 
     // Process form data body with files
     if (files?.length) {
+        if (!orgId) {
+            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'orgId is required for file uploads')
+        }
         overrideConfig = { ...incomingInput }
         for (const file of files) {
-            await checkStorage(orgId, subscriptionId, usageCacheManager)
+            await checkStorage(orgId, usageCacheManager)
 
             const fileNames: string[] = []
             const fileBuffer = await getFileFromUpload(file.path ?? file.key)
@@ -426,7 +430,7 @@ export const executeFlow = async ({
                 orgId,
                 chatflowid
             )
-            await updateStorageUsage(orgId, workspaceId, totalSize, usageCacheManager)
+            await updateStorageUsage(orgId, totalSize, usageCacheManager)
 
             const fileInputFieldFromMimeType = mapMimeTypeToInputField(file.mimetype)
 
@@ -475,9 +479,7 @@ export const executeFlow = async ({
             incomingInput,
             chatflow,
             chatId,
-            evaluationRunId,
             appDataSource,
-            telemetry,
             cachePool,
             usageCacheManager,
             sseStreamer,
@@ -488,8 +490,6 @@ export const executeFlow = async ({
             signal,
             isTool,
             orgId,
-            workspaceId,
-            subscriptionId,
             productId
         })
     }
@@ -500,7 +500,29 @@ export const executeFlow = async ({
     const nodes = parsedFlowData.nodes
     const edges = parsedFlowData.edges
 
-    const apiMessageId = uuidv4()
+    // Apply parent credentials to child flow nodes if available (for multi-agent flows via ExecuteFlow)
+    if (overrideConfig._parentCredentials && typeof overrideConfig._parentCredentials === 'object') {
+        const parentCredentials = overrideConfig._parentCredentials as Record<string, string>
+        logDebug(`[server]: [${orgId}]: Applying ${Object.keys(parentCredentials).length} parent credentials to child flow`).catch(() => {})
+
+        // Iterate through nodes and apply credentials if node doesn't have one set
+        for (const node of nodes) {
+            if (node.data && (!node.data.credential || node.data.credential === '')) {
+                // Use first available credential from parent (simple approach)
+                // In future, could match by node type for more sophisticated mapping
+                const credentialIds = Object.values(parentCredentials).filter((id) => id && typeof id === 'string')
+                if (credentialIds.length > 0) {
+                    node.data.credential = credentialIds[0]
+                    logDebug(`[server]: [${orgId}]: Applied credential to node ${node.data.label} (${node.data.id})`).catch(() => {})
+                }
+            }
+        }
+
+        // Clean up _parentCredentials from overrideConfig to avoid passing it further
+        delete overrideConfig._parentCredentials
+    }
+
+    const apiMessageId = generateGuid() // Use 15-character GUID instead of UUID
 
     /*** Get session ID ***/
     const memoryNode = findMemoryNode(nodes, edges)
@@ -542,12 +564,12 @@ export const executeFlow = async ({
     })
 
     /*** Get API Config ***/
-    const availableVariables = await appDataSource.getRepository(Variable).findBy(getWorkspaceSearchOptions(workspaceId))
+    const availableVariables = await appDataSource.getRepository(Variable).findBy({})
     const { nodeOverrides, variableOverrides, apiOverrideStatus } = getAPIOverrideConfig(chatflow)
 
     const flowConfig: IFlowConfig = {
         chatflowid,
-        chatflowId: chatflow.id,
+        chatflowId: chatflow.guid,
         chatId,
         sessionId,
         chatHistory,
@@ -555,7 +577,7 @@ export const executeFlow = async ({
         ...incomingInput.overrideConfig
     }
 
-    logger.debug(`[server]: [${orgId}]: Start building flow ${chatflowid}`)
+    logDebug(`[server]: [${orgId}]: Start building flow ${chatflowid}`).catch(() => {})
 
     /*** BFS to traverse from Starting Nodes to Ending Node ***/
     const reactFlowNodes = await buildFlow({
@@ -584,144 +606,15 @@ export const executeFlow = async ({
         uploads,
         baseURL,
         orgId,
-        workspaceId,
-        subscriptionId,
         updateStorageUsage,
-        checkStorage
+        checkStorage,
+        userId,
+        chatflowType: chatflow.type || 'CHATFLOW'
     })
 
     const setVariableNodesOutput = getSetVariableNodesOutput(reactFlowNodes)
 
-    if (isAgentFlow) {
-        const agentflow = chatflow
-        const streamResults = await buildAgentGraph({
-            agentflow,
-            flowConfig,
-            incomingInput,
-            nodes,
-            edges,
-            initializedNodes: reactFlowNodes,
-            endingNodeIds,
-            startingNodeIds,
-            depthQueue,
-            chatHistory,
-            uploadedFilesContent,
-            appDataSource,
-            componentNodes,
-            sseStreamer,
-            shouldStreamResponse: true, // agentflow is always streamed
-            cachePool,
-            baseURL,
-            signal,
-            orgId,
-            workspaceId
-        })
-
-        if (streamResults) {
-            const { finalResult, finalAction, sourceDocuments, artifacts, usedTools, agentReasoning } = streamResults
-            const userMessage: Omit<IChatMessage, 'id'> = {
-                role: 'userMessage',
-                content: incomingInput.question,
-                chatflowid: agentflow.id,
-                chatType: isEvaluation ? ChatType.EVALUATION : isInternal ? ChatType.INTERNAL : ChatType.EXTERNAL,
-                chatId,
-                memoryType,
-                sessionId,
-                createdDate: userMessageDateTime,
-                fileUploads: uploads ? JSON.stringify(fileUploads) : undefined,
-                leadEmail: incomingInput.leadEmail
-            }
-            await utilAddChatMessage(userMessage, appDataSource)
-
-            const apiMessage: Omit<IChatMessage, 'createdDate'> = {
-                id: apiMessageId,
-                role: 'apiMessage',
-                content: finalResult,
-                chatflowid: agentflow.id,
-                chatType: isEvaluation ? ChatType.EVALUATION : isInternal ? ChatType.INTERNAL : ChatType.EXTERNAL,
-                chatId,
-                memoryType,
-                sessionId
-            }
-
-            if (sourceDocuments?.length) apiMessage.sourceDocuments = JSON.stringify(sourceDocuments)
-            if (artifacts?.length) apiMessage.artifacts = JSON.stringify(artifacts)
-            if (usedTools?.length) apiMessage.usedTools = JSON.stringify(usedTools)
-            if (agentReasoning?.length) apiMessage.agentReasoning = JSON.stringify(agentReasoning)
-            if (finalAction && Object.keys(finalAction).length) apiMessage.action = JSON.stringify(finalAction)
-
-            if (agentflow.followUpPrompts) {
-                const followUpPromptsConfig = JSON.parse(agentflow.followUpPrompts)
-                const generatedFollowUpPrompts = await generateFollowUpPrompts(followUpPromptsConfig, apiMessage.content, {
-                    chatId,
-                    chatflowid: agentflow.id,
-                    appDataSource,
-                    databaseEntities
-                })
-                if (generatedFollowUpPrompts?.questions) {
-                    apiMessage.followUpPrompts = JSON.stringify(generatedFollowUpPrompts.questions)
-                }
-            }
-            const chatMessage = await utilAddChatMessage(apiMessage, appDataSource)
-
-            await telemetry.sendTelemetry(
-                'agentflow_prediction_sent',
-                {
-                    version: await getAppVersion(),
-                    agentflowId: agentflow.id,
-                    chatId,
-                    type: isEvaluation ? ChatType.EVALUATION : isInternal ? ChatType.INTERNAL : ChatType.EXTERNAL,
-                    flowGraph: getTelemetryFlowObj(nodes, edges)
-                },
-                orgId
-            )
-
-            // Find the previous chat message with the same action id and remove the action
-            if (incomingInput.action && Object.keys(incomingInput.action).length) {
-                let query = await appDataSource
-                    .getRepository(ChatMessage)
-                    .createQueryBuilder('chat_message')
-                    .where('chat_message.chatId = :chatId', { chatId })
-                    .orWhere('chat_message.sessionId = :sessionId', { sessionId })
-                    .orderBy('chat_message.createdDate', 'DESC')
-                    .getMany()
-
-                for (const result of query) {
-                    if (result.action) {
-                        try {
-                            const action: IAction = JSON.parse(result.action)
-                            if (action.id === incomingInput.action.id) {
-                                const newChatMessage = new ChatMessage()
-                                Object.assign(newChatMessage, result)
-                                newChatMessage.action = null
-                                const cm = await appDataSource.getRepository(ChatMessage).create(newChatMessage)
-                                await appDataSource.getRepository(ChatMessage).save(cm)
-                                break
-                            }
-                        } catch (e) {
-                            // error converting action to JSON
-                        }
-                    }
-                }
-            }
-
-            // Prepare response
-            let result: ICommonObject = {}
-            result.text = finalResult
-
-            result.question = incomingInput.question
-            result.chatId = chatId
-            result.chatMessageId = chatMessage?.id
-            if (sessionId) result.sessionId = sessionId
-            if (memoryType) result.memoryType = memoryType
-            if (agentReasoning?.length) result.agentReasoning = agentReasoning
-            if (finalAction && Object.keys(finalAction).length) result.action = finalAction
-            if (Object.keys(setVariableNodesOutput).length) result.flowVariables = setVariableNodesOutput
-            result.followUpPrompts = JSON.stringify(apiMessage.followUpPrompts)
-            return result
-        }
-        return undefined
-    } else {
+    {
         let chatflowConfig: ICommonObject = {}
         if (chatflow.chatbotConfig) {
             chatflowConfig = JSON.parse(chatflow.chatbotConfig)
@@ -756,12 +649,10 @@ export const executeFlow = async ({
         /*** Prepare run params ***/
         const runParams = {
             orgId,
-            workspaceId,
-            subscriptionId,
             chatId,
             chatflowid,
             apiMessageId,
-            logger,
+            logger: undefined,
             appDataSource,
             databaseEntities,
             usageCacheManager,
@@ -769,14 +660,83 @@ export const executeFlow = async ({
             uploads,
             prependMessages,
             ...(isStreamValid && { sseStreamer, shouldStreamResponse: isStreamValid }),
-            evaluationRunId,
             updateStorageUsage,
             checkStorage
         }
 
         /*** Run the ending node ***/
-        let result = await endingNodeInstance.run(endingNodeData, finalQuestion, runParams)
+        const startTime = Date.now()
 
+        // TOON Integration
+        // NOTE: TOON format is designed for structured data (JSON), not plain text
+        // It will skip plain text inputs to avoid increasing token count
+        // TOON is most effective for structured LLM outputs (JSON responses)
+        let result
+        if (process.env.ENABLE_TOON_FORMAT === 'true') {
+            const { logInfo } = await import('../utils/logger/system-helper')
+            const { toonPreProcess, toonPostProcess } = await import('../services/toon/toon-wrapper')
+
+            const inputIsPlainText =
+                typeof finalQuestion === 'string' && !finalQuestion.trim().startsWith('{') && !finalQuestion.trim().startsWith('[')
+            logInfo(
+                `[TOON] 🚀 TOON format enabled - Processing input (${finalQuestion.length} chars, ${
+                    inputIsPlainText ? 'plain text' : 'possibly structured'
+                })`
+            ).catch(() => {})
+
+            if (inputIsPlainText) {
+                logInfo(
+                    `[TOON] ℹ️ Input appears to be plain text - TOON will skip encoding (TOON only helps with structured JSON data)`
+                ).catch(() => {})
+            }
+
+            // Pre-process input
+            const toonInput =await toonPreProcess(finalQuestion)
+            const inputChanged = toonInput !== finalQuestion
+            logInfo(
+                `[TOON] Pre-process complete - Input changed: ${inputChanged}, New length: ${
+                    typeof toonInput === 'string' ? toonInput.length : 'N/A'
+                }`
+            ).catch(() => {})
+
+            if (!inputChanged) {
+                logInfo(
+                    `[TOON] ℹ️ TOON skipped input encoding (plain text or not beneficial) - This is expected for plain text inputs`
+                ).catch(() => {})
+            }
+
+            // Run node
+            const rawResult = await endingNodeInstance.run(endingNodeData, toonInput, runParams)
+
+            logInfo(
+                `[TOON] Node execution complete - Result type: ${typeof rawResult}, Length: ${
+                    typeof rawResult === 'string' ? rawResult.length : 'N/A'
+                }`
+            ).catch(() => {})
+
+            // Post-process output
+            result =await toonPostProcess(rawResult)
+
+            logInfo(
+                `[TOON] ✅ Post-process complete - Final result type: ${typeof result}, Length: ${
+                    typeof result === 'string' ? result.length : 'N/A'
+                }`
+            ).catch(() => {})
+
+            // Summary
+            if (!inputChanged) {
+                logInfo(
+                    `[TOON] 📝 SUMMARY: TOON format is working correctly. It skipped plain text input to avoid increasing tokens. TOON only helps with structured JSON data, not plain text.`
+                ).catch(() => {})
+            }
+        } else {
+            result = await endingNodeInstance.run(endingNodeData, finalQuestion, runParams)
+        }
+        const endTime = Date.now()
+        const processingTimeMs = endTime - startTime
+
+        // Preserve original result for usage tracking (before converting to string)
+        const originalResult = result
         result = typeof result === 'string' ? { text: result } : result
 
         /*** Retrieve threadId from OpenAI Assistant if exists ***/
@@ -784,19 +744,170 @@ export const executeFlow = async ({
             sessionId = result.assistant.threadId
         }
 
-        const userMessage: Omit<IChatMessage, 'id'> = {
+        // Track LLM usage for chatflow if ending node uses LLM (Chat Models, Agents, etc.)
+        // Check if node uses LLM - either Chat Models category or Agents category (which internally use LLMs)
+        const isLLMNode =
+            endingNodeData.category === 'Chat Models' ||
+            endingNodeData.category === 'Agents' ||
+            endingNodeData.category === 'Agent Flows' ||
+            endingNodeData.name?.toLowerCase().includes('agent') ||
+            endingNodeData.name?.toLowerCase().includes('llm') ||
+            endingNodeData.name?.toLowerCase().includes('chat')
+
+        if (isLLMNode && orgId) {
+            try {
+                const { trackLLMUsage, extractProviderAndModel, extractUsageMetadata } = await import('./llm-usage-tracker')
+
+                const { provider, model } = extractProviderAndModel(endingNodeData, result)
+
+                // Try to extract usage metadata from result
+                // For chatflow, result might be simplified, so we need to check multiple locations
+                // Agent nodes return { output: { usageMetadata: {...} } }
+                // Direct LLM nodes might have usage_metadata, llmOutput, etc.
+                if (process.env.DEBUG === 'true') {
+                    logInfo(`[buildChatflow] Result keys: ${Object.keys(result)}`)
+                    if (result.usageMetadata) logInfo(`[buildChatflow] result.usageMetadata: ${JSON.stringify(result.usageMetadata)}`)
+                    if (result.output) logInfo(`[buildChatflow] result.output keys: ${Object.keys(result.output)}`)
+                    if (result.llmOutput) logInfo(`[buildChatflow] result.llmOutput: ${JSON.stringify(result.llmOutput)}`)
+                }
+                let { promptTokens, completionTokens, totalTokens } = extractUsageMetadata(result)
+
+                // For Agent nodes, usage metadata can be in multiple places:
+                // 1. result.usageMetadata (ConversationalAgent format)
+                // 2. result.output.usageMetadata (Agent_Agentflow format)
+                // 3. originalResult.usageMetadata or originalResult.output.usageMetadata
+                // Helper function to safely convert to number
+                const toNumber = (value: any, defaultValue: number = 0): number => {
+                    if (value == null || value === '' || value === 'undefined' || value === 'null') {
+                        return defaultValue
+                    }
+                    if (typeof value === 'number') {
+                        return isNaN(value) || !isFinite(value) ? defaultValue : value
+                    }
+                    if (typeof value === 'string') {
+                        const trimmed = value.trim()
+                        if (trimmed === '' || trimmed === 'undefined' || trimmed === 'null') {
+                            return defaultValue
+                        }
+                        const num = Number(trimmed)
+                        return isNaN(num) || !isFinite(num) ? defaultValue : num
+                    }
+                    const num = Number(value)
+                    return isNaN(num) || !isFinite(num) ? defaultValue : num
+                }
+                
+                if (totalTokens === 0) {
+                    // Try result.usageMetadata first (ConversationalAgent format)
+                    if (result?.usageMetadata) {
+                        const agentUsage = result.usageMetadata
+                        promptTokens = toNumber(agentUsage.input_tokens || agentUsage.prompt_tokens, 0)
+                        completionTokens = toNumber(agentUsage.output_tokens || agentUsage.completion_tokens, 0)
+                        totalTokens = toNumber(agentUsage.total_tokens, promptTokens + completionTokens)
+                    }
+                    // Try result.output.usageMetadata (Agent_Agentflow format)
+                    else if (result?.output?.usageMetadata) {
+                        const agentUsage = result.output.usageMetadata
+                        promptTokens = toNumber(agentUsage.input_tokens || agentUsage.prompt_tokens, 0)
+                        completionTokens = toNumber(agentUsage.output_tokens || agentUsage.completion_tokens, 0)
+                        totalTokens = toNumber(agentUsage.total_tokens, promptTokens + completionTokens)
+                    }
+                    // Try originalResult.usageMetadata (in case result was modified)
+                    else if (originalResult && typeof originalResult === 'object' && originalResult.usageMetadata) {
+                        const agentUsage = originalResult.usageMetadata
+                        promptTokens = toNumber(agentUsage.input_tokens || agentUsage.prompt_tokens, 0)
+                        completionTokens = toNumber(agentUsage.output_tokens || agentUsage.completion_tokens, 0)
+                        totalTokens = toNumber(agentUsage.total_tokens, promptTokens + completionTokens)
+                    }
+                    // Try originalResult.output.usageMetadata (in case result was modified)
+                    else if (originalResult && typeof originalResult === 'object' && originalResult.output?.usageMetadata) {
+                        const agentUsage = originalResult.output.usageMetadata
+                        promptTokens = toNumber(agentUsage.input_tokens || agentUsage.prompt_tokens, 0)
+                        completionTokens = toNumber(agentUsage.output_tokens || agentUsage.completion_tokens, 0)
+                        totalTokens = toNumber(agentUsage.total_tokens, promptTokens + completionTokens)
+                    }
+                    // Try extractUsageMetadata on originalResult (might have other formats)
+                    else if (originalResult && typeof originalResult === 'object' && originalResult !== result) {
+                        const originalResultUsage = extractUsageMetadata(originalResult)
+                        if (originalResultUsage.totalTokens > 0) {
+                            promptTokens = originalResultUsage.promptTokens
+                            completionTokens = originalResultUsage.completionTokens
+                            totalTokens = originalResultUsage.totalTokens
+                        }
+                    }
+                }
+
+                // If still 0, try to get from endingNodeData if it has the original response
+                if (totalTokens === 0 && endingNodeData?.outputs?.response) {
+                    const responseResult = extractUsageMetadata(endingNodeData.outputs.response)
+                    if (responseResult.totalTokens > 0) {
+                        promptTokens = responseResult.promptTokens
+                    }
+                }
+
+                // Usage is now tracked via UsageTrackingCallbackHandler injected in buildFlow
+            } catch (error: any) {
+                // Silently fail - tracking should not break the main flow
+            }
+        }
+
+        const userIdNum = userId ? parseInt(userId) : undefined
+        const userMessage: Omit<IChatMessage, 'guid' | 'id'> = {
             role: 'userMessage',
             content: question,
             chatflowid,
-            chatType: isEvaluation ? ChatType.EVALUATION : isInternal ? ChatType.INTERNAL : ChatType.EXTERNAL,
+            chatType: isInternal ? ChatType.INTERNAL : ChatType.EXTERNAL,
             chatId,
             memoryType,
             sessionId,
-            createdDate: userMessageDateTime,
-            fileUploads: uploads ? JSON.stringify(fileUploads) : undefined,
-            leadEmail: incomingInput.leadEmail
+            created_on: userMessageDateTime.getTime(),
+            created_by: userIdNum || 0,
+            fileUploads: uploads ? JSON.stringify(fileUploads) : undefined
         }
-        await utilAddChatMessage(userMessage, appDataSource)
+        await utilAddChatMessage(userMessage, appDataSource, orgId!, userIdNum)
+
+        // Log chatflow execution start
+        if (orgId) {
+            await chatflowLog('info', 'Chatflow execution started', {
+                userId: userId || 'anonymous',
+                orgId,
+                chatflowId: chatflowid,
+                chatId,
+                sessionId,
+                questionLength: question.length,
+                hasFiles: files && files.length > 0,
+                isInternal
+            }).catch(() => {}) // Don't fail if logging fails
+
+            // Also log to assistant service group if this is an assistant query
+            if (chatflow.type === 'ASSISTANT') {
+                try {
+                    const { assistantLog } = await import('./logger/module-methods')
+                    await assistantLog('info', 'Assistant query started', {
+                        userId: userId || 'anonymous',
+                        orgId,
+                        assistantId: chatflowid, // For assistants, chatflowId is the assistantId
+                        chatflowId: chatflowid,
+                        chatId,
+                        sessionId,
+                        questionLength: question.length,
+                        hasFiles: files && files.length > 0,
+                        isInternal
+                    }).catch(() => {}) // Don't fail if logging fails
+                } catch (logError) {
+                    // Silently fail - logging should not break execution
+                }
+            }
+        }
+
+        // Update chat session after user message (if userId available)
+        if (userId && orgId && chatId) {
+            try {
+                await chatSessionsService.updateChatSessionOnMessage(chatflowid, chatId, orgId, userId, question || '', 'user')
+            } catch (error) {
+                // Log but don't fail if session update fails
+                logDebug(`[server]: Failed to update chat session: ${getErrorMessage(error)}`).catch(() => {})
+            }
+        }
 
         let resultText = ''
         if (result.text) {
@@ -813,13 +924,13 @@ export const executeFlow = async ({
                         outputs: { output: 'output' }
                     }
                     const options: ICommonObject = {
-                        chatflowid: chatflow.id,
+                        chatflowid: chatflow.guid,
                         sessionId,
                         chatId,
                         input: question,
                         postProcessing: {
                             rawOutput: resultText,
-                            chatHistory: cloneDeep(chatHistory),
+                            chatHistory: cloneDeep(prependMessages),
                             sourceDocuments: result?.sourceDocuments ? cloneDeep(result.sourceDocuments) : undefined,
                             usedTools: result?.usedTools ? cloneDeep(result.usedTools) : undefined,
                             artifacts: result?.artifacts ? cloneDeep(result.artifacts) : undefined,
@@ -827,9 +938,8 @@ export const executeFlow = async ({
                         },
                         appDataSource,
                         databaseEntities,
-                        workspaceId,
                         orgId,
-                        logger
+                        logger: undefined
                     }
                     const customFuncNodeInstance = new nodeModule.nodeClass()
                     let moderatedResponse = await customFuncNodeInstance.init(nodeData, question, options)
@@ -842,21 +952,23 @@ export const executeFlow = async ({
                     }
                     resultText = result.text
                 } catch (e) {
-                    logger.log('[server]: Post Processing Error:', e)
+                    logError('[server]: Post Processing Error:', e).catch(() => {})
                 }
             }
         } else if (result.json) resultText = '```json\n' + JSON.stringify(result.json, null, 2)
         else resultText = JSON.stringify(result, null, 2)
 
-        const apiMessage: Omit<IChatMessage, 'createdDate'> = {
-            id: apiMessageId,
+        const apiMessage: Partial<IChatMessage> = {
+            guid: apiMessageId,
             role: 'apiMessage',
             content: resultText,
             chatflowid,
-            chatType: isEvaluation ? ChatType.EVALUATION : isInternal ? ChatType.INTERNAL : ChatType.EXTERNAL,
+            chatType: isInternal ? ChatType.INTERNAL : ChatType.EXTERNAL,
             chatId,
             memoryType,
-            sessionId
+            sessionId,
+            created_on: Date.now(),
+            created_by: userIdNum || 0
         }
         if (result?.sourceDocuments) apiMessage.sourceDocuments = JSON.stringify(result.sourceDocuments)
         if (result?.usedTools) apiMessage.usedTools = JSON.stringify(result.usedTools)
@@ -864,9 +976,9 @@ export const executeFlow = async ({
         if (result?.artifacts) apiMessage.artifacts = JSON.stringify(result.artifacts)
         if (chatflow.followUpPrompts) {
             const followUpPromptsConfig = JSON.parse(chatflow.followUpPrompts)
-            const followUpPrompts = await generateFollowUpPrompts(followUpPromptsConfig, apiMessage.content, {
-                chatId,
-                chatflowid,
+            const followUpPrompts = await generateFollowUpPrompts(followUpPromptsConfig, apiMessage.content || '', {
+                chatId: chatId || '',
+                chatflowid: chatflowid || '',
                 appDataSource,
                 databaseEntities
             })
@@ -875,31 +987,61 @@ export const executeFlow = async ({
             }
         }
 
-        const chatMessage = await utilAddChatMessage(apiMessage, appDataSource)
+        const chatMessage = await utilAddChatMessage(apiMessage, appDataSource, orgId!, userIdNum)
 
-        logger.debug(`[server]: [${orgId}]: Finished running ${endingNodeData.label} (${endingNodeData.id})`)
-        if (evaluationRunId) {
-            const metrics = await EvaluationRunner.getAndDeleteMetrics(evaluationRunId)
-            result.metrics = metrics
-        }
-        await telemetry.sendTelemetry(
-            'prediction_sent',
-            {
-                version: await getAppVersion(),
+        // Log chatflow execution completion
+        if (orgId) {
+            await chatflowLog('info', 'Chatflow execution completed', {
+                userId: userId || 'anonymous',
+                orgId,
                 chatflowId: chatflowid,
                 chatId,
-                type: isEvaluation ? ChatType.EVALUATION : isInternal ? ChatType.INTERNAL : ChatType.EXTERNAL,
-                flowGraph: getTelemetryFlowObj(nodes, edges),
-                productId,
-                subscriptionId
-            },
-            orgId
-        )
+                sessionId,
+                responseLength: resultText.length,
+                hasSourceDocuments: !!result?.sourceDocuments,
+                hasUsedTools: !!result?.usedTools,
+                executionTime: Date.now() - userMessageDateTime.getTime()
+            }).catch(() => {}) // Don't fail if logging fails
+
+            // Also log to assistant service group if this is an assistant query
+            if (chatflow.type === 'ASSISTANT') {
+                try {
+                    const { assistantLog } = await import('./logger/module-methods')
+                    await assistantLog('info', 'Assistant query completed', {
+                        userId: userId || 'anonymous',
+                        orgId,
+                        assistantId: chatflowid, // For assistants, chatflowId is the assistantId
+                        chatflowId: chatflowid,
+                        chatId,
+                        sessionId,
+                        responseLength: resultText.length,
+                        hasSourceDocuments: !!result?.sourceDocuments,
+                        hasUsedTools: !!result?.usedTools,
+                        executionTime: Date.now() - userMessageDateTime.getTime()
+                    }).catch(() => {}) // Don't fail if logging fails
+                } catch (logError) {
+                    // Silently fail - logging should not break execution
+                }
+            }
+        }
+
+        // Update chat session after api message (if userId available)
+        if (userId && orgId && chatId) {
+            try {
+                await chatSessionsService.updateChatSessionOnMessage(chatflowid, chatId, orgId, userId, resultText || '', 'api')
+            } catch (error) {
+                // Log but don't fail if session update fails
+                logDebug(`[server]: Failed to update chat session: ${getErrorMessage(error)}`).catch(() => {})
+            }
+        }
+
+        logDebug(`[server]: [${orgId}]: Finished running ${endingNodeData.label} (${endingNodeData.id})`).catch(() => {})
+        // Telemetry removed
 
         /*** Prepare response ***/
         result.question = incomingInput.question // return the question in the response, this is used when input text is empty but question is in audio format
         result.chatId = chatId
-        result.chatMessageId = chatMessage?.id
+        result.chatMessageId = chatMessage?.guid
         result.followUpPrompts = JSON.stringify(apiMessage.followUpPrompts)
         result.isStreamValid = isStreamValid
 
@@ -915,7 +1057,7 @@ export const executeFlow = async ({
                 appDataSource,
                 databaseEntities
             }
-            await generateTTSForResponseStream(result.text, chatflow.textToSpeech, options, chatId, chatMessage?.id, sseStreamer, signal)
+            await generateTTSForResponseStream(result.text, chatflow.textToSpeech, options, chatId, chatMessage?.guid, sseStreamer, signal)
         }
 
         return result
@@ -957,7 +1099,7 @@ const checkIfStreamValid = async (
             Object.keys(endingNodeData.outputs).length &&
             !Object.values(endingNodeData.outputs ?? {}).includes(endingNodeData.name)
         ) {
-            throw new InternalFlowiseError(
+            throw new InternalAutonomousError(
                 StatusCodes.INTERNAL_SERVER_ERROR,
                 `Output of ${endingNodeData.label} (${endingNodeData.id}) must be ${endingNodeData.label}, can't be an Output Prediction`
             )
@@ -978,74 +1120,89 @@ const checkIfStreamValid = async (
  */
 export const utilBuildChatflow = async (req: Request, isInternal: boolean = false): Promise<any> => {
     const appServer = getRunningExpressApp()
+    const { getDataSource } = await import('../DataSource')
 
     const chatflowid = req.params.id
 
-    // Check if chatflow exists
-    const chatflow = await appServer.AppDataSource.getRepository(ChatFlow).findOneBy({
-        id: chatflowid
-    })
-    if (!chatflow) {
-        throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowid} not found`)
+    // Require orgId upfront - no cross-org search
+    // Get orgId from request object (set by session validation middleware) - single source
+    const authReq = req as any
+    const orgId: string | undefined = authReq.orgId
+    if (!orgId) {
+        throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
     }
 
-    const isAgentFlow = chatflow.type === 'MULTIAGENT'
+    // Get org-specific DataSource from pool
+    const orgDataSource = getDataSource(parseInt(orgId))
+
+    // Get chatflow from org-specific database
+    const chatflow = await orgDataSource.getRepository(ChatFlow).findOneBy({
+        guid: chatflowid
+    })
+
+    if (!chatflow) {
+        throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowid} not found`)
+    }
+
+    const organizationId: string = orgId
+
+    const isAgentFlow = chatflow.type === 'AGENTFLOW'
     const httpProtocol = req.get('x-forwarded-proto') || req.protocol
     const baseURL = `${httpProtocol}://${req.get('host')}`
     const incomingInput: IncomingInput = req.body || {} // Ensure incomingInput is never undefined
-    const chatId = incomingInput.chatId ?? incomingInput.overrideConfig?.sessionId ?? uuidv4()
+    let chatId = incomingInput.chatId ?? incomingInput.overrideConfig?.sessionId
     const files = (req.files as Express.Multer.File[]) || []
-    const abortControllerId = `${chatflow.id}_${chatId}`
-    const isTool = req.get('flowise-tool') === 'true'
-    const isEvaluation: boolean = req.headers['X-Flowise-Evaluation'] || req.body.evaluation
-    let evaluationRunId = ''
-    evaluationRunId = req.body.evaluationRunId
-    if (isEvaluation && chatflow.type !== 'AGENTFLOW' && req.body.evaluationRunId) {
-        // this is needed for the collection of token metrics for non-agent flows,
-        // for agentflows the execution trace has the info needed
-        const newEval = {
-            evaluation: {
-                status: true,
-                evaluationRunId
-            }
-        }
-        chatflow.analytic = JSON.stringify(newEval)
-    }
-
-    let organizationId = ''
+    const abortControllerId = `${chatflow.guid}_${chatId || 'temp'}`
+    const isTool = req.get('autonomous-tool') === 'true'
 
     try {
         // Validate API Key if its external API request
         if (!isInternal) {
-            const isKeyValidated = await validateFlowAPIKey(req, chatflow)
+            const isKeyValidated = await validateFlowAPIKey(req, chatflow, orgId)
             if (!isKeyValidated) {
-                throw new InternalFlowiseError(StatusCodes.UNAUTHORIZED, `Unauthorized`)
+                throw new InternalAutonomousError(StatusCodes.UNAUTHORIZED, `Unauthorized`)
             }
         }
 
-        // This can be public API, so we can only get orgId from the chatflow
-        const chatflowWorkspaceId = chatflow.workspaceId
-        const workspace = await appServer.AppDataSource.getRepository(Workspace).findOneBy({
-            id: chatflowWorkspaceId
-        })
-        if (!workspace) {
-            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Workspace ${chatflowWorkspaceId} not found`)
-        }
-        const workspaceId = workspace.id
+        // Get userId from request if available (for authenticated requests)
+        // For tool requests, check x-user-id header; otherwise use session userId
+        const authReq = req as any
+        const userId = authReq.userId || authReq.user?.userId || (req.headers['x-user-id'] as string | undefined)
 
-        const org = await appServer.AppDataSource.getRepository(Organization).findOneBy({
-            id: workspace.organizationId
-        })
-        if (!org) {
-            throw new InternalFlowiseError(StatusCodes.NOT_FOUND, `Organization ${workspace.organizationId} not found`)
+        // Add userId to incomingInput so it can be used in agentflow execution
+        if (userId) {
+            ;(incomingInput as any).userId = userId
         }
 
-        const orgId = org.id
-        organizationId = orgId
-        const subscriptionId = org.subscriptionId as string
-        const productId = await appServer.identityManager.getProductIdFromSubscription(subscriptionId)
+        // Ensure chat session exists (create if not exists)
+        if (chatId && userId) {
+            // If chatId provided and user is authenticated, ensure session exists
+            // Note: If chatId belongs to another user, a new chatId will be generated
+            const session = await chatSessionsService.ensureChatSessionExists(chatId, chatflowid, orgId, userId)
+            // Update chatId in case a new one was generated (for user isolation)
+            if (session.chatId !== chatId) {
+                chatId = session.chatId
+                incomingInput.chatId = chatId
+                req.body.chatId = chatId
+            }
+        } else if (userId) {
+            // If no chatId but user is authenticated, create new session
+            const newSession = await chatSessionsService.createChatSession(chatflowid, orgId, userId)
+            chatId = newSession.chatId
+            incomingInput.chatId = chatId
+            req.body.chatId = chatId
+        } else {
+            // For unauthenticated/public API, generate chatId but don't create session
+            if (!chatId) {
+                chatId = uuidv4()
+                incomingInput.chatId = chatId
+                req.body.chatId = chatId
+            }
+        }
+        // Product ID not needed for autonomous server
+        const productId = ''
 
-        await checkPredictions(orgId, subscriptionId, appServer.usageCacheManager)
+        await checkPredictions(orgId, appServer.usageCacheManager)
 
         const executeData: IExecuteFlowParams = {
             incomingInput, // Use the defensively created incomingInput variable
@@ -1054,25 +1211,31 @@ export const utilBuildChatflow = async (req: Request, isInternal: boolean = fals
             baseURL,
             isInternal,
             files,
-            isEvaluation,
-            evaluationRunId,
-            appDataSource: appServer.AppDataSource,
+            appDataSource: orgDataSource,
             sseStreamer: appServer.sseStreamer,
-            telemetry: appServer.telemetry,
             cachePool: appServer.cachePool,
             componentNodes: appServer.nodesPool.componentNodes,
             isTool, // used to disable streaming if incoming request its from ChatflowTool
             usageCacheManager: appServer.usageCacheManager,
             orgId,
-            workspaceId,
-            subscriptionId,
-            productId
-        }
+            productId,
+            userId // Add userId to executeData for chat session updates
+        } as any
 
         if (process.env.MODE === MODE.QUEUE) {
-            const predictionQueue = appServer.queueManager.getQueue('prediction')
+            if (!orgId) {
+                throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, `orgId is required for queue mode`)
+            }
+            const orgIdNum = parseInt(orgId)
+            if (isNaN(orgIdNum)) {
+                throw new InternalAutonomousError(
+                    StatusCodes.BAD_REQUEST,
+                    `Invalid organization ID: ${orgId}. orgId must be a valid number.`
+                )
+            }
+            const predictionQueue = appServer.queueManager.getQueue(orgIdNum, 'prediction')
             const job = await predictionQueue.addJob(omit(executeData, OMIT_QUEUE_JOB_DATA))
-            logger.debug(`[server]: [${orgId}/${chatflow.id}/${chatId}]: Job added to queue: ${job.id}`)
+            logDebug(`[server]: [${orgId}/${chatflow.guid}/${chatId}]: Job added to queue: ${job.id}`).catch(() => {})
 
             const queueEvents = predictionQueue.getQueueEvents()
             const result = await job.waitUntilFinished(queueEvents)
@@ -1080,7 +1243,7 @@ export const utilBuildChatflow = async (req: Request, isInternal: boolean = fals
             if (!result) {
                 throw new Error('Job execution failed')
             }
-            await updatePredictionsUsage(orgId, subscriptionId, workspaceId, appServer.usageCacheManager)
+            await updatePredictionsUsage(orgId, '', appServer.usageCacheManager)
             incrementSuccessMetricCounter(appServer.metricsProvider, isInternal, isAgentFlow)
             return result
         } else {
@@ -1092,18 +1255,20 @@ export const utilBuildChatflow = async (req: Request, isInternal: boolean = fals
             const result = await executeFlow(executeData)
 
             appServer.abortControllerPool.remove(abortControllerId)
-            await updatePredictionsUsage(orgId, subscriptionId, workspaceId, appServer.usageCacheManager)
+            await updatePredictionsUsage(orgId, '', appServer.usageCacheManager)
             incrementSuccessMetricCounter(appServer.metricsProvider, isInternal, isAgentFlow)
             return result
         }
     } catch (e) {
-        logger.error(`[server]:${organizationId}/${chatflow.id}/${chatId} Error:`, e)
-        appServer.abortControllerPool.remove(`${chatflow.id}_${chatId}`)
+        logError(`[server]:${organizationId}/${chatflow.guid}/${chatId} Error:`, e).catch(() => {})
+        appServer.abortControllerPool.remove(`${chatflow.guid}_${chatId}`)
         incrementFailedMetricCounter(appServer.metricsProvider, isInternal, isAgentFlow)
-        if (e instanceof InternalFlowiseError && e.statusCode === StatusCodes.UNAUTHORIZED) {
+        if (e instanceof InternalAutonomousError && e.statusCode === StatusCodes.UNAUTHORIZED) {
             throw e
         } else {
-            throw new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, getErrorMessage(e))
+            // Sanitize error message for frontend (full error already logged above)
+            const sanitizedMessage = sanitizeErrorMessage(e, logError)
+            throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, sanitizedMessage)
         }
     }
 }
@@ -1117,13 +1282,15 @@ export const utilBuildChatflow = async (req: Request, isInternal: boolean = fals
 const incrementSuccessMetricCounter = (metricsProvider: IMetricsProvider, isInternal: boolean, isAgentFlow: boolean) => {
     if (isAgentFlow) {
         metricsProvider?.incrementCounter(
-            isInternal ? FLOWISE_METRIC_COUNTERS.AGENTFLOW_PREDICTION_INTERNAL : FLOWISE_METRIC_COUNTERS.AGENTFLOW_PREDICTION_EXTERNAL,
-            { status: FLOWISE_COUNTER_STATUS.SUCCESS }
+            isInternal
+                ? AUTONOMOUS_METRIC_COUNTERS.AGENTFLOW_PREDICTION_INTERNAL
+                : AUTONOMOUS_METRIC_COUNTERS.AGENTFLOW_PREDICTION_EXTERNAL,
+            { status: AUTONOMOUS_COUNTER_STATUS.SUCCESS }
         )
     } else {
         metricsProvider?.incrementCounter(
-            isInternal ? FLOWISE_METRIC_COUNTERS.CHATFLOW_PREDICTION_INTERNAL : FLOWISE_METRIC_COUNTERS.CHATFLOW_PREDICTION_EXTERNAL,
-            { status: FLOWISE_COUNTER_STATUS.SUCCESS }
+            isInternal ? AUTONOMOUS_METRIC_COUNTERS.CHATFLOW_PREDICTION_INTERNAL : AUTONOMOUS_METRIC_COUNTERS.CHATFLOW_PREDICTION_EXTERNAL,
+            { status: AUTONOMOUS_COUNTER_STATUS.SUCCESS }
         )
     }
 }
@@ -1137,13 +1304,15 @@ const incrementSuccessMetricCounter = (metricsProvider: IMetricsProvider, isInte
 const incrementFailedMetricCounter = (metricsProvider: IMetricsProvider, isInternal: boolean, isAgentFlow: boolean) => {
     if (isAgentFlow) {
         metricsProvider?.incrementCounter(
-            isInternal ? FLOWISE_METRIC_COUNTERS.AGENTFLOW_PREDICTION_INTERNAL : FLOWISE_METRIC_COUNTERS.AGENTFLOW_PREDICTION_EXTERNAL,
-            { status: FLOWISE_COUNTER_STATUS.FAILURE }
+            isInternal
+                ? AUTONOMOUS_METRIC_COUNTERS.AGENTFLOW_PREDICTION_INTERNAL
+                : AUTONOMOUS_METRIC_COUNTERS.AGENTFLOW_PREDICTION_EXTERNAL,
+            { status: AUTONOMOUS_COUNTER_STATUS.FAILURE }
         )
     } else {
         metricsProvider?.incrementCounter(
-            isInternal ? FLOWISE_METRIC_COUNTERS.CHATFLOW_PREDICTION_INTERNAL : FLOWISE_METRIC_COUNTERS.CHATFLOW_PREDICTION_EXTERNAL,
-            { status: FLOWISE_COUNTER_STATUS.FAILURE }
+            isInternal ? AUTONOMOUS_METRIC_COUNTERS.CHATFLOW_PREDICTION_INTERNAL : AUTONOMOUS_METRIC_COUNTERS.CHATFLOW_PREDICTION_EXTERNAL,
+            { status: AUTONOMOUS_COUNTER_STATUS.FAILURE }
         )
     }
 }

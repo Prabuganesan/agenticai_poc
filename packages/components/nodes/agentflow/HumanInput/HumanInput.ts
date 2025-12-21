@@ -194,7 +194,7 @@ class HumanInput_Agentflow implements INode {
             }
 
             if (humanInput.feedback) {
-                ;(nodeOutput as any).chatHistory = [{ role: 'user', content: humanInput.feedback }]
+                ; (nodeOutput as any).chatHistory = [{ role: 'user', content: humanInput.feedback }]
             }
 
             return nodeOutput
@@ -218,7 +218,7 @@ class HumanInput_Agentflow implements INode {
                     const newNodeInstance = new nodeModule.nodeClass()
                     const newNodeData = {
                         ...nodeData,
-                        credential: modelConfig['AUTONOMOUS_CREDENTIAL_ID'],
+                        credential: modelConfig['KODIVIAN_CREDENTIAL_ID'],
                         inputs: {
                             ...nodeData.inputs,
                             ...modelConfig

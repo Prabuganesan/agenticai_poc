@@ -532,7 +532,7 @@ export async function initializeLLMWithCallbacks(
     // Prepare node data with credentials and config
     const newNodeData = {
         ...nodeData,
-        credential: modelConfig['AUTONOMOUS_CREDENTIAL_ID'],
+        credential: modelConfig['KODIVIAN_CREDENTIAL_ID'],
         inputs: {
             ...nodeData.inputs,
             ...modelConfig

@@ -131,7 +131,8 @@ class Tool_Agentflow implements INode {
 
             // Pre-emptively refresh OAuth token if credential exists
             // This ensures dropdown loads correctly even after idle time when tokens expire
-            const credentialId = selectedToolConfig['AUTONOMOUS_CREDENTIAL_ID']
+            const credentialId = selectedToolConfig['KODIVIAN_CREDENTIAL_ID']
+
             if (credentialId && options.appDataSource) {
                 try {
                     const { getCredentialData, refreshOAuth2Token } = await import('../../../src/utils')
@@ -228,7 +229,7 @@ class Tool_Agentflow implements INode {
         const newToolNodeInstance = new nodeModule.nodeClass()
         const newNodeData = {
             ...nodeData,
-            credential: selectedToolConfig['AUTONOMOUS_CREDENTIAL_ID'],
+            credential: selectedToolConfig['KODIVIAN_CREDENTIAL_ID'],
             inputs: {
                 ...nodeData.inputs,
                 ...selectedToolConfig

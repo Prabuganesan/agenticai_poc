@@ -214,8 +214,8 @@ class GoogleGenerativeAI_ChatModels implements INode {
     }
 
     async init(nodeData: INodeData, _: string, options: ICommonObject): Promise<any> {
-        // Credential can be in nodeData.credential or nodeData.inputs['AUTONOMOUS_CREDENTIAL_ID']
-        const credentialId = nodeData.credential || nodeData.inputs?.['AUTONOMOUS_CREDENTIAL_ID'] || ''
+        // Credential can be in nodeData.credential or nodeData.inputs['KODIVIAN_CREDENTIAL_ID']
+        const credentialId = nodeData.credential || nodeData.inputs?.['KODIVIAN_CREDENTIAL_ID'] || ''
         const credentialData = await getCredentialData(credentialId, options)
         const apiKey = getCredentialParam('googleGenerativeAPIKey', credentialData, nodeData)
 
@@ -224,8 +224,8 @@ class GoogleGenerativeAI_ChatModels implements INode {
             console.error('[ChatGoogleGenerativeAI] API key not found.')
             console.error('[ChatGoogleGenerativeAI] Credential ID from nodeData.credential:', nodeData.credential)
             console.error(
-                '[ChatGoogleGenerativeAI] Credential ID from inputs[AUTONOMOUS_CREDENTIAL_ID]:',
-                nodeData.inputs?.['AUTONOMOUS_CREDENTIAL_ID']
+                '[ChatGoogleGenerativeAI] Credential ID from inputs[KODIVIAN_CREDENTIAL_ID]:',
+                nodeData.inputs?.['KODIVIAN_CREDENTIAL_ID']
             )
             console.error('[ChatGoogleGenerativeAI] Final credential ID used:', credentialId)
             console.error('[ChatGoogleGenerativeAI] Credential data keys:', Object.keys(credentialData))

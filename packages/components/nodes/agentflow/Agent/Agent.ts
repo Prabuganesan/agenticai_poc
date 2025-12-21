@@ -749,7 +749,7 @@ class Agent_Agentflow implements INode {
                 const newToolNodeInstance = new nodeModule.nodeClass()
                 const newNodeData = {
                     ...nodeData,
-                    credential: toolConfig['AUTONOMOUS_CREDENTIAL_ID'],
+                    credential: toolConfig['KODIVIAN_CREDENTIAL_ID'],
                     inputs: {
                         ...nodeData.inputs,
                         ...toolConfig
@@ -892,7 +892,7 @@ class Agent_Agentflow implements INode {
                     const newEmbeddingInstance = new embeddingModule.nodeClass()
                     const newEmbeddingNodeData = {
                         ...nodeData,
-                        credential: selectedEmbeddingModelConfig['AUTONOMOUS_CREDENTIAL_ID'],
+                        credential: selectedEmbeddingModelConfig['KODIVIAN_CREDENTIAL_ID'],
                         inputs: {
                             ...nodeData.inputs,
                             ...selectedEmbeddingModelConfig
@@ -907,7 +907,7 @@ class Agent_Agentflow implements INode {
                     const newVectorStoreInstance = new vectorStoreModule.nodeClass()
                     const newVSNodeData = {
                         ...nodeData,
-                        credential: selectedVectorStoreConfig['AUTONOMOUS_CREDENTIAL_ID'],
+                        credential: selectedVectorStoreConfig['KODIVIAN_CREDENTIAL_ID'],
                         inputs: {
                             ...nodeData.inputs,
                             ...selectedVectorStoreConfig,
@@ -975,7 +975,7 @@ class Agent_Agentflow implements INode {
             const newLLMNodeInstance = new nodeModule.nodeClass()
             const newNodeData = {
                 ...nodeData,
-                credential: modelConfig['AUTONOMOUS_CREDENTIAL_ID'],
+                credential: modelConfig['KODIVIAN_CREDENTIAL_ID'],
                 inputs: {
                     ...nodeData.inputs,
                     ...modelConfig

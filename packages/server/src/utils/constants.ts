@@ -30,8 +30,7 @@ export const WHITELIST_URLS = [
     '/api/v1/oauth2-credential/callback',
     '/api/v1/oauth2-credential/refresh',
     '/api/v1/text-to-speech/generate',
-    '/api/v1/text-to-speech/abort',
-    '/api/v1/sessionhandler' // Session handler endpoint - allow without authentication
+    '/api/v1/text-to-speech/abort'
 ]
 
 export const enum GeneralErrorMessage {

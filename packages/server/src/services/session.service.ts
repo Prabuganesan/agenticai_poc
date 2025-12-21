@@ -23,7 +23,7 @@ export class SessionService {
     /**
      * Get default user data for single-org mode
      */
-    private getDefaultUserData(): any {
+    public getDefaultUserData(): any {
         return {
             UserInfoDetails: {
                 UserInfo: {

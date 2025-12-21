@@ -29,34 +29,13 @@ export class SessionHandlerController {
         try {
             logInfo(`Session handler createSession called`).catch(() => { })
 
-            // For single-org mode, we can accept requests with or without params
-            // IMPORTANT: In single-org mode, we ALWAYS use orgId 1 regardless of client params
-            const orgId = '1' // Always force org 1 for single-org mode
-            let SessionId = ''
-
-            // Try to parse params if provided (only use chainsysSessionId, ignore orgId from client)
-            const params = req.query.params as string
-            if (params) {
-                try {
-                    const cleanParams = params.startsWith('"') && params.endsWith('"') ? params.slice(1, -1) : params
-                    const decodedString = Buffer.from(cleanParams, 'base64').toString('utf-8')
-                    const decodedParams = JSON.parse(decodedString)
-                    // Note: We ignore decodedParams.orgId - always use 1 for single-org
-                    SessionId = decodedParams.chainsysSessionId || ''
-                    if (decodedParams.orgId && decodedParams.orgId !== '1') { // Changed 1 to '1' for string comparison
-                        logInfo(`Session validated (single-org mode) - ignoring client orgId: ${decodedParams.orgId}, using orgId: 1`).catch(() => { })
-                    }
-                } catch (error) {
-                    // Use defaults if parsing fails
-                    logWarn('Using default org 1 (params parse failed)').catch(() => { })
-                }
-            }
-
-            // Check existing KODIID cookie
-
+            // For single-org mode, we ALWAYS use orgId 1 explicitly
+            const orgId = '1'
+            const SessionId = 'single-org-session'
 
             // Get default user data (single-org mode)
-            const userData = await this.sessionService.validateChainsysSession(orgId, SessionId)
+            // No validation against external session ID needed
+            const userData = this.sessionService.getDefaultUserData()
             const formattedUserData = this.sessionService.getUserDataForLocalStorage(userData)
 
             // Create session

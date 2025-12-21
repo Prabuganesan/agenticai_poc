@@ -61,6 +61,11 @@ const CreateLabelSchema = z.object({
     labelColor: z.string().optional().describe('Color of the label (hex color code)')
 })
 
+const GetAttachmentSchema = z.object({
+    messageId: z.string().describe('ID of the message containing the attachment'),
+    attachmentId: z.string().describe('ID of the attachment to retrieve')
+})
+
 class BaseGmailTool extends DynamicStructuredTool {
     protected accessToken: string = ''
 
@@ -331,7 +336,7 @@ class ListMessagesTool extends BaseGmailTool {
     constructor(args: any) {
         const toolInput = {
             name: 'list_messages',
-            description: 'List messages in Gmail mailbox',
+            description: 'List and retrieve emails from Gmail mailbox. Use this tool when the user asks to list emails, check their inbox, find messages, see today\'s mail, or get recent emails. You can filter emails using Gmail search syntax in the query parameter (e.g., "after:2025/12/18" for today\'s emails, "is:unread" for unread, "from:example@gmail.com" for specific sender).',
             schema: ListSchema,
             baseUrl: 'https://gmail.googleapis.com/gmail/v1/users/me/messages',
             method: 'GET',
@@ -342,7 +347,20 @@ class ListMessagesTool extends BaseGmailTool {
     }
 
     async _call(arg: any): Promise<string> {
-        const params = { ...arg, ...this.defaultParams }
+        // Merge params - defaultParams first, then arg overwrites (so LLM input takes precedence)
+        const params = { ...this.defaultParams, ...arg }
+
+        // Map messageQuery from defaultParams to query if query is not set
+        if (!params.query && params.messageQuery) {
+            params.query = params.messageQuery
+        }
+
+        // Map messageMaxResults from defaultParams to maxResults if maxResults is not set
+        if (!params.maxResults && params.messageMaxResults) {
+            params.maxResults = params.messageMaxResults
+        }
+
+
         const queryParams = new URLSearchParams()
 
         if (params.maxResults) queryParams.append('maxResults', params.maxResults.toString())
@@ -567,6 +585,45 @@ class DeleteMessageTool extends BaseGmailTool {
             return `Message ${messageId} deleted successfully`
         } catch (error) {
             return formatToolError(`Error deleting message: ${error}`, params)
+        }
+    }
+}
+
+class GetAttachmentTool extends BaseGmailTool {
+    defaultParams: any
+
+    constructor(args: any) {
+        const toolInput = {
+            name: 'get_attachment',
+            description: 'Get an attachment from a Gmail message. Returns the attachment data as base64 encoded content.',
+            schema: GetAttachmentSchema,
+            baseUrl: 'https://gmail.googleapis.com/gmail/v1/users/me/messages',
+            method: 'GET',
+            headers: {}
+        }
+        super({ ...toolInput, accessToken: args.accessToken })
+        this.defaultParams = args.defaultParams || {}
+    }
+
+    async _call(arg: any): Promise<string> {
+        const params = { ...arg, ...this.defaultParams }
+        const messageId = params.messageId || params.id
+        const attachmentId = params.attachmentId
+
+        if (!messageId) {
+            return 'Error: Message ID is required'
+        }
+
+        if (!attachmentId) {
+            return 'Error: Attachment ID is required'
+        }
+
+        try {
+            const url = `https://gmail.googleapis.com/gmail/v1/users/me/messages/${messageId}/attachments/${attachmentId}`
+            const response = await this.makeGmailRequest(url, 'GET', undefined, params)
+            return response
+        } catch (error) {
+            return formatToolError(`Error getting attachment: ${error}`, params)
         }
     }
 }
@@ -1027,6 +1084,10 @@ export const createGmailTools = (args?: RequestParameters): DynamicStructuredToo
 
     if (actions.includes('deleteMessage')) {
         tools.push(new DeleteMessageTool({ accessToken, defaultParams }))
+    }
+
+    if (actions.includes('getAttachment')) {
+        tools.push(new GetAttachmentTool({ accessToken, defaultParams }))
     }
 
     // Label tools

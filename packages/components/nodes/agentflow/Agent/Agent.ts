@@ -761,9 +761,9 @@ class Agent_Agentflow implements INode {
                 if (Array.isArray(toolInstance)) {
                     for (const subTool of toolInstance) {
                         const subToolInstance = subTool as Tool
-                        ;(subToolInstance as any).agentSelectedTool = tool.agentSelectedTool
+                            ; (subToolInstance as any).agentSelectedTool = tool.agentSelectedTool
                         if (tool.agentSelectedToolRequiresHumanInput) {
-                            ;(subToolInstance as any).requiresHumanInput = true
+                            ; (subToolInstance as any).requiresHumanInput = true
                         }
                         toolsInstance.push(subToolInstance)
                     }
@@ -812,13 +812,13 @@ class Agent_Agentflow implements INode {
                 hasAgentKnowledgeDocumentStores: 'agentKnowledgeDocumentStores' in (nodeData.inputs || {}),
                 knowledgeBases: knowledgeBases
                     ? JSON.stringify(
-                          knowledgeBases.map((kb) => ({
-                              documentStore: kb.documentStore,
-                              hasDescription: !!kb.docStoreDescription,
-                              descriptionLength: kb.docStoreDescription?.length || 0,
-                              returnSourceDocuments: kb.returnSourceDocuments
-                          }))
-                      )
+                        knowledgeBases.map((kb) => ({
+                            documentStore: kb.documentStore,
+                            hasDescription: !!kb.docStoreDescription,
+                            descriptionLength: kb.docStoreDescription?.length || 0,
+                            returnSourceDocuments: kb.returnSourceDocuments
+                        }))
+                    )
                     : 'none'
             }
 
@@ -996,14 +996,14 @@ class Agent_Agentflow implements INode {
                     if (tool === 'code_interpreter') {
                         builtInTool.container = { type: 'auto' }
                     }
-                    ;(toolsInstance as any).push(builtInTool)
-                    ;(availableTools as any).push({
-                        name: tool,
-                        toolNode: {
-                            label: tool,
-                            name: tool
-                        }
-                    })
+                    ; (toolsInstance as any).push(builtInTool)
+                        ; (availableTools as any).push({
+                            name: tool,
+                            toolNode: {
+                                label: tool,
+                                name: tool
+                            }
+                        })
                 }
             }
 
@@ -1013,14 +1013,14 @@ class Agent_Agentflow implements INode {
                     const builtInTool: ICommonObject = {
                         [tool]: {}
                     }
-                    ;(toolsInstance as any).push(builtInTool)
-                    ;(availableTools as any).push({
-                        name: tool,
-                        toolNode: {
-                            label: tool,
-                            name: tool
-                        }
-                    })
+                        ; (toolsInstance as any).push(builtInTool)
+                        ; (availableTools as any).push({
+                            name: tool,
+                            toolNode: {
+                                label: tool,
+                                name: tool
+                            }
+                        })
                 }
             }
 
@@ -1031,7 +1031,7 @@ class Agent_Agentflow implements INode {
                     const toolName = tool.split('_').slice(0, -1).join('_')
 
                     if (tool === 'code_execution_20250825') {
-                        ;(llmNodeInstance as any).clientOptions = {
+                        ; (llmNodeInstance as any).clientOptions = {
                             defaultHeaders: {
                                 'anthropic-beta': ['code-execution-2025-08-25', 'files-api-2025-04-14']
                             }
@@ -1039,7 +1039,7 @@ class Agent_Agentflow implements INode {
                     }
 
                     if (tool === 'web_fetch_20250910') {
-                        ;(llmNodeInstance as any).clientOptions = {
+                        ; (llmNodeInstance as any).clientOptions = {
                             defaultHeaders: {
                                 'anthropic-beta': ['web-fetch-2025-09-10']
                             }
@@ -1050,14 +1050,14 @@ class Agent_Agentflow implements INode {
                         type: tool,
                         name: toolName
                     }
-                    ;(toolsInstance as any).push(builtInTool)
-                    ;(availableTools as any).push({
-                        name: tool,
-                        toolNode: {
-                            label: tool,
-                            name: tool
-                        }
-                    })
+                        ; (toolsInstance as any).push(builtInTool)
+                        ; (availableTools as any).push({
+                            name: tool,
+                            toolNode: {
+                                label: tool,
+                                name: tool
+                            }
+                        })
                 }
             }
 
@@ -1318,6 +1318,44 @@ class Agent_Agentflow implements INode {
             // Address built in tools (after artifacts are processed)
             const builtInUsedTools: IUsedTool[] = await this.extractBuiltInUsedTools(response, [])
 
+            // Handle invalid_tool_calls by recovering them (e.g., Cohere sends null for optional params)
+            // Clean up null values from args and move to tool_calls
+            if (response.invalid_tool_calls && response.invalid_tool_calls.length > 0) {
+                for (const invalidCall of response.invalid_tool_calls) {
+                    // Skip if no name is provided
+                    if (!invalidCall.name) {
+                        continue
+                    }
+
+                    // Clean null values from args
+                    const cleanedArgs: Record<string, any> = {}
+                    if (invalidCall.args && typeof invalidCall.args === 'object') {
+                        for (const [key, value] of Object.entries(invalidCall.args)) {
+                            if (value !== null && value !== undefined) {
+                                cleanedArgs[key] = value
+                            }
+                        }
+                    }
+
+                    // Create a valid tool call from the invalid one
+                    const recoveredToolCall = {
+                        id: invalidCall.id || `recovered-${Date.now()}`,
+                        name: invalidCall.name,
+                        args: cleanedArgs,
+                        type: 'tool_call' as const
+                    }
+
+                    // Add to tool_calls array (or create it if it doesn't exist)
+                    if (!response.tool_calls) {
+                        response.tool_calls = []
+                    }
+                    response.tool_calls.push(recoveredToolCall)
+                }
+
+                // Clear invalid_tool_calls after recovery
+                response.invalid_tool_calls = []
+            }
+
             if (!humanInput && response.tool_calls && response.tool_calls.length > 0) {
                 const result = await this.handleToolCalls({
                     response,
@@ -1523,7 +1561,7 @@ class Agent_Agentflow implements INode {
                                 const module = await import(altPath)
                                 trackLLMUsage = module.trackLLMUsage
                                 extractProviderAndModel = module.extractProviderAndModel
-                            } catch (e2) {}
+                            } catch (e2) { }
                         }
 
                         if (trackLLMUsage && extractProviderAndModel) {

@@ -108,3 +108,4 @@
 *.smime
 *.vsix
 /autonomousapp
+**/bin/.autonomous

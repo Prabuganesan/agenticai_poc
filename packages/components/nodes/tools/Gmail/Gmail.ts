@@ -103,6 +103,10 @@ class Gmail_Tools implements INode {
                         name: 'getMessage'
                     },
                     {
+                        label: 'Get Attachment',
+                        name: 'getAttachment'
+                    },
+                    {
                         label: 'Send Message',
                         name: 'sendMessage'
                     },
@@ -414,7 +418,19 @@ class Gmail_Tools implements INode {
                 type: 'string',
                 description: 'ID of the message',
                 show: {
-                    messageActions: ['getMessage', 'modifyMessage', 'trashMessage', 'untrashMessage', 'deleteMessage']
+                    messageActions: ['getMessage', 'getAttachment', 'modifyMessage', 'trashMessage', 'untrashMessage', 'deleteMessage']
+                },
+                additionalParams: true,
+                optional: true
+            },
+            // Attachment ID for Get Attachment
+            {
+                label: 'Attachment ID',
+                name: 'attachmentId',
+                type: 'string',
+                description: 'ID of the attachment to download (obtained from getMessage response)',
+                show: {
+                    messageActions: ['getAttachment']
                 },
                 additionalParams: true,
                 optional: true
@@ -608,6 +624,7 @@ class Gmail_Tools implements INode {
         if (nodeData.inputs?.messageCc) defaultParams.messageCc = nodeData.inputs.messageCc
         if (nodeData.inputs?.messageBcc) defaultParams.messageBcc = nodeData.inputs.messageBcc
         if (nodeData.inputs?.messageId) defaultParams.messageId = nodeData.inputs.messageId
+        if (nodeData.inputs?.attachmentId) defaultParams.attachmentId = nodeData.inputs.attachmentId
         if (nodeData.inputs?.messageAddLabelIds) defaultParams.messageAddLabelIds = nodeData.inputs.messageAddLabelIds
         if (nodeData.inputs?.messageRemoveLabelIds) defaultParams.messageRemoveLabelIds = nodeData.inputs.messageRemoveLabelIds
 

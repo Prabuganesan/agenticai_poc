@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 
 // material-ui
-import { Box, Stack, ToggleButton, ToggleButtonGroup, Typography, Collapse, IconButton } from '@mui/material'
+import { Box, Stack, ToggleButton, ToggleButtonGroup, Typography, Tabs, Tab, Chip } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 
 // project imports
@@ -29,7 +29,7 @@ import { baseURL, AGENTFLOW_ICONS } from '@/store/constant'
 import { useError } from '@/store/context/ErrorContext'
 
 // icons
-import { IconPlus, IconLayoutGrid, IconList, IconChevronDown, IconChevronRight } from '@tabler/icons-react'
+import { IconPlus, IconLayoutGrid, IconList } from '@tabler/icons-react'
 
 // ==============================|| AGENTS ||============================== //
 
@@ -48,9 +48,8 @@ const Agentflows = () => {
     const getAllAgentflows = useApi(chatflowsApi.getAllAgentflows)
     const [view, setView] = useState(localStorage.getItem('flowDisplayStyle') || 'card')
 
-    // Section collapse states
-    const [myAgentsOpen, setMyAgentsOpen] = useState(true)
-    const [sharedAgentsOpen, setSharedAgentsOpen] = useState(true)
+    // Tab state - 0 = My Creations (default), 1 = Others Creations
+    const [activeTab, setActiveTab] = useState(0)
 
     /* Table Pagination */
     const [currentPage, setCurrentPage] = useState(1)
@@ -174,73 +173,30 @@ const Agentflows = () => {
         }
     }, [getAllAgentflows.data])
 
-    // Section header component
-    const SectionHeader = ({ title, count, isOpen, onToggle }) => (
-        <Box
-            onClick={onToggle}
-            sx={{
-                display: 'flex',
-                alignItems: 'center',
-                cursor: 'pointer',
-                py: 1.5,
-                px: 2.5,
-                mb: 2,
-                borderRadius: 1.5,
-                backgroundColor: theme.palette.mode === 'dark' ? theme.palette.grey[800] : theme.palette.grey[50],
-                border: `1px solid ${theme.palette.mode === 'dark' ? theme.palette.grey[700] : theme.palette.grey[200]}`,
-                transition: 'all 0.2s ease-in-out',
-                '&:hover': {
-                    backgroundColor: theme.palette.mode === 'dark' ? theme.palette.grey[700] : theme.palette.grey[100],
-                    borderColor: theme.palette.mode === 'dark' ? theme.palette.grey[600] : theme.palette.grey[300]
-                }
-            }}
-        >
-            <IconButton 
-                size="small" 
-                sx={{ 
-                    mr: 1.5, 
-                    p: 0.5,
-                    color: theme.palette.text.secondary,
-                    '&:hover': {
-                        backgroundColor: 'transparent'
-                    }
-                }}
-            >
-                {isOpen ? <IconChevronDown size={18} /> : <IconChevronRight size={18} />}
-            </IconButton>
-            <Typography 
-                variant="h5" 
-                sx={{ 
-                    fontWeight: 600, 
-                    flex: 1,
-                    color: theme.palette.text.primary
-                }}
-            >
-                {title}
-            </Typography>
-            <Box
+    // Tab label with count badge
+    const TabLabel = ({ label, count }) => (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <span>{label}</span>
+            <Chip
+                label={count}
+                size="small"
                 sx={{
-                    px: 1.5,
-                    py: 0.5,
-                    borderRadius: 1,
-                    backgroundColor: theme.palette.primary.main,
-                    color: theme.palette.primary.contrastText,
-                    fontSize: '0.75rem',
+                    height: 20,
+                    minWidth: 28,
+                    fontSize: '0.7rem',
                     fontWeight: 600,
-                    minWidth: '32px',
-                    textAlign: 'center'
+                    backgroundColor: theme.palette.primary.main,
+                    color: theme.palette.primary.contrastText
                 }}
-            >
-                {count}
-            </Box>
+            />
         </Box>
     )
 
     // Get filtered and split data - handle both response formats
     // Support: array, {data: []}, or {data: [], total: number}
     const responseData = getAllAgentflows.data
-    const allData = Array.isArray(responseData) 
-        ? responseData 
+    const allData = Array.isArray(responseData)
+        ? responseData
         : (responseData?.data && Array.isArray(responseData.data) ? responseData.data : [])
     const myAgents = getMyAgents(allData)
     const sharedAgents = getSharedAgents(allData)
@@ -305,22 +261,41 @@ const Agentflows = () => {
 
                     {!isLoading && total > 0 && (
                         <>
-                            {/* My Agents Section */}
-                            {(myAgents.length > 0 || !search) && (
-                            <Box>
-                                <SectionHeader
-                                        title="My Creation"
-                                    count={myAgents.length}
-                                    isOpen={myAgentsOpen}
-                                    onToggle={() => setMyAgentsOpen(!myAgentsOpen)}
-                                />
-                                <Collapse in={myAgentsOpen}>
+                            {/* Tab Navigation */}
+                            <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+                                <Tabs
+                                    value={activeTab}
+                                    onChange={(e, newValue) => setActiveTab(newValue)}
+                                    sx={{
+                                        minHeight: 48,
+                                        '& .MuiTabs-indicator': {
+                                            height: 3,
+                                            borderRadius: '3px 3px 0 0',
+                                            backgroundColor: theme.palette.primary.main
+                                        },
+                                        '& .MuiTab-root': {
+                                            textTransform: 'none',
+                                            fontWeight: 600,
+                                            fontSize: '0.95rem',
+                                            minHeight: 48,
+                                            px: 3
+                                        }
+                                    }}
+                                >
+                                    <Tab label={<TabLabel label="My Creations" count={myAgents.length} />} />
+                                    <Tab label={<TabLabel label="Others Creations" count={sharedAgents.length} />} />
+                                </Tabs>
+                            </Box>
+
+                            {/* My Creations Tab Content */}
+                            {activeTab === 0 && (
+                                <Box>
                                     {myAgents.length > 0 ? (
                                         !view || view === 'card' ? (
                                             <Box display='grid' gridTemplateColumns='repeat(3, 1fr)' gap={gridSpacing}>
                                                 {myAgents.map((data, index) => (
                                                     <ItemCard
-                                                            key={data.id || index}
+                                                        key={data.id || index}
                                                         onClick={() => goToCanvas(data)}
                                                         data={data}
                                                         images={images[data.id]}
@@ -344,37 +319,29 @@ const Agentflows = () => {
                                             />
                                         )
                                     ) : (
-                                            <Typography 
-                                                sx={{ 
-                                                    color: theme.palette.text.secondary, 
-                                                    pl: 2, 
-                                                    pb: 2,
-                                                    fontStyle: 'italic'
-                                                }}
-                                            >
-                                                {search ? 'No matching agents found in your creations' : 'No agents created by you yet'}
+                                        <Typography
+                                            sx={{
+                                                color: theme.palette.text.secondary,
+                                                pl: 2,
+                                                pb: 2,
+                                                fontStyle: 'italic'
+                                            }}
+                                        >
+                                            {search ? 'No matching agents found in your creations' : 'No agents created by you yet'}
                                         </Typography>
                                     )}
-                                </Collapse>
-                            </Box>
+                                </Box>
                             )}
 
-                            {/* Shared Agents Section */}
-                            {(sharedAgents.length > 0 || !search) && (
-                            <Box>
-                                <SectionHeader
-                                        title="Others Creation"
-                                    count={sharedAgents.length}
-                                    isOpen={sharedAgentsOpen}
-                                    onToggle={() => setSharedAgentsOpen(!sharedAgentsOpen)}
-                                />
-                                <Collapse in={sharedAgentsOpen}>
+                            {/* Others Creations Tab Content */}
+                            {activeTab === 1 && (
+                                <Box>
                                     {sharedAgents.length > 0 ? (
                                         !view || view === 'card' ? (
                                             <Box display='grid' gridTemplateColumns='repeat(3, 1fr)' gap={gridSpacing}>
                                                 {sharedAgents.map((data, index) => (
                                                     <ItemCard
-                                                            key={data.id || index}
+                                                        key={data.id || index}
                                                         onClick={() => goToCanvas(data)}
                                                         data={data}
                                                         images={images[data.id]}
@@ -398,27 +365,17 @@ const Agentflows = () => {
                                             />
                                         )
                                     ) : (
-                                            <Typography 
-                                                sx={{ 
-                                                    color: theme.palette.text.secondary, 
-                                                    pl: 2, 
-                                                    pb: 2,
-                                                    fontStyle: 'italic'
-                                                }}
-                                            >
-                                                {search ? 'No matching shared agents found' : 'No shared agents available'}
+                                        <Typography
+                                            sx={{
+                                                color: theme.palette.text.secondary,
+                                                pl: 2,
+                                                pb: 2,
+                                                fontStyle: 'italic'
+                                            }}
+                                        >
+                                            {search ? 'No matching shared agents found' : 'No shared agents available'}
                                         </Typography>
                                     )}
-                                </Collapse>
-                            </Box>
-                            )}
-
-                            {/* Show message when search has no results */}
-                            {search && !hasResults && total > 0 && (
-                                <Box sx={{ textAlign: 'center', py: 4 }}>
-                                    <Typography sx={{ color: theme.palette.text.secondary }}>
-                                        No results found matching "{search}"
-                                    </Typography>
                                 </Box>
                             )}
 

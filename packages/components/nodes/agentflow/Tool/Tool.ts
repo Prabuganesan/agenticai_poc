@@ -4,6 +4,8 @@ import { processTemplateVariables } from '../../../src/utils'
 import { Tool } from '@langchain/core/tools'
 import { ARTIFACTS_PREFIX, TOOL_ARGS_PREFIX } from '../../../src/agents'
 import zodToJsonSchema from 'zod-to-json-schema'
+import { get } from 'lodash'
+import TurndownService from 'turndown'
 
 interface IToolInputArgs {
     inputArgName: string
@@ -127,9 +129,25 @@ class Tool_Agentflow implements INode {
             const nodeModule = await import(nodeInstanceFilePath)
             const newToolNodeInstance = new nodeModule.nodeClass()
 
+            // Pre-emptively refresh OAuth token if credential exists
+            // This ensures dropdown loads correctly even after idle time when tokens expire
+            const credentialId = selectedToolConfig['AUTONOMOUS_CREDENTIAL_ID']
+            if (credentialId && options.appDataSource) {
+                try {
+                    const { getCredentialData, refreshOAuth2Token } = await import('../../../src/utils')
+                    let credentialData = await getCredentialData(credentialId, options)
+                    if (credentialData && credentialData.refresh_token) {
+                        await refreshOAuth2Token(credentialId, credentialData, options)
+                    }
+                } catch (refreshError) {
+                    console.warn('[listToolInputArgs] Token refresh warning:', refreshError)
+                    // Continue anyway - the tool's init will handle the error
+                }
+            }
+
             const newNodeData = {
                 ...nodeData,
-                credential: selectedToolConfig['AUTONOMOUS_CREDENTIAL_ID'],
+                credential: credentialId,
                 inputs: {
                     ...nodeData.inputs,
                     ...selectedToolConfig
@@ -166,6 +184,7 @@ class Tool_Agentflow implements INode {
                     description: toolInputArgs.properties[item].description
                 }))
             } catch (e) {
+                console.error('[listToolInputArgs] Error getting tool input args:', e)
                 return []
             }
         },
@@ -259,9 +278,49 @@ class Tool_Agentflow implements INode {
             }
         }
 
+        // Helper function to resolve $flow.state variables from runtime state
+        const resolveFlowStateVariables = (value: string, runtimeState: ICommonObject): string => {
+            if (typeof value !== 'string') return value
+
+            // Strip any HTML/markdown from Rich Input editor
+            let cleanValue = value
+            try {
+                const turndownService = new TurndownService()
+                cleanValue = turndownService.turndown(value)
+                cleanValue = cleanValue.replace(/\\_/g, '_').replace(/\*\*/g, '')
+            } catch (e) {
+                cleanValue = value
+            }
+
+            // Match {{ $flow.state.xxx }} patterns
+            const flowStateRegex = /\{\{\s*\$flow\.state\.([a-zA-Z0-9_.\[\]]+)\s*\}\}/g
+
+            return cleanValue.replace(flowStateRegex, (match, path) => {
+                try {
+                    // Convert array notation to dot notation for lodash get
+                    const lodashPath = path.replace(/\[(\d+)\]/g, '.$1')
+                    const resolvedValue = get(runtimeState, lodashPath)
+
+                    if (resolvedValue === undefined) return match
+
+                    if (typeof resolvedValue === 'object' && resolvedValue !== null) {
+                        return JSON.stringify(resolvedValue)
+                    }
+                    return String(resolvedValue)
+                } catch (e) {
+                    return match
+                }
+            })
+        }
+
         for (const item of toolInputArgs) {
             const variableName = item.inputArgName
-            const variableValue = item.inputArgValue
+            let variableValue = item.inputArgValue
+
+            // First resolve $flow.state variables using current runtime state
+            variableValue = resolveFlowStateVariables(variableValue, state)
+
+            // Then parse the input value (clean escapes, parse JSON, etc.)
             toolCallArgs[variableName] = parseInputValue(variableValue)
         }
 
@@ -307,7 +366,7 @@ class Tool_Agentflow implements INode {
                         toolInput: toolCallArgs ? JSON.stringify(toolCallArgs).substring(0, 200) : '',
                         sessionId: sessionId,
                         chatId: chatId
-                    }).catch(() => {})
+                    }).catch(() => { })
                 }
             } catch (logError) {
                 // Silently fail
@@ -362,7 +421,7 @@ class Tool_Agentflow implements INode {
                             chatId: chatId,
                             durationMs: toolDuration,
                             status: 'success'
-                        }).catch(() => {})
+                        }).catch(() => { })
                     }
                 } catch (logError) {
                     // Silently fail
@@ -398,7 +457,7 @@ class Tool_Agentflow implements INode {
                             durationMs: toolDuration,
                             status: 'failed',
                             error: toolError instanceof Error ? toolError.message : String(toolError)
-                        }).catch(() => {})
+                        }).catch(() => { })
                     }
                 } catch (logError) {
                     // Silently fail

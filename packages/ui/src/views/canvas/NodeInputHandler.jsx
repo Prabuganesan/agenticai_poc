@@ -1079,7 +1079,7 @@ const NodeInputHandler = ({
 
                         {(inputParam.type === 'string' || inputParam.type === 'password' || inputParam.type === 'number') &&
                             (inputParam?.acceptVariable &&
-                            (window.location.href.includes('v2/agentcanvas') || window.location.href.includes('v2/marketplace')) ? (
+                                (window.location.href.includes('v2/agentcanvas') || window.location.href.includes('v2/marketplace')) ? (
                                 <RichInput
                                     key={data.inputs[inputParam.name]}
                                     placeholder={inputParam.placeholder}
@@ -1266,9 +1266,8 @@ const NodeInputHandler = ({
                         {inputParam.loadConfig && data && data.inputs && data.inputs[inputParam.name] && (
                             <>
                                 <ConfigInput
-                                    key={`${data.id}_${JSON.stringify(data.inputs[inputParam.name])}_${arrayIndex}_${
-                                        parentParamForArray?.name
-                                    }`}
+                                    key={`${data.id}_${JSON.stringify(data.inputs[inputParam.name])}_${arrayIndex}_${parentParamForArray?.name
+                                        }`}
                                     data={data}
                                     inputParam={inputParam}
                                     disabled={disabled}

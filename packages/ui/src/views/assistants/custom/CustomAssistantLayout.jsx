@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 
 // material-ui
-import { Box, Stack, Skeleton, Typography, Collapse, IconButton } from '@mui/material'
+import { Box, Stack, Skeleton, Typography, Tabs, Tab, Chip } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 
 // project imports
@@ -23,7 +23,7 @@ import assistantsApi from '@/api/assistants'
 import useApi from '@/hooks/useApi'
 
 // icons
-import { IconPlus, IconChevronDown, IconChevronRight } from '@tabler/icons-react'
+import { IconPlus } from '@tabler/icons-react'
 
 // ==============================|| CustomAssistantLayout ||============================== //
 
@@ -39,9 +39,8 @@ const CustomAssistantLayout = () => {
     const [showDialog, setShowDialog] = useState(false)
     const [dialogProps, setDialogProps] = useState({})
 
-    // Section collapse states
-    const [myAssistantsOpen, setMyAssistantsOpen] = useState(true)
-    const [sharedAssistantsOpen, setSharedAssistantsOpen] = useState(true)
+    // Tab state - 0 = My Creations (default), 1 = Others Creations
+    const [activeTab, setActiveTab] = useState(0)
 
     const [search, setSearch] = useState('')
     const onSearchChange = (event) => {
@@ -110,65 +109,22 @@ const CustomAssistantLayout = () => {
         }
     }, [getAllAssistantsApi.error])
 
-    // Section header component
-    const SectionHeader = ({ title, count, isOpen, onToggle }) => (
-        <Box
-            onClick={onToggle}
-            sx={{
-                display: 'flex',
-                alignItems: 'center',
-                cursor: 'pointer',
-                py: 1.5,
-                px: 2.5,
-                mb: 2,
-                borderRadius: 1.5,
-                backgroundColor: theme.palette.mode === 'dark' ? theme.palette.grey[800] : theme.palette.grey[50],
-                border: `1px solid ${theme.palette.mode === 'dark' ? theme.palette.grey[700] : theme.palette.grey[200]}`,
-                transition: 'all 0.2s ease-in-out',
-                '&:hover': {
-                    backgroundColor: theme.palette.mode === 'dark' ? theme.palette.grey[700] : theme.palette.grey[100],
-                    borderColor: theme.palette.mode === 'dark' ? theme.palette.grey[600] : theme.palette.grey[300]
-                }
-            }}
-        >
-            <IconButton 
-                size="small" 
-                sx={{ 
-                    mr: 1.5, 
-                    p: 0.5,
-                    color: theme.palette.text.secondary,
-                    '&:hover': {
-                        backgroundColor: 'transparent'
-                    }
-                }}
-            >
-                {isOpen ? <IconChevronDown size={18} /> : <IconChevronRight size={18} />}
-            </IconButton>
-            <Typography 
-                variant="h5" 
-                sx={{ 
-                    fontWeight: 600, 
-                    flex: 1,
-                    color: theme.palette.text.primary
-                }}
-            >
-                {title}
-            </Typography>
-            <Box
+    // Tab label with count badge
+    const TabLabel = ({ label, count }) => (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <span>{label}</span>
+            <Chip
+                label={count}
+                size="small"
                 sx={{
-                    px: 1.5,
-                    py: 0.5,
-                    borderRadius: 1,
-                    backgroundColor: theme.palette.primary.main,
-                    color: theme.palette.primary.contrastText,
-                    fontSize: '0.75rem',
+                    height: 20,
+                    minWidth: 28,
+                    fontSize: '0.7rem',
                     fontWeight: 600,
-                    minWidth: '32px',
-                    textAlign: 'center'
+                    backgroundColor: theme.palette.primary.main,
+                    color: theme.palette.primary.contrastText
                 }}
-            >
-                {count}
-            </Box>
+            />
         </Box>
     )
 
@@ -212,92 +168,93 @@ const CustomAssistantLayout = () => {
                             </Box>
                         ) : (
                             <>
-                                {/* My Creation Section */}
-                                {(myAssistants.length > 0 || !search) && (
+                                {/* Tab Navigation */}
+                                <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+                                    <Tabs
+                                        value={activeTab}
+                                        onChange={(e, newValue) => setActiveTab(newValue)}
+                                        sx={{
+                                            minHeight: 48,
+                                            '& .MuiTabs-indicator': {
+                                                height: 3,
+                                                borderRadius: '3px 3px 0 0',
+                                                backgroundColor: theme.palette.primary.main
+                                            },
+                                            '& .MuiTab-root': {
+                                                textTransform: 'none',
+                                                fontWeight: 600,
+                                                fontSize: '0.95rem',
+                                                minHeight: 48,
+                                                px: 3
+                                            }
+                                        }}
+                                    >
+                                        <Tab label={<TabLabel label="My Creations" count={myAssistants.length} />} />
+                                        <Tab label={<TabLabel label="Others Creations" count={sharedAssistants.length} />} />
+                                    </Tabs>
+                                </Box>
+
+                                {/* My Creations Tab Content */}
+                                {activeTab === 0 && (
                                     <Box>
-                                        <SectionHeader
-                                            title="My Creation"
-                                            count={myAssistants.length}
-                                            isOpen={myAssistantsOpen}
-                                            onToggle={() => setMyAssistantsOpen(!myAssistantsOpen)}
-                                        />
-                                        <Collapse in={myAssistantsOpen}>
-                                            {myAssistants.length > 0 ? (
-                            <Box display='grid' gridTemplateColumns='repeat(3, 1fr)' gap={gridSpacing}>
-                                                    {myAssistants.map((data, index) => (
-                                        <ItemCard
-                                                            key={data.id || index}
-                                            data={{
-                                                name: JSON.parse(data.details)?.name,
-                                                description: JSON.parse(data.details)?.instruction
-                                            }}
-                                            images={getImages(JSON.parse(data.details))}
-                                            onClick={() => navigate('/assistants/custom/' + data.id)}
-                                        />
-                                    ))}
-                            </Box>
-                                            ) : (
-                                                <Typography 
-                                                    sx={{ 
-                                                        color: theme.palette.text.secondary, 
-                                                        pl: 2, 
-                                                        pb: 2,
-                                                        fontStyle: 'italic'
-                                                    }}
-                                                >
-                                                    {search ? 'No matching assistants found in your creations' : 'No assistants created by you yet'}
-                                                </Typography>
-                                            )}
-                                        </Collapse>
+                                        {myAssistants.length > 0 ? (
+                                            <Box display='grid' gridTemplateColumns='repeat(3, 1fr)' gap={gridSpacing}>
+                                                {myAssistants.map((data, index) => (
+                                                    <ItemCard
+                                                        key={data.id || index}
+                                                        data={{
+                                                            name: JSON.parse(data.details)?.name,
+                                                            description: JSON.parse(data.details)?.instruction
+                                                        }}
+                                                        images={getImages(JSON.parse(data.details))}
+                                                        onClick={() => navigate('/assistants/custom/' + data.id)}
+                                                    />
+                                                ))}
+                                            </Box>
+                                        ) : (
+                                            <Typography
+                                                sx={{
+                                                    color: theme.palette.text.secondary,
+                                                    pl: 2,
+                                                    pb: 2,
+                                                    fontStyle: 'italic'
+                                                }}
+                                            >
+                                                {search ? 'No matching assistants found in your creations' : 'No assistants created by you yet'}
+                                            </Typography>
+                                        )}
                                     </Box>
                                 )}
 
-                                {/* Others Creation Section */}
-                                {(sharedAssistants.length > 0 || !search) && (
+                                {/* Others Creations Tab Content */}
+                                {activeTab === 1 && (
                                     <Box>
-                                        <SectionHeader
-                                            title="Others Creation"
-                                            count={sharedAssistants.length}
-                                            isOpen={sharedAssistantsOpen}
-                                            onToggle={() => setSharedAssistantsOpen(!sharedAssistantsOpen)}
-                                        />
-                                        <Collapse in={sharedAssistantsOpen}>
-                                            {sharedAssistants.length > 0 ? (
-                                                <Box display='grid' gridTemplateColumns='repeat(3, 1fr)' gap={gridSpacing}>
-                                                    {sharedAssistants.map((data, index) => (
-                                                        <ItemCard
-                                                            key={data.id || index}
-                                                            data={{
-                                                                name: JSON.parse(data.details)?.name,
-                                                                description: JSON.parse(data.details)?.instruction
-                                                            }}
-                                                            images={getImages(JSON.parse(data.details))}
-                                                            onClick={() => navigate('/assistants/custom/' + data.id)}
-                                                        />
-                                                    ))}
-                                                </Box>
-                                            ) : (
-                                                <Typography 
-                                                    sx={{ 
-                                                        color: theme.palette.text.secondary, 
-                                                        pl: 2, 
-                                                        pb: 2,
-                                                        fontStyle: 'italic'
-                                                    }}
-                                                >
-                                                    {search ? 'No matching shared assistants found' : 'No shared assistants available'}
-                                                </Typography>
-                                            )}
-                                        </Collapse>
-                                    </Box>
-                                )}
-
-                                {/* Show message when search has no results */}
-                                {search && !hasResults && allData.length > 0 && (
-                                    <Box sx={{ textAlign: 'center', py: 4 }}>
-                                        <Typography sx={{ color: theme.palette.text.secondary }}>
-                                            No results found matching "{search}"
-                                        </Typography>
+                                        {sharedAssistants.length > 0 ? (
+                                            <Box display='grid' gridTemplateColumns='repeat(3, 1fr)' gap={gridSpacing}>
+                                                {sharedAssistants.map((data, index) => (
+                                                    <ItemCard
+                                                        key={data.id || index}
+                                                        data={{
+                                                            name: JSON.parse(data.details)?.name,
+                                                            description: JSON.parse(data.details)?.instruction
+                                                        }}
+                                                        images={getImages(JSON.parse(data.details))}
+                                                        onClick={() => navigate('/assistants/custom/' + data.id)}
+                                                    />
+                                                ))}
+                                            </Box>
+                                        ) : (
+                                            <Typography
+                                                sx={{
+                                                    color: theme.palette.text.secondary,
+                                                    pl: 2,
+                                                    pb: 2,
+                                                    fontStyle: 'italic'
+                                                }}
+                                            >
+                                                {search ? 'No matching shared assistants found' : 'No shared assistants available'}
+                                            </Typography>
+                                        )}
                                     </Box>
                                 )}
                             </>

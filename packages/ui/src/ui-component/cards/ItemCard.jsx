@@ -14,11 +14,32 @@ const CardWrapper = styled(MainCard)(({ theme }) => ({
     color: theme.darkTextPrimary,
     overflow: 'auto',
     position: 'relative',
-    boxShadow: '0 2px 14px 0 rgb(32 40 45 / 8%)',
+    // 3D Embossed effect with layered shadows for depth
+    boxShadow: `
+        0 1px 2px rgba(0,0,0,0.07),
+        0 2px 4px rgba(0,0,0,0.07),
+        0 4px 8px rgba(0,0,0,0.07),
+        0 8px 16px rgba(0,0,0,0.07),
+        0 16px 32px rgba(0,0,0,0.05),
+        inset 0 1px 0 rgba(255,255,255,0.4)
+    `,
+    // 3D perspective for board-standing look
+    transform: 'perspective(1000px) rotateX(2deg)',
+    transformStyle: 'preserve-3d',
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
     cursor: 'pointer',
     '&:hover': {
         background: theme.palette.card.hover,
-        boxShadow: '0 2px 14px 0 rgb(32 40 45 / 20%)'
+        // Enhanced shadow on hover for lifting effect
+        boxShadow: `
+            0 2px 4px rgba(0,0,0,0.1),
+            0 4px 8px rgba(0,0,0,0.1),
+            0 8px 16px rgba(0,0,0,0.1),
+            0 16px 32px rgba(0,0,0,0.08),
+            0 32px 64px rgba(0,0,0,0.05),
+            inset 0 1px 0 rgba(255,255,255,0.6)
+        `,
+        transform: 'perspective(1000px) rotateX(0deg) translateY(-6px) scale(1.02)'
     },
     height: '100%',
     minHeight: '160px',

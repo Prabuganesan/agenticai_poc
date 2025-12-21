@@ -103,6 +103,7 @@ export const defaultAllowBuiltInDep = [
     'buffer',
     'crypto',
     'events',
+    'fs',
     'http',
     'https',
     'net',
@@ -1375,13 +1376,13 @@ export const handleDocumentLoaderMetadata = (
             _omitMetadataKeys === '*'
                 ? metadata
                 : omit(
-                      {
-                          ...metadata,
-                          ...doc.metadata,
-                          ...(sourceIdKey ? { [sourceIdKey]: doc.metadata[sourceIdKey] || sourceIdKey } : undefined)
-                      },
-                      omitMetadataKeys
-                  )
+                    {
+                        ...metadata,
+                        ...doc.metadata,
+                        ...(sourceIdKey ? { [sourceIdKey]: doc.metadata[sourceIdKey] || sourceIdKey } : undefined)
+                    },
+                    omitMetadataKeys
+                )
     }))
 }
 
@@ -1456,9 +1457,15 @@ export const refreshOAuth2Token = async (
                 // Import fetch dynamically to avoid issues
                 const fetch = (await import('node-fetch')).default
 
-                // Call the refresh API endpoint
+                // Call the refresh API endpoint with orgId query parameter
+                const refreshUrl = new URL(`${options.baseURL || getServerURL()}/api/v1/oauth2-credential/refresh/${credentialId}`)
+                if (options.orgId) {
+                    refreshUrl.searchParams.append('orgId', options.orgId.toString())
+                }
+
+
                 const refreshResponse = await fetch(
-                    `${options.baseURL || getServerURL()}/api/v1/oauth2-credential/refresh/${credentialId}`,
+                    refreshUrl.toString(),
                     {
                         method: 'POST',
                         headers: {
@@ -1481,8 +1488,7 @@ export const refreshOAuth2Token = async (
             } catch (error) {
                 console.error('Failed to refresh access token:', error)
                 throw new Error(
-                    `Failed to refresh access token: ${
-                        error instanceof Error ? error.message : 'Unknown error'
+                    `Failed to refresh access token: ${error instanceof Error ? error.message : 'Unknown error'
                     }. Please re-authorize the credential.`
                 )
             }
@@ -1566,9 +1572,9 @@ const parseOutput = (output: any): any => {
 }
 
 function validateJavaScriptCode(code: string): void {
+    // Note: fs and path are allowed as they are commonly needed for file operations
+    // and are controlled by the NodeVM builtin deps allowlist
     const dangerousPatterns = [
-        /require\s*\(\s*['"]fs['"]/,
-        /require\s*\(\s*['"]path['"]/,
         /require\s*\(\s*['"]child_process['"]/,
         /require\s*\(\s*['"]os['"]/,
         /process\.(exit|kill|cwd|chdir|env)/,
@@ -1959,9 +1965,9 @@ export const parseJsonBody = (body: string): any => {
 
                     throw new Error(
                         `Invalid JSON format in body. Original error: ${error.message}. ` +
-                            `After cleanup attempts: ${secondError.message}. 3rd attempt: ${thirdError.message}. Final attempt: ${fourthError.message}.\n\n` +
-                            `Common fixes:\n${suggestions.join('\n')}\n\n` +
-                            `Received body: ${body.substring(0, 200)}${body.length > 200 ? '...' : ''}`
+                        `After cleanup attempts: ${secondError.message}. 3rd attempt: ${thirdError.message}. Final attempt: ${fourthError.message}.\n\n` +
+                        `Common fixes:\n${suggestions.join('\n')}\n\n` +
+                        `Received body: ${body.substring(0, 200)}${body.length > 200 ? '...' : ''}`
                     )
                 }
             }

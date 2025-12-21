@@ -1,0 +1,824 @@
+{
+    "description": "Automatically extract invoice data from Gmail attachments (PDF/images), save files locally, and store structured data in PostgreSQL with duplicate detection",
+    "usecases": [
+        "Invoice Processing",
+        "Document Extraction",
+        "Email Automation"
+    ],
+    "nodes": [
+        {
+            "id": "startAgentflow_0",
+            "type": "agentFlow",
+            "position": {
+                "x": 50,
+                "y": 150
+            },
+            "data": {
+                "id": "startAgentflow_0",
+                "label": "Start",
+                "version": 1.1,
+                "name": "startAgentflow",
+                "type": "Start",
+                "color": "#7EE787",
+                "hideInput": true,
+                "baseClasses": [
+                    "Start"
+                ],
+                "category": "Agent Flows",
+                "description": "Starting point of the agentflow",
+                "inputParams": [
+                    {
+                        "label": "Input Type",
+                        "name": "startInputType",
+                        "type": "options",
+                        "options": [
+                            {
+                                "label": "Chat Input",
+                                "name": "chatInput",
+                                "description": "Start the conversation with chat input"
+                            },
+                            {
+                                "label": "Form Input",
+                                "name": "formInput",
+                                "description": "Start the workflow with form inputs"
+                            }
+                        ],
+                        "default": "chatInput",
+                        "id": "startAgentflow_0-input-startInputType-options",
+                        "display": true
+                    },
+                    {
+                        "label": "Ephemeral Memory",
+                        "name": "startEphemeralMemory",
+                        "type": "boolean",
+                        "description": "Start fresh for every execution without past chat history",
+                        "optional": true,
+                        "id": "startAgentflow_0-input-startEphemeralMemory-boolean",
+                        "display": true
+                    },
+                    {
+                        "label": "Flow State",
+                        "name": "startState",
+                        "description": "Runtime state during the execution of the workflow",
+                        "type": "array",
+                        "optional": true,
+                        "array": [
+                            {
+                                "label": "Key",
+                                "name": "key",
+                                "type": "string",
+                                "placeholder": "Foo"
+                            },
+                            {
+                                "label": "Value",
+                                "name": "value",
+                                "type": "string",
+                                "placeholder": "Bar",
+                                "optional": true
+                            }
+                        ],
+                        "id": "startAgentflow_0-input-startState-array",
+                        "display": true
+                    }
+                ],
+                "inputAnchors": [],
+                "inputs": {
+                    "startInputType": "chatInput",
+                    "startEphemeralMemory": true,
+                    "startState": [
+                        {
+                            "key": "processedCount",
+                            "value": "0"
+                        },
+                        {
+                            "key": "savedCount",
+                            "value": "0"
+                        },
+                        {
+                            "key": "skippedCount",
+                            "value": "0"
+                        }
+                    ]
+                },
+                "outputAnchors": [
+                    {
+                        "id": "startAgentflow_0-output-startAgentflow",
+                        "label": "Start",
+                        "name": "startAgentflow"
+                    }
+                ],
+                "outputs": {},
+                "selected": false
+            },
+            "width": 103,
+            "height": 66,
+            "selected": false
+        },
+        {
+            "id": "agentAgentflow_0",
+            "position": {
+                "x": 220,
+                "y": 130
+            },
+            "data": {
+                "id": "agentAgentflow_0",
+                "label": "Gmail Reader",
+                "version": 1,
+                "name": "agentAgentflow",
+                "type": "Agent",
+                "color": "#4DD0E1",
+                "baseClasses": [
+                    "Agent"
+                ],
+                "category": "Agent Flows",
+                "description": "Read invoice emails from Gmail with attachments",
+                "inputParams": [
+                    {
+                        "label": "Model",
+                        "name": "agentModel",
+                        "type": "asyncOptions",
+                        "loadMethod": "listModels",
+                        "loadConfig": true,
+                        "id": "agentAgentflow_0-input-agentModel-asyncOptions",
+                        "display": true
+                    },
+                    {
+                        "label": "Messages",
+                        "name": "agentMessages",
+                        "type": "array",
+                        "optional": true,
+                        "acceptVariable": true,
+                        "array": [
+                            {
+                                "label": "Role",
+                                "name": "role",
+                                "type": "options",
+                                "options": [
+                                    {
+                                        "label": "System",
+                                        "name": "system"
+                                    },
+                                    {
+                                        "label": "User",
+                                        "name": "user"
+                                    }
+                                ]
+                            },
+                            {
+                                "label": "Content",
+                                "name": "content",
+                                "type": "string",
+                                "acceptVariable": true,
+                                "rows": 4
+                            }
+                        ],
+                        "id": "agentAgentflow_0-input-agentMessages-array",
+                        "display": true
+                    },
+                    {
+                        "label": "Tools",
+                        "name": "agentTools",
+                        "type": "array",
+                        "optional": true,
+                        "array": [
+                            {
+                                "label": "Tool",
+                                "name": "agentSelectedTool",
+                                "type": "asyncOptions",
+                                "loadMethod": "listTools",
+                                "loadConfig": true
+                            }
+                        ],
+                        "id": "agentAgentflow_0-input-agentTools-array",
+                        "display": true
+                    },
+                    {
+                        "label": "Enable Memory",
+                        "name": "agentEnableMemory",
+                        "type": "boolean",
+                        "default": false,
+                        "optional": true,
+                        "id": "agentAgentflow_0-input-agentEnableMemory-boolean",
+                        "display": true
+                    }
+                ],
+                "inputAnchors": [],
+                "inputs": {
+                    "agentModel": "chatGoogleGenerativeAI",
+                    "agentMessages": [
+                        {
+                            "role": "system",
+                            "content": "<p>You are an email assistant. Use the Gmail tool to list unread emails with invoice attachments. Search for emails with subject containing 'invoice' that have attachments.</p>"
+                        }
+                    ],
+                    "agentTools": [
+                        {
+                            "agentSelectedTool": "gmail",
+                            "agentSelectedToolConfig": {
+                                "gmailAction": "list_messages",
+                                "gmailQuery": "subject:invoice has:attachment is:unread",
+                                "gmailMaxResults": "10",
+                                "agentSelectedTool": "gmail"
+                            }
+                        }
+                    ],
+                    "agentEnableMemory": false,
+                    "agentModelConfig": {
+                        "credential": "",
+                        "modelName": "gemini-2.0-flash",
+                        "temperature": 0.1,
+                        "streaming": true,
+                        "allowImageUploads": true,
+                        "agentModel": "chatGoogleGenerativeAI"
+                    }
+                },
+                "outputAnchors": [
+                    {
+                        "id": "agentAgentflow_0-output-agentAgentflow",
+                        "label": "Agent",
+                        "name": "agentAgentflow"
+                    }
+                ],
+                "outputs": {},
+                "selected": false
+            },
+            "type": "agentFlow",
+            "width": 180,
+            "height": 100,
+            "selected": false
+        },
+        {
+            "id": "conditionAgentflow_0",
+            "position": {
+                "x": 450,
+                "y": 130
+            },
+            "data": {
+                "id": "conditionAgentflow_0",
+                "label": "Has Emails?",
+                "version": 1,
+                "name": "conditionAgentflow",
+                "type": "Condition",
+                "color": "#FFB938",
+                "baseClasses": [
+                    "Condition"
+                ],
+                "category": "Agent Flows",
+                "description": "Check if any invoice emails were found",
+                "inputParams": [
+                    {
+                        "label": "Conditions",
+                        "name": "conditions",
+                        "type": "array",
+                        "description": "Values to compare",
+                        "acceptVariable": true,
+                        "default": [
+                            {
+                                "type": "number",
+                                "value1": "",
+                                "operation": "equal",
+                                "value2": ""
+                            }
+                        ],
+                        "array": [
+                            {
+                                "label": "Type",
+                                "name": "type",
+                                "type": "options",
+                                "options": [
+                                    {
+                                        "label": "String",
+                                        "name": "string"
+                                    },
+                                    {
+                                        "label": "Number",
+                                        "name": "number"
+                                    },
+                                    {
+                                        "label": "Boolean",
+                                        "name": "boolean"
+                                    }
+                                ],
+                                "default": "number"
+                            },
+                            {
+                                "label": "Value 1",
+                                "name": "value1",
+                                "type": "number",
+                                "default": "",
+                                "description": "First value to be compared with",
+                                "acceptVariable": true
+                            },
+                            {
+                                "label": "Operation",
+                                "name": "operation",
+                                "type": "options",
+                                "options": [
+                                    {
+                                        "label": "Smaller",
+                                        "name": "smaller"
+                                    },
+                                    {
+                                        "label": "Smaller Equal",
+                                        "name": "smallerEqual"
+                                    },
+                                    {
+                                        "label": "Equal",
+                                        "name": "equal"
+                                    },
+                                    {
+                                        "label": "Not Equal",
+                                        "name": "notEqual"
+                                    },
+                                    {
+                                        "label": "Larger",
+                                        "name": "larger"
+                                    },
+                                    {
+                                        "label": "Larger Equal",
+                                        "name": "largerEqual"
+                                    },
+                                    {
+                                        "label": "Is Empty",
+                                        "name": "isEmpty"
+                                    },
+                                    {
+                                        "label": "Not Empty",
+                                        "name": "notEmpty"
+                                    }
+                                ],
+                                "default": "largerEqual"
+                            },
+                            {
+                                "label": "Value 2",
+                                "name": "value2",
+                                "type": "number",
+                                "default": 0,
+                                "description": "Second value to be compared with",
+                                "acceptVariable": true
+                            }
+                        ],
+                        "id": "conditionAgentflow_0-input-conditions-array",
+                        "display": true
+                    }
+                ],
+                "inputAnchors": [],
+                "inputs": {
+                    "conditions": [
+                        {
+                            "type": "number",
+                            "value1": "<p>$flow.output.attachments.length</p>",
+                            "operation": "largerEqual",
+                            "value2": "<p>1</p>"
+                        }
+                    ]
+                },
+                "outputAnchors": [
+                    {
+                        "id": "conditionAgentflow_0-output-0",
+                        "label": 0,
+                        "name": 0,
+                        "description": "Condition 0"
+                    },
+                    {
+                        "id": "conditionAgentflow_0-output-1",
+                        "label": 1,
+                        "name": 1,
+                        "description": "Else"
+                    }
+                ],
+                "outputs": {
+                    "conditionAgentflow": ""
+                },
+                "selected": false
+            },
+            "type": "agentFlow",
+            "width": 147,
+            "height": 80,
+            "selected": false
+        },
+        {
+            "id": "directReplyAgentflow_0",
+            "position": {
+                "x": 650,
+                "y": 250
+            },
+            "data": {
+                "id": "directReplyAgentflow_0",
+                "label": "No Invoices",
+                "version": 1,
+                "name": "directReplyAgentflow",
+                "type": "DirectReply",
+                "color": "#4DDBBB",
+                "baseClasses": [
+                    "DirectReply"
+                ],
+                "category": "Agent Flows",
+                "description": "Reply when no invoices found",
+                "inputParams": [
+                    {
+                        "label": "Message",
+                        "name": "directReplyMessage",
+                        "type": "string",
+                        "rows": 4,
+                        "acceptVariable": true,
+                        "id": "directReplyAgentflow_0-input-directReplyMessage-string",
+                        "display": true
+                    }
+                ],
+                "inputAnchors": [],
+                "inputs": {
+                    "directReplyMessage": "<p>No new invoice emails found. All caught up!</p>"
+                },
+                "outputAnchors": [],
+                "outputs": {},
+                "selected": false
+            },
+            "type": "agentFlow",
+            "width": 150,
+            "height": 70,
+            "selected": false
+        },
+        {
+            "id": "iterationAgentflow_0",
+            "position": {
+                "x": 650,
+                "y": 50
+            },
+            "data": {
+                "id": "iterationAgentflow_0",
+                "label": "Process Attachments",
+                "version": 1,
+                "name": "iterationAgentflow",
+                "type": "Iteration",
+                "color": "#9C89B8",
+                "baseClasses": [
+                    "Iteration"
+                ],
+                "category": "Agent Flows",
+                "description": "Iterate over each attachment in the email",
+                "inputParams": [
+                    {
+                        "label": "Array Input",
+                        "name": "iterationInput",
+                        "type": "string",
+                        "description": "The input array to iterate over",
+                        "acceptVariable": true,
+                        "rows": 4,
+                        "id": "iterationAgentflow_0-input-iterationInput-string",
+                        "display": true
+                    }
+                ],
+                "inputAnchors": [],
+                "inputs": {
+                    "iterationInput": "<p>{{ $flow.output.attachments }}</p>"
+                },
+                "outputAnchors": [
+                    {
+                        "id": "iterationAgentflow_0-output-iterationAgentflow",
+                        "label": "Iteration",
+                        "name": "iterationAgentflow"
+                    }
+                ],
+                "outputs": {},
+                "selected": false
+            },
+            "type": "iteration",
+            "width": 600,
+            "height": 350,
+            "selected": false,
+            "style": {
+                "width": 600,
+                "height": 350
+            }
+        },
+        {
+            "id": "llmAgentflow_0",
+            "position": {
+                "x": 30,
+                "y": 80
+            },
+            "data": {
+                "id": "llmAgentflow_0",
+                "label": "Extract Invoice Data",
+                "version": 1,
+                "name": "llmAgentflow",
+                "type": "LLM",
+                "color": "#64B5F6",
+                "baseClasses": [
+                    "LLM"
+                ],
+                "category": "Agent Flows",
+                "description": "Use Gemini Vision to extract structured invoice data",
+                "inputParams": [
+                    {
+                        "label": "Model",
+                        "name": "llmModel",
+                        "type": "asyncOptions",
+                        "loadMethod": "listModels",
+                        "loadConfig": true,
+                        "id": "llmAgentflow_0-input-llmModel-asyncOptions",
+                        "display": true
+                    },
+                    {
+                        "label": "Messages",
+                        "name": "llmMessages",
+                        "type": "array",
+                        "optional": true,
+                        "acceptVariable": true,
+                        "array": [
+                            {
+                                "label": "Role",
+                                "name": "role",
+                                "type": "options",
+                                "options": [
+                                    {
+                                        "label": "System",
+                                        "name": "system"
+                                    },
+                                    {
+                                        "label": "User",
+                                        "name": "user"
+                                    }
+                                ]
+                            },
+                            {
+                                "label": "Content",
+                                "name": "content",
+                                "type": "string",
+                                "acceptVariable": true,
+                                "rows": 4
+                            }
+                        ],
+                        "id": "llmAgentflow_0-input-llmMessages-array",
+                        "display": true
+                    },
+                    {
+                        "label": "Enable Memory",
+                        "name": "llmEnableMemory",
+                        "type": "boolean",
+                        "default": false,
+                        "optional": true,
+                        "id": "llmAgentflow_0-input-llmEnableMemory-boolean",
+                        "display": true
+                    },
+                    {
+                        "label": "JSON Structured Output",
+                        "name": "llmStructuredOutput",
+                        "type": "array",
+                        "optional": true,
+                        "id": "llmAgentflow_0-input-llmStructuredOutput-array",
+                        "display": true
+                    },
+                    {
+                        "label": "Update Flow State",
+                        "name": "llmUpdateState",
+                        "type": "array",
+                        "optional": true,
+                        "id": "llmAgentflow_0-input-llmUpdateState-array",
+                        "display": true
+                    }
+                ],
+                "inputAnchors": [],
+                "inputs": {
+                    "llmModel": "chatGoogleGenerativeAI",
+                    "llmMessages": [
+                        {
+                            "role": "system",
+                            "content": "<p>You are an invoice data extraction specialist. Extract ALL relevant data from the invoice image/PDF provided. If a field is not visible or unclear, use null.</p>"
+                        },
+                        {
+                            "role": "user",
+                            "content": "<p>Extract invoice data from this attachment: {{ $iteration.item }}</p>"
+                        }
+                    ],
+                    "llmEnableMemory": false,
+                    "llmStructuredOutput": [
+                        {
+                            "key": "invoice",
+                            "type": "jsonArray",
+                            "enumValues": "",
+                            "jsonSchema": "{\n    \"vendor_name\": {\n        \"type\": \"string\",\n        \"description\": \"Company/vendor name on the invoice\"\n    },\n    \"invoice_number\": {\n        \"type\": \"string\",\n        \"description\": \"Invoice/Bill number - REQUIRED\"\n    },\n    \"invoice_date\": {\n        \"type\": \"string\",\n        \"description\": \"Invoice date in YYYY-MM-DD format\"\n    },\n    \"due_date\": {\n        \"type\": \"string\",\n        \"description\": \"Due date in YYYY-MM-DD format\"\n    },\n    \"total_amount\": {\n        \"type\": \"number\",\n        \"description\": \"Total invoice amount\"\n    },\n    \"currency\": {\n        \"type\": \"string\",\n        \"description\": \"Currency code (USD, INR, EUR)\"\n    },\n    \"subtotal\": {\n        \"type\": \"number\",\n        \"description\": \"Subtotal before tax\"\n    },\n    \"tax_amount\": {\n        \"type\": \"number\",\n        \"description\": \"Tax amount\"\n    },\n    \"tax_percentage\": {\n        \"type\": \"number\",\n        \"description\": \"Tax percentage if mentioned\"\n    },\n    \"line_items\": {\n        \"type\": \"array\",\n        \"items\": {\n            \"type\": \"object\",\n            \"properties\": {\n                \"description\": {\"type\": \"string\"},\n                \"quantity\": {\"type\": \"number\"},\n                \"unit_price\": {\"type\": \"number\"},\n                \"amount\": {\"type\": \"number\"}\n            }\n        },\n        \"description\": \"Array of line items\"\n    },\n    \"billing_address\": {\n        \"type\": \"string\",\n        \"description\": \"Billing/Customer address\"\n    },\n    \"vendor_address\": {\n        \"type\": \"string\",\n        \"description\": \"Vendor/Seller address\"\n    },\n    \"payment_terms\": {\n        \"type\": \"string\",\n        \"description\": \"Payment terms if mentioned\"\n    },\n    \"bank_details\": {\n        \"type\": \"string\",\n        \"description\": \"Bank account details if present\"\n    }\n}",
+                            "description": "Complete invoice data extracted from the document"
+                        }
+                    ],
+                    "llmUpdateState": [
+                        {
+                            "key": "extractedInvoice",
+                            "value": "{{ output }}"
+                        }
+                    ],
+                    "llmModelConfig": {
+                        "credential": "",
+                        "modelName": "gemini-2.0-flash",
+                        "temperature": 0.1,
+                        "streaming": true,
+                        "allowImageUploads": true,
+                        "llmModel": "chatGoogleGenerativeAI"
+                    }
+                },
+                "outputAnchors": [
+                    {
+                        "id": "llmAgentflow_0-output-llmAgentflow",
+                        "label": "LLM",
+                        "name": "llmAgentflow"
+                    }
+                ],
+                "outputs": {},
+                "selected": false
+            },
+            "type": "agentFlow",
+            "parentNode": "iterationAgentflow_0",
+            "extent": "parent",
+            "width": 200,
+            "height": 80,
+            "selected": false
+        },
+        {
+            "id": "customFunctionAgentflow_0",
+            "position": {
+                "x": 260,
+                "y": 80
+            },
+            "data": {
+                "id": "customFunctionAgentflow_0",
+                "label": "Save File & Check Duplicate",
+                "version": 1,
+                "name": "customFunctionAgentflow",
+                "type": "CustomFunction",
+                "color": "#E4B7FF",
+                "baseClasses": [
+                    "CustomFunction"
+                ],
+                "category": "Agent Flows",
+                "description": "Save file locally and check for duplicate invoice",
+                "inputParams": [
+                    {
+                        "label": "JavaScript Function",
+                        "name": "customFunctionJavascriptFunction",
+                        "type": "code",
+                        "id": "customFunctionAgentflow_0-input-customFunctionJavascriptFunction-code",
+                        "display": true
+                    },
+                    {
+                        "label": "Update Flow State",
+                        "name": "customFunctionUpdateState",
+                        "type": "array",
+                        "optional": true,
+                        "id": "customFunctionAgentflow_0-input-customFunctionUpdateState-array",
+                        "display": true
+                    }
+                ],
+                "inputAnchors": [],
+                "inputs": {
+                    "customFunctionJavascriptFunction": "const fs = require('fs');\nconst path = require('path');\nconst { Client } = require('pg');\n\n// Configuration from flow variables\nconst storagePath = $vars.FILE_STORAGE_PATH || '/var/invoices';\nconst connectionString = $vars.PG_CONNECTION_STRING || 'postgresql://chainsys:postgres@localhost:5432/agent';\n\n// Get data from flow state\nconst invoice = $flow.state.extractedInvoice;\nconst attachment = $flow.state.currentAttachment;\nconst emailMetadata = $flow.state.emailMetadata;\n\n// Create folder structure: /storage/YYYY/MM/\nconst now = new Date();\nconst year = now.getFullYear();\nconst month = String(now.getMonth() + 1).padStart(2, '0');\nconst folderPath = path.join(storagePath, String(year), month);\n\nif (!fs.existsSync(folderPath)) {\n    fs.mkdirSync(folderPath, { recursive: true });\n}\n\n// Generate safe filename\nconst ext = path.extname(attachment.filename) || '.pdf';\nconst safeInvoiceNum = invoice.invoice_number.replace(/[^a-zA-Z0-9-]/g, '_');\nconst safeFilename = `${safeInvoiceNum}_${Date.now()}${ext}`;\nconst fullPath = path.join(folderPath, safeFilename);\n\n// Save file\nconst buffer = Buffer.from(attachment.data, 'base64');\nfs.writeFileSync(fullPath, buffer);\n\n// Check for duplicate and insert to PostgreSQL\nconst client = new Client({ connectionString });\nawait client.connect();\n\nconst checkResult = await client.query(\n    'SELECT id FROM invoices WHERE invoice_number = $1',\n    [invoice.invoice_number]\n);\n\nif (checkResult.rows.length > 0) {\n    await client.end();\n    return {\n        success: false,\n        isDuplicate: true,\n        message: `Duplicate: Invoice ${invoice.invoice_number} already exists`\n    };\n}\n\n// Insert new invoice\nconst insertQuery = `\n    INSERT INTO invoices (\n        vendor_name, invoice_number, invoice_date, due_date,\n        total_amount, currency, subtotal, tax_amount, tax_percentage,\n        line_items, billing_address, vendor_address, payment_terms,\n        bank_details, file_path, email_from, email_subject, \n        email_received_at, email_message_id, processed_at\n    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, NOW())\n    RETURNING id\n`;\n\nconst result = await client.query(insertQuery, [\n    invoice.vendor_name,\n    invoice.invoice_number,\n    invoice.invoice_date,\n    invoice.due_date,\n    invoice.total_amount,\n    invoice.currency || 'INR',\n    invoice.subtotal,\n    invoice.tax_amount,\n    invoice.tax_percentage,\n    JSON.stringify(invoice.line_items),\n    invoice.billing_address,\n    invoice.vendor_address,\n    invoice.payment_terms,\n    invoice.bank_details,\n    fullPath,\n    emailMetadata.from,\n    emailMetadata.subject,\n    emailMetadata.date,\n    emailMetadata.messageId\n]);\n\nawait client.end();\n\nreturn {\n    success: true,\n    isDuplicate: false,\n    invoiceId: result.rows[0].id,\n    filePath: fullPath,\n    message: `Invoice ${invoice.invoice_number} saved successfully`\n};",
+                    "customFunctionUpdateState": [
+                        {
+                            "key": "lastResult",
+                            "value": "{{ output }}"
+                        }
+                    ]
+                },
+                "outputAnchors": [
+                    {
+                        "id": "customFunctionAgentflow_0-output-customFunctionAgentflow",
+                        "label": "CustomFunction",
+                        "name": "customFunctionAgentflow"
+                    }
+                ],
+                "outputs": {},
+                "selected": false
+            },
+            "type": "agentFlow",
+            "parentNode": "iterationAgentflow_0",
+            "extent": "parent",
+            "width": 200,
+            "height": 80,
+            "selected": false
+        },
+        {
+            "id": "directReplyAgentflow_1",
+            "position": {
+                "x": 1300,
+                "y": 130
+            },
+            "data": {
+                "id": "directReplyAgentflow_1",
+                "label": "Summary Report",
+                "version": 1,
+                "name": "directReplyAgentflow",
+                "type": "DirectReply",
+                "color": "#4DDBBB",
+                "baseClasses": [
+                    "DirectReply"
+                ],
+                "category": "Agent Flows",
+                "description": "Return processing summary",
+                "inputParams": [
+                    {
+                        "label": "Message",
+                        "name": "directReplyMessage",
+                        "type": "string",
+                        "rows": 4,
+                        "acceptVariable": true,
+                        "id": "directReplyAgentflow_1-input-directReplyMessage-string",
+                        "display": true
+                    }
+                ],
+                "inputAnchors": [],
+                "inputs": {
+                    "directReplyMessage": "<p>Invoice Processing Complete!</p><p>Processed: {{ $flow.state.processedCount }}</p><p>Saved: {{ $flow.state.savedCount }}</p><p>Skipped (duplicates): {{ $flow.state.skippedCount }}</p>"
+                },
+                "outputAnchors": [],
+                "outputs": {},
+                "selected": false
+            },
+            "type": "agentFlow",
+            "width": 180,
+            "height": 70,
+            "selected": false
+        }
+    ],
+    "edges": [
+        {
+            "source": "startAgentflow_0",
+            "sourceHandle": "startAgentflow_0-output-startAgentflow",
+            "target": "agentAgentflow_0",
+            "targetHandle": "agentAgentflow_0",
+            "data": {
+                "sourceColor": "#7EE787",
+                "targetColor": "#4DD0E1",
+                "isHumanInput": false
+            },
+            "type": "agentFlow",
+            "id": "startAgentflow_0-agentAgentflow_0"
+        },
+        {
+            "source": "agentAgentflow_0",
+            "sourceHandle": "agentAgentflow_0-output-agentAgentflow",
+            "target": "conditionAgentflow_0",
+            "targetHandle": "conditionAgentflow_0",
+            "data": {
+                "sourceColor": "#4DD0E1",
+                "targetColor": "#FFB74D",
+                "isHumanInput": false
+            },
+            "type": "agentFlow",
+            "id": "agentAgentflow_0-conditionAgentflow_0"
+        },
+        {
+            "source": "conditionAgentflow_0",
+            "sourceHandle": "conditionAgentflow_0-output-0",
+            "target": "iterationAgentflow_0",
+            "targetHandle": "iterationAgentflow_0",
+            "data": {
+                "sourceColor": "#FFB938",
+                "targetColor": "#9C89B8",
+                "edgeLabel": "0",
+                "isHumanInput": false
+            },
+            "type": "agentFlow",
+            "id": "conditionAgentflow_0-conditionAgentflow_0-output-0-iterationAgentflow_0-iterationAgentflow_0"
+        },
+        {
+            "source": "conditionAgentflow_0",
+            "sourceHandle": "conditionAgentflow_0-output-1",
+            "target": "directReplyAgentflow_0",
+            "targetHandle": "directReplyAgentflow_0",
+            "data": {
+                "sourceColor": "#FFB938",
+                "targetColor": "#4DDBBB",
+                "edgeLabel": "1",
+                "isHumanInput": false
+            },
+            "type": "agentFlow",
+            "id": "conditionAgentflow_0-conditionAgentflow_0-output-1-directReplyAgentflow_0-directReplyAgentflow_0"
+        },
+        {
+            "source": "llmAgentflow_0",
+            "sourceHandle": "llmAgentflow_0-output-llmAgentflow",
+            "target": "customFunctionAgentflow_0",
+            "targetHandle": "customFunctionAgentflow_0",
+            "data": {
+                "sourceColor": "#64B5F6",
+                "targetColor": "#FF7043",
+                "isHumanInput": false
+            },
+            "type": "agentFlow",
+            "id": "llmAgentflow_0-customFunctionAgentflow_0"
+        },
+        {
+            "source": "iterationAgentflow_0",
+            "sourceHandle": "iterationAgentflow_0-output-iterationAgentflow",
+            "target": "directReplyAgentflow_1",
+            "targetHandle": "directReplyAgentflow_1",
+            "data": {
+                "sourceColor": "#9C89B8",
+                "targetColor": "#E1BEE7",
+                "isHumanInput": false
+            },
+            "type": "agentFlow",
+            "id": "iterationAgentflow_0-directReplyAgentflow_1"
+        }
+    ]
+}

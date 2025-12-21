@@ -124,53 +124,53 @@ export const AsyncDropdown = ({
 
     useEffect(() => {
         setLoading(true)
-        ;(async () => {
-            const fetchData = async () => {
-                let response = []
-                if (credentialNames.length) {
-                    response = await fetchCredentialList()
-                } else {
-                    const body = {
-                        name,
-                        nodeData
-                    }
-                    if (reactFlowInstance) {
-                        const previousNodes = getAvailableNodesForVariable(
-                            reactFlowInstance.getNodes(),
-                            reactFlowInstance.getEdges(),
-                            nodeData.id,
-                            `${nodeData.id}-input-${name}-${nodeData.inputParams.find((param) => param.name === name)?.type || ''}`,
-                            true
-                        ).map((node) => ({ id: node.id, name: node.data.name, label: node.data.label, inputs: node.data.inputs }))
+            ; (async () => {
+                const fetchData = async () => {
+                    let response = []
+                    if (credentialNames.length) {
+                        response = await fetchCredentialList()
+                    } else {
+                        const body = {
+                            name,
+                            nodeData
+                        }
+                        if (reactFlowInstance) {
+                            const previousNodes = getAvailableNodesForVariable(
+                                reactFlowInstance.getNodes(),
+                                reactFlowInstance.getEdges(),
+                                nodeData.id,
+                                `${nodeData.id}-input-${name}-${nodeData.inputParams.find((param) => param.name === name)?.type || ''}`,
+                                true
+                            ).map((node) => ({ id: node.id, name: node.data.name, label: node.data.label, inputs: node.data.inputs }))
 
-                        let currentNode = reactFlowInstance.getNodes().find((node) => node.id === nodeData.id)
-                        if (currentNode) {
-                            currentNode = {
-                                id: currentNode.id,
-                                name: currentNode.data.name,
-                                label: currentNode.data.label,
-                                inputs: currentNode.data.inputs
+                            let currentNode = reactFlowInstance.getNodes().find((node) => node.id === nodeData.id)
+                            if (currentNode) {
+                                currentNode = {
+                                    id: currentNode.id,
+                                    name: currentNode.data.name,
+                                    label: currentNode.data.label,
+                                    inputs: currentNode.data.inputs
+                                }
+                                body.currentNode = currentNode
                             }
-                            body.currentNode = currentNode
+
+                            body.previousNodes = previousNodes
                         }
 
-                        body.previousNodes = previousNodes
+                        response = await fetchList(body)
                     }
-
-                    response = await fetchList(body)
-                }
-                for (let j = 0; j < response.length; j += 1) {
-                    if (response[j].imageSrc) {
-                        const imageSrc = `${baseURL}/api/v1/node-icon/${response[j].name}`
-                        response[j].imageSrc = imageSrc
+                    for (let j = 0; j < response.length; j += 1) {
+                        if (response[j].imageSrc) {
+                            const imageSrc = `${baseURL}/api/v1/node-icon/${response[j].name}`
+                            response[j].imageSrc = imageSrc
+                        }
                     }
+                    if (isCreateNewOption) setOptions([...response, ...addNewOption])
+                    else setOptions([...response])
+                    setLoading(false)
                 }
-                if (isCreateNewOption) setOptions([...response, ...addNewOption])
-                else setOptions([...response])
-                setLoading(false)
-            }
-            fetchData()
-        })()
+                fetchData()
+            })()
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])

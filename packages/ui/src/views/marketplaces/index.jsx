@@ -110,7 +110,7 @@ const Marketplace = () => {
     const { confirm } = useConfirm()
     const { hasPermission } = useAuth()
 
-    // Share template dialog removed - not needed for autonomous server
+    // Share template dialog removed - not needed for kodivian server
 
     const share = (template) => {
         const dialogProps = {

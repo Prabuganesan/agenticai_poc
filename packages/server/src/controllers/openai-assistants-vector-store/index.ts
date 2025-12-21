@@ -1,19 +1,19 @@
 import { Request, Response, NextFunction } from 'express'
 import { StatusCodes } from 'http-status-codes'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import openAIAssistantVectorStoreService from '../../services/openai-assistants-vector-store'
 import { AuthenticatedRequest } from '../../middlewares/session-validation.middleware'
 
 const getAssistantVectorStore = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: openaiAssistantsVectorStoreController.getAssistantVectorStore - id not provided!`
             )
         }
         if (typeof req.query === 'undefined' || !req.query.credential) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: openaiAssistantsVectorStoreController.getAssistantVectorStore - credential not provided!`
             )
@@ -21,7 +21,7 @@ const getAssistantVectorStore = async (req: Request, res: Response, next: NextFu
         const authReq = req as AuthenticatedRequest
         const orgId = authReq.orgId || (req as any).orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
         const apiResponse = await openAIAssistantVectorStoreService.getAssistantVectorStore(
             req.query.credential as string,
@@ -37,7 +37,7 @@ const getAssistantVectorStore = async (req: Request, res: Response, next: NextFu
 const listAssistantVectorStore = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (typeof req.query === 'undefined' || !req.query.credential) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: openaiAssistantsVectorStoreController.listAssistantVectorStore - credential not provided!`
             )
@@ -45,7 +45,7 @@ const listAssistantVectorStore = async (req: Request, res: Response, next: NextF
         const authReq = req as AuthenticatedRequest
         const orgId = authReq.orgId || (req as any).orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
         const apiResponse = await openAIAssistantVectorStoreService.listAssistantVectorStore(req.query.credential as string, orgId)
         return res.json(apiResponse)
@@ -57,13 +57,13 @@ const listAssistantVectorStore = async (req: Request, res: Response, next: NextF
 const createAssistantVectorStore = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (!req.body) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: openaiAssistantsVectorStoreController.createAssistantVectorStore - body not provided!`
             )
         }
         if (typeof req.query === 'undefined' || !req.query.credential) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: openaiAssistantsVectorStoreController.createAssistantVectorStore - credential not provided!`
             )
@@ -71,7 +71,7 @@ const createAssistantVectorStore = async (req: Request, res: Response, next: Nex
         const authReq = req as AuthenticatedRequest
         const orgId = authReq.orgId || (req as any).orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
         const apiResponse = await openAIAssistantVectorStoreService.createAssistantVectorStore(
             req.query.credential as string,
@@ -87,19 +87,19 @@ const createAssistantVectorStore = async (req: Request, res: Response, next: Nex
 const updateAssistantVectorStore = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: openaiAssistantsVectorStoreController.updateAssistantVectorStore - id not provided!`
             )
         }
         if (typeof req.query === 'undefined' || !req.query.credential) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: openaiAssistantsVectorStoreController.updateAssistantVectorStore - credential not provided!`
             )
         }
         if (!req.body) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: openaiAssistantsVectorStoreController.updateAssistantVectorStore - body not provided!`
             )
@@ -107,7 +107,7 @@ const updateAssistantVectorStore = async (req: Request, res: Response, next: Nex
         const authReq = req as AuthenticatedRequest
         const orgId = authReq.orgId || (req as any).orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
         const apiResponse = await openAIAssistantVectorStoreService.updateAssistantVectorStore(
             req.query.credential as string,
@@ -124,13 +124,13 @@ const updateAssistantVectorStore = async (req: Request, res: Response, next: Nex
 const deleteAssistantVectorStore = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: openaiAssistantsVectorStoreController.deleteAssistantVectorStore - id not provided!`
             )
         }
         if (typeof req.query === 'undefined' || !req.query.credential) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: openaiAssistantsVectorStoreController.updateAssistantVectorStore - credential not provided!`
             )
@@ -138,7 +138,7 @@ const deleteAssistantVectorStore = async (req: Request, res: Response, next: Nex
         const authReq = req as AuthenticatedRequest
         const orgId = authReq.orgId || (req as any).orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
         const apiResponse = await openAIAssistantVectorStoreService.deleteAssistantVectorStore(
             req.query.credential as string,
@@ -154,19 +154,19 @@ const deleteAssistantVectorStore = async (req: Request, res: Response, next: Nex
 const uploadFilesToAssistantVectorStore = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (!req.body) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: openaiAssistantsVectorStoreController.uploadFilesToAssistantVectorStore - body not provided!`
             )
         }
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: openaiAssistantsVectorStoreController.uploadFilesToAssistantVectorStore - id not provided!`
             )
         }
         if (typeof req.query === 'undefined' || !req.query.credential) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: openaiAssistantsVectorStoreController.uploadFilesToAssistantVectorStore - credential not provided!`
             )
@@ -174,7 +174,7 @@ const uploadFilesToAssistantVectorStore = async (req: Request, res: Response, ne
         const authReq = req as AuthenticatedRequest
         const orgId = authReq.orgId || (req as any).orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
         const files = req.files ?? []
         const uploadFiles: { filePath: string; fileName: string }[] = []
@@ -205,19 +205,19 @@ const uploadFilesToAssistantVectorStore = async (req: Request, res: Response, ne
 const deleteFilesFromAssistantVectorStore = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (!req.body) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: openaiAssistantsVectorStoreController.deleteFilesFromAssistantVectorStore - body not provided!`
             )
         }
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: openaiAssistantsVectorStoreController.deleteFilesFromAssistantVectorStore - id not provided!`
             )
         }
         if (typeof req.query === 'undefined' || !req.query.credential) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: openaiAssistantsVectorStoreController.deleteFilesFromAssistantVectorStore - credential not provided!`
             )
@@ -225,7 +225,7 @@ const deleteFilesFromAssistantVectorStore = async (req: Request, res: Response, 
         const authReq = req as AuthenticatedRequest
         const orgId = authReq.orgId || (req as any).orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
 
         const apiResponse = await openAIAssistantVectorStoreService.deleteFilesFromAssistantVectorStore(

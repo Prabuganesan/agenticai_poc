@@ -57,7 +57,7 @@ import useNotifier from '@/utils/useNotifier'
 import { usePrompt } from '@/utils/usePrompt'
 
 // const
-import { AUTONOMOUS_CREDENTIAL_ID, AGENTFLOW_ICONS } from '@/store/constant'
+import { KODIVIAN_CREDENTIAL_ID, AGENTFLOW_ICONS } from '@/store/constant'
 
 const nodeTypes = { agentFlow: CanvasNode, stickyNote: StickyNote, iteration: IterationNode }
 const edgeTypes = { agentFlow: AgentFlowEdge }
@@ -206,9 +206,9 @@ const AgentflowCanvas = () => {
         if (reactFlowInstance) {
             const nodes = reactFlowInstance.getNodes().map((node) => {
                 const nodeData = cloneDeep(node.data)
-                if (Object.prototype.hasOwnProperty.call(nodeData.inputs, AUTONOMOUS_CREDENTIAL_ID)) {
-                    nodeData.credential = nodeData.inputs[AUTONOMOUS_CREDENTIAL_ID]
-                    nodeData.inputs = omit(nodeData.inputs, [AUTONOMOUS_CREDENTIAL_ID])
+                if (Object.prototype.hasOwnProperty.call(nodeData.inputs, KODIVIAN_CREDENTIAL_ID)) {
+                    nodeData.credential = nodeData.inputs[KODIVIAN_CREDENTIAL_ID]
+                    nodeData.inputs = omit(nodeData.inputs, [KODIVIAN_CREDENTIAL_ID])
                 }
                 node.data = {
                     ...nodeData,

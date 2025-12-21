@@ -234,7 +234,7 @@ const ChatMessage = ({ open, chatflowid, isAgentCanvas, isDialog, previews, setP
     const [feedbackId, setFeedbackId] = useState('')
     const [showFeedbackContentDialog, setShowFeedbackContentDialog] = useState(false)
 
-    // Leads feature removed for autonomous server deployment
+    // Leads feature removed for kodivian server deployment
     // const [leadsConfig, setLeadsConfig] = useState(null)
     // const [leadName, setLeadName] = useState('')
     // const [leadEmail, setLeadEmail] = useState('')
@@ -1145,7 +1145,7 @@ const ChatMessage = ({ open, chatflowid, isAgentCanvas, isDialog, previews, setP
                 delete params.question
             }
             if (uploads && uploads.length > 0) params.uploads = uploads
-            // Leads feature removed for autonomous server deployment
+            // Leads feature removed for kodivian server deployment
             // if (leadEmail) params.leadEmail = leadEmail
             if (action) params.action = action
             if (humanInput) params.humanInput = humanInput
@@ -1935,7 +1935,7 @@ const ChatMessage = ({ open, chatflowid, isAgentCanvas, isDialog, previews, setP
                     setChatFeedbackStatus(config.chatFeedback.status)
                 }
 
-                // Leads feature removed for autonomous server deployment
+                // Leads feature removed for kodivian server deployment
                 // if (config.leads) {
                 //     setLeadsConfig(config.leads)
                 //     if (config.leads.status && !getLocalStorageChatflow(chatflowid).lead) {
@@ -2036,7 +2036,7 @@ const ChatMessage = ({ open, chatflowid, isAgentCanvas, isDialog, previews, setP
             setIsRecording(false)
             setIsConfigLoading(true)
 
-            // Leads feature removed for autonomous server deployment
+            // Leads feature removed for kodivian server deployment
             // const savedLead = getLocalStorageChatflow(chatflowid)?.lead
             // if (savedLead) {
             //     setIsLeadSaved(!!savedLead)
@@ -2173,7 +2173,7 @@ const ChatMessage = ({ open, chatflowid, isAgentCanvas, isDialog, previews, setP
         }
     }
 
-    // Leads feature removed for autonomous server deployment
+    // Leads feature removed for kodivian server deployment
     // const handleLeadCaptureSubmit = async (event) => {
     //     if (event) event.preventDefault()
     //     setIsLeadSaving(true)
@@ -2650,7 +2650,7 @@ const ChatMessage = ({ open, chatflowid, isAgentCanvas, isDialog, previews, setP
         return (
             loading ||
             !chatflowid ||
-            // Leads feature removed for autonomous server deployment
+            // Leads feature removed for kodivian server deployment
             // (leadsConfig?.status && !isLeadSaved) ||
             (messages.length > 0 && messages[messages.length - 1].action && Object.keys(messages[messages.length - 1].action).length > 0)
         )
@@ -3313,7 +3313,7 @@ const ChatMessage = ({ open, chatflowid, isAgentCanvas, isDialog, previews, setP
                                                             </div>
                                                         )}
                                                         <div className={`markdownanswer ${message.type === 'userMessage' ? 'markdownanswer-right' : ''}`}>
-                                                            {/* Leads feature removed for autonomous server deployment */}
+                                                            {/* Leads feature removed for kodivian server deployment */}
                                                             <>
                                                                 <MemoizedReactMarkdown chatflowid={chatflowid} isFullWidth={isDialog}>
                                                                     {message.message}
@@ -3657,7 +3657,7 @@ const ChatMessage = ({ open, chatflowid, isAgentCanvas, isDialog, previews, setP
                                                             </div>
                                                         )}
                                                         <div className={`markdownanswer ${message.type === 'userMessage' ? 'markdownanswer-right' : ''}`}>
-                                                            {/* Leads feature removed for autonomous server deployment */}
+                                                            {/* Leads feature removed for kodivian server deployment */}
                                                             <>
                                                                 <MemoizedReactMarkdown chatflowid={chatflowid} isFullWidth={isDialog}>
                                                                     {message.message}

@@ -168,25 +168,34 @@ This document provides instructions for setting up the `.env` file for the Auton
 - **Default**: (empty - allows all origins)
 - **Example**: `IFRAME_ORIGINS=http://localhost:3030,https://example.com`
 
+#### `KODIVIAN_DATA_PATH`
+- **Description**: Path to store data (database, uploads, etc).
+- **Default**: `` (uses default relative paths)
+- **Example**: `KODIVIAN_DATA_PATH=/path/to/your/data`
+- **Note**: All data will be stored in `KODIVIAN_DATA_PATH/.kodivian/`
+
+#### `KODIVIAN_FILE_SIZE_LIMIT`
+- **Description**: File size limit for uploads.
+- **Default**: `50mb`
+- **Example**: `KODIVIAN_FILE_SIZE_LIMIT=50mb`
+
+#### `DISABLE_KODIVIAN_TELEMETRY`
+- **Description**: Disable telemetry.
+- **Default**: `false`
+
+#### `KODIVIAN_LICENSE_KEY`
+- **Description**: License key for enterprise features.
+
 #### `CHATBOT_IFRAME_ORIGINS`
 - **Description**: Comma-separated list of allowed chatbot iframe origins
 - **Default**: (empty)
 - **Example**: `CHATBOT_IFRAME_ORIGINS=http://localhost:3030,https://example.com`
-
-#### `AUTONOMOUS_FILE_SIZE_LIMIT`
-- **Description**: Maximum file size limit for uploads
-- **Default**: (empty)
-- **Example**: `AUTONOMOUS_FILE_SIZE_LIMIT=50mb`
 
 #### `SHOW_COMMUNITY_NODES`
 - **Description**: Show community nodes in the UI
 - **Default**: `true`
 - **Options**: `true` or `false`
 
-#### `DISABLE_AUTONOMOUS_TELEMETRY`
-- **Description**: Disable Autonomous telemetry
-- **Default**: `true`
-- **Options**: `true` or `false`
 
 #### `DISABLED_NODES`
 - **Description**: Comma-separated list of node names to disable

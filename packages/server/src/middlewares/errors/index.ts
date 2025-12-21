@@ -1,10 +1,10 @@
 import { NextFunction, Request, Response } from 'express'
 import { StatusCodes } from 'http-status-codes'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 
 // we need eslint because we have to pass next arg for the error middleware
 // eslint-disable-next-line
-async function errorHandlerMiddleware(err: InternalAutonomousError, req: Request, res: Response, next: NextFunction) {
+async function errorHandlerMiddleware(err: InternalKodivianError, req: Request, res: Response, next: NextFunction) {
     const statusCode = err.statusCode || StatusCodes.INTERNAL_SERVER_ERROR
 
     // Sanitize error messages in production

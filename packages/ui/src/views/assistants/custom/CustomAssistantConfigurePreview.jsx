@@ -105,7 +105,7 @@ const CustomAssistantConfigurePreview = () => {
     const [apiDialogProps, setAPIDialogProps] = useState({})
     const [viewMessagesDialogOpen, setViewMessagesDialogOpen] = useState(false)
     const [viewMessagesDialogProps, setViewMessagesDialogProps] = useState({})
-    // Leads feature removed for autonomous server deployment
+    // Leads feature removed for kodivian server deployment
     // const [viewLeadsDialogOpen, setViewLeadsDialogOpen] = useState(false)
     // const [viewLeadsDialogProps, setViewLeadsDialogProps] = useState({})
     const [chatflowConfigurationDialogOpen, setChatflowConfigurationDialogOpen] = useState(false)
@@ -452,7 +452,7 @@ const CustomAssistantConfigurePreview = () => {
                 isChatflow: false
             })
             setViewMessagesDialogOpen(true)
-        // Leads feature removed for autonomous server deployment
+        // Leads feature removed for kodivian server deployment
         // } else if (setting === 'viewLeads') {
         //     setViewLeadsDialogProps({
         //         title: 'View Leads',
@@ -1340,7 +1340,7 @@ const CustomAssistantConfigurePreview = () => {
                 dialogProps={viewMessagesDialogProps}
                 onCancel={() => setViewMessagesDialogOpen(false)}
             />
-            {/* Leads feature removed for autonomous server deployment */}
+            {/* Leads feature removed for kodivian server deployment */}
             {/* <ViewLeadsDialog show={viewLeadsDialogOpen} dialogProps={viewLeadsDialogProps} onCancel={() => setViewLeadsDialogOpen(false)} /> */}
             <ChatflowConfigurationDialog
                 key='chatflowConfiguration'

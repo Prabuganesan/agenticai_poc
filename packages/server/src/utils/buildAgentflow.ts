@@ -2496,7 +2496,7 @@ export const executeAgentFlow = async ({
         created_on: userMessageDateTime.getTime(),
         created_by: userIdNum || 0,
         fileUploads: uploads ? JSON.stringify(fileUploads) : undefined,
-        // leadEmail: incomingInput.leadEmail, // Leads feature removed for autonomous server deployment
+        // leadEmail: incomingInput.leadEmail, // Leads feature removed for kodivian server deployment
         executionId: newExecution.guid
     }
     if (!orgId) {

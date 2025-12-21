@@ -1,4 +1,4 @@
-import { AUTONOMOUS_METRIC_COUNTERS, IMetricsProvider } from '../Interface.Metrics'
+import { KODIVIAN_METRIC_COUNTERS, IMetricsProvider } from '../Interface.Metrics'
 import { Resource } from '@opentelemetry/resources'
 import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions'
 import { MeterProvider, PeriodicExportingMetricReader, Histogram } from '@opentelemetry/sdk-metrics'
@@ -107,7 +107,7 @@ export class OpenTelemetry implements IMetricsProvider {
             const meter = this.meterProvider.getMeter('autonomous-metrics')
             // look at the AUTONOMOUS_COUNTER enum in Interface.Metrics.ts and get all values
             // for each counter in the enum, create a new promClient.Counter and add it to the registry
-            const enumEntries = Object.entries(AUTONOMOUS_METRIC_COUNTERS)
+            const enumEntries = Object.entries(KODIVIAN_METRIC_COUNTERS)
             enumEntries.forEach(([name, value]) => {
                 try {
                     // Check if we've already created this metric
@@ -248,7 +248,7 @@ export class OpenTelemetry implements IMetricsProvider {
         try {
             // Increment OpenTelemetry counter with the payload
             if (this.counters.has(counter)) {
-                ;(this.counters.get(counter) as Counter<Attributes>).add(1, payload)
+                ; (this.counters.get(counter) as Counter<Attributes>).add(1, payload)
             }
         } catch (error) {
             console.error(`Error incrementing counter ${counter}:`, error)

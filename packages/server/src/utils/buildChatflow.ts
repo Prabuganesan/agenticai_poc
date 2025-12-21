@@ -37,7 +37,7 @@ import {
     IVariableOverride,
     MODE
 } from '../Interface'
-import { InternalAutonomousError } from '../errors/internalAutonomousError'
+import { InternalKodivianError } from '../errors/internalKodivianError'
 import { databaseEntities } from '.'
 import { ChatFlow } from '../database/entities/ChatFlow'
 import { Variable } from '../database/entities/Variable'
@@ -61,7 +61,7 @@ import { chatflowLog } from './logger/module-methods'
 import { utilAddChatMessage } from './addChatMesage'
 import { checkPredictions, checkStorage, updatePredictionsUsage, updateStorageUsage } from './quotaUsage'
 import { getErrorMessage, sanitizeErrorMessage } from '../errors/utils'
-import { AUTONOMOUS_METRIC_COUNTERS, AUTONOMOUS_COUNTER_STATUS, IMetricsProvider } from '../Interface.Metrics'
+import { KODIVIAN_METRIC_COUNTERS, KODIVIAN_COUNTER_STATUS, IMetricsProvider } from '../Interface.Metrics'
 import { OMIT_QUEUE_JOB_DATA } from './constants'
 import { executeAgentFlow } from './buildAgentflow'
 import chatSessionsService from '../services/chat-sessions'
@@ -78,7 +78,7 @@ const shouldAutoPlayTTS = (textToSpeechConfig: string | undefined | null): boole
         }
         return false
     } catch (error) {
-        logError(`Error parsing textToSpeechConfig: ${getErrorMessage(error)}`).catch(() => {})
+        logError(`Error parsing textToSpeechConfig: ${getErrorMessage(error)}`).catch(() => { })
         return false
     }
 }
@@ -129,7 +129,7 @@ const generateTTSForResponseStream = async (
             }
         )
     } catch (error) {
-        logError(`[server]: TTS streaming failed: ${getErrorMessage(error)}`).catch(() => {})
+        logError(`[server]: TTS streaming failed: ${getErrorMessage(error)}`).catch(() => { })
         sseStreamer.streamTTSEndEvent(chatId, chatMessageId)
     }
 }
@@ -167,7 +167,7 @@ const initEndingNode = async ({
             : reactFlowNodes[reactFlowNodes.length - 1]
 
     if (!nodeToExecute) {
-        throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Node not found`)
+        throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Node not found`)
     }
 
     if (incomingInput.overrideConfig && apiOverrideStatus) {
@@ -185,7 +185,7 @@ const initEndingNode = async ({
         variableOverrides
     )
 
-    logDebug(`[server]: Running ${reactFlowNodeData.label} (${reactFlowNodeData.id})`).catch(() => {})
+    logDebug(`[server]: Running ${reactFlowNodeData.label} (${reactFlowNodeData.id})`).catch(() => { })
 
     const nodeInstanceFilePath = componentNodes[reactFlowNodeData.name].filePath as string
     const nodeModule = await import(nodeInstanceFilePath)
@@ -318,7 +318,7 @@ export const executeFlow = async ({
 
     // Add userId to incomingInput so it can be used in agentflow execution
     if (userId) {
-        ;(incomingInput as any).userId = userId
+        ; (incomingInput as any).userId = userId
     }
 
     let question = incomingInput.question || '' // Ensure question is never undefined
@@ -341,7 +341,7 @@ export const executeFlow = async ({
         fileUploads = uploads
         for (let i = 0; i < fileUploads.length; i += 1) {
             if (!orgId) {
-                throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'orgId is required for file uploads')
+                throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'orgId is required for file uploads')
             }
             await checkStorage(orgId, usageCacheManager)
 
@@ -368,7 +368,7 @@ export const executeFlow = async ({
 
             // Run Speech to Text conversion
             if (upload.mime === 'audio/webm' || upload.mime === 'audio/mp4' || upload.mime === 'audio/ogg') {
-                logDebug(`[server]: [${orgId}]: Attempting a speech to text conversion...`).catch(() => {})
+                logDebug(`[server]: [${orgId}]: Attempting a speech to text conversion...`).catch(() => { })
                 let speechToTextConfig: ICommonObject = {}
                 if (chatflow.speechToText) {
                     const speechToTextProviders = JSON.parse(chatflow.speechToText)
@@ -383,7 +383,7 @@ export const executeFlow = async ({
                 }
                 if (speechToTextConfig) {
                     if (!orgId) {
-                        throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'orgId is required for speech to text')
+                        throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'orgId is required for speech to text')
                     }
                     const options: ICommonObject = {
                         chatId,
@@ -392,7 +392,7 @@ export const executeFlow = async ({
                         databaseEntities: databaseEntities
                     }
                     const speechToTextResult = await convertSpeechToText(upload, speechToTextConfig, options)
-                    logDebug(`[server]: [${orgId}]: Speech to text result: ${speechToTextResult}`).catch(() => {})
+                    logDebug(`[server]: [${orgId}]: Speech to text result: ${speechToTextResult}`).catch(() => { })
                     if (speechToTextResult) {
                         incomingInput.question = speechToTextResult
                         question = speechToTextResult
@@ -412,7 +412,7 @@ export const executeFlow = async ({
     // Process form data body with files
     if (files?.length) {
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'orgId is required for file uploads')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'orgId is required for file uploads')
         }
         overrideConfig = { ...incomingInput }
         for (const file of files) {
@@ -503,7 +503,7 @@ export const executeFlow = async ({
     // Apply parent credentials to child flow nodes if available (for multi-agent flows via ExecuteFlow)
     if (overrideConfig._parentCredentials && typeof overrideConfig._parentCredentials === 'object') {
         const parentCredentials = overrideConfig._parentCredentials as Record<string, string>
-        logDebug(`[server]: [${orgId}]: Applying ${Object.keys(parentCredentials).length} parent credentials to child flow`).catch(() => {})
+        logDebug(`[server]: [${orgId}]: Applying ${Object.keys(parentCredentials).length} parent credentials to child flow`).catch(() => { })
 
         // Iterate through nodes and apply credentials if node doesn't have one set
         for (const node of nodes) {
@@ -513,7 +513,7 @@ export const executeFlow = async ({
                 const credentialIds = Object.values(parentCredentials).filter((id) => id && typeof id === 'string')
                 if (credentialIds.length > 0) {
                     node.data.credential = credentialIds[0]
-                    logDebug(`[server]: [${orgId}]: Applied credential to node ${node.data.label} (${node.data.id})`).catch(() => {})
+                    logDebug(`[server]: [${orgId}]: Applied credential to node ${node.data.label} (${node.data.id})`).catch(() => { })
                 }
             }
         }
@@ -577,7 +577,7 @@ export const executeFlow = async ({
         ...incomingInput.overrideConfig
     }
 
-    logDebug(`[server]: [${orgId}]: Start building flow ${chatflowid}`).catch(() => {})
+    logDebug(`[server]: [${orgId}]: Start building flow ${chatflowid}`).catch(() => { })
 
     /*** BFS to traverse from Starting Nodes to Ending Node ***/
     const reactFlowNodes = await buildFlow({
@@ -679,55 +679,51 @@ export const executeFlow = async ({
             const inputIsPlainText =
                 typeof finalQuestion === 'string' && !finalQuestion.trim().startsWith('{') && !finalQuestion.trim().startsWith('[')
             logInfo(
-                `[TOON] 🚀 TOON format enabled - Processing input (${finalQuestion.length} chars, ${
-                    inputIsPlainText ? 'plain text' : 'possibly structured'
+                `[TOON] 🚀 TOON format enabled - Processing input (${finalQuestion.length} chars, ${inputIsPlainText ? 'plain text' : 'possibly structured'
                 })`
-            ).catch(() => {})
+            ).catch(() => { })
 
             if (inputIsPlainText) {
                 logInfo(
                     `[TOON] ℹ️ Input appears to be plain text - TOON will skip encoding (TOON only helps with structured JSON data)`
-                ).catch(() => {})
+                ).catch(() => { })
             }
 
             // Pre-process input
-            const toonInput =await toonPreProcess(finalQuestion)
+            const toonInput = await toonPreProcess(finalQuestion)
             const inputChanged = toonInput !== finalQuestion
             logInfo(
-                `[TOON] Pre-process complete - Input changed: ${inputChanged}, New length: ${
-                    typeof toonInput === 'string' ? toonInput.length : 'N/A'
+                `[TOON] Pre-process complete - Input changed: ${inputChanged}, New length: ${typeof toonInput === 'string' ? toonInput.length : 'N/A'
                 }`
-            ).catch(() => {})
+            ).catch(() => { })
 
             if (!inputChanged) {
                 logInfo(
                     `[TOON] ℹ️ TOON skipped input encoding (plain text or not beneficial) - This is expected for plain text inputs`
-                ).catch(() => {})
+                ).catch(() => { })
             }
 
             // Run node
             const rawResult = await endingNodeInstance.run(endingNodeData, toonInput, runParams)
 
             logInfo(
-                `[TOON] Node execution complete - Result type: ${typeof rawResult}, Length: ${
-                    typeof rawResult === 'string' ? rawResult.length : 'N/A'
+                `[TOON] Node execution complete - Result type: ${typeof rawResult}, Length: ${typeof rawResult === 'string' ? rawResult.length : 'N/A'
                 }`
-            ).catch(() => {})
+            ).catch(() => { })
 
             // Post-process output
-            result =await toonPostProcess(rawResult)
+            result = await toonPostProcess(rawResult)
 
             logInfo(
-                `[TOON] ✅ Post-process complete - Final result type: ${typeof result}, Length: ${
-                    typeof result === 'string' ? result.length : 'N/A'
+                `[TOON] ✅ Post-process complete - Final result type: ${typeof result}, Length: ${typeof result === 'string' ? result.length : 'N/A'
                 }`
-            ).catch(() => {})
+            ).catch(() => { })
 
             // Summary
             if (!inputChanged) {
                 logInfo(
                     `[TOON] 📝 SUMMARY: TOON format is working correctly. It skipped plain text input to avoid increasing tokens. TOON only helps with structured JSON data, not plain text.`
-                ).catch(() => {})
+                ).catch(() => { })
             }
         } else {
             result = await endingNodeInstance.run(endingNodeData, finalQuestion, runParams)
@@ -795,7 +791,7 @@ export const executeFlow = async ({
                     const num = Number(value)
                     return isNaN(num) || !isFinite(num) ? defaultValue : num
                 }
-                
+
                 if (totalTokens === 0) {
                     // Try result.usageMetadata first (ConversationalAgent format)
                     if (result?.usageMetadata) {
@@ -876,7 +872,7 @@ export const executeFlow = async ({
                 questionLength: question.length,
                 hasFiles: files && files.length > 0,
                 isInternal
-            }).catch(() => {}) // Don't fail if logging fails
+            }).catch(() => { }) // Don't fail if logging fails
 
             // Also log to assistant service group if this is an assistant query
             if (chatflow.type === 'ASSISTANT') {
@@ -892,7 +888,7 @@ export const executeFlow = async ({
                         questionLength: question.length,
                         hasFiles: files && files.length > 0,
                         isInternal
-                    }).catch(() => {}) // Don't fail if logging fails
+                    }).catch(() => { }) // Don't fail if logging fails
                 } catch (logError) {
                     // Silently fail - logging should not break execution
                 }
@@ -905,7 +901,7 @@ export const executeFlow = async ({
                 await chatSessionsService.updateChatSessionOnMessage(chatflowid, chatId, orgId, userId, question || '', 'user')
             } catch (error) {
                 // Log but don't fail if session update fails
-                logDebug(`[server]: Failed to update chat session: ${getErrorMessage(error)}`).catch(() => {})
+                logDebug(`[server]: Failed to update chat session: ${getErrorMessage(error)}`).catch(() => { })
             }
         }
 
@@ -952,7 +948,7 @@ export const executeFlow = async ({
                     }
                     resultText = result.text
                 } catch (e) {
-                    logError('[server]: Post Processing Error:', e).catch(() => {})
+                    logError('[server]: Post Processing Error:', e).catch(() => { })
                 }
             }
         } else if (result.json) resultText = '```json\n' + JSON.stringify(result.json, null, 2)
@@ -1001,7 +997,7 @@ export const executeFlow = async ({
                 hasSourceDocuments: !!result?.sourceDocuments,
                 hasUsedTools: !!result?.usedTools,
                 executionTime: Date.now() - userMessageDateTime.getTime()
-            }).catch(() => {}) // Don't fail if logging fails
+            }).catch(() => { }) // Don't fail if logging fails
 
             // Also log to assistant service group if this is an assistant query
             if (chatflow.type === 'ASSISTANT') {
@@ -1018,7 +1014,7 @@ export const executeFlow = async ({
                         hasSourceDocuments: !!result?.sourceDocuments,
                         hasUsedTools: !!result?.usedTools,
                         executionTime: Date.now() - userMessageDateTime.getTime()
-                    }).catch(() => {}) // Don't fail if logging fails
+                    }).catch(() => { }) // Don't fail if logging fails
                 } catch (logError) {
                     // Silently fail - logging should not break execution
                 }
@@ -1031,11 +1027,11 @@ export const executeFlow = async ({
                 await chatSessionsService.updateChatSessionOnMessage(chatflowid, chatId, orgId, userId, resultText || '', 'api')
             } catch (error) {
                 // Log but don't fail if session update fails
-                logDebug(`[server]: Failed to update chat session: ${getErrorMessage(error)}`).catch(() => {})
+                logDebug(`[server]: Failed to update chat session: ${getErrorMessage(error)}`).catch(() => { })
             }
         }
 
-        logDebug(`[server]: [${orgId}]: Finished running ${endingNodeData.label} (${endingNodeData.id})`).catch(() => {})
+        logDebug(`[server]: [${orgId}]: Finished running ${endingNodeData.label} (${endingNodeData.id})`).catch(() => { })
         // Telemetry removed
 
         /*** Prepare response ***/
@@ -1099,7 +1095,7 @@ const checkIfStreamValid = async (
             Object.keys(endingNodeData.outputs).length &&
             !Object.values(endingNodeData.outputs ?? {}).includes(endingNodeData.name)
         ) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.INTERNAL_SERVER_ERROR,
                 `Output of ${endingNodeData.label} (${endingNodeData.id}) must be ${endingNodeData.label}, can't be an Output Prediction`
             )
@@ -1129,7 +1125,7 @@ export const utilBuildChatflow = async (req: Request, isInternal: boolean = fals
     const authReq = req as any
     const orgId: string | undefined = authReq.orgId
     if (!orgId) {
-        throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+        throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
     }
 
     // Get org-specific DataSource from pool
@@ -1141,7 +1137,7 @@ export const utilBuildChatflow = async (req: Request, isInternal: boolean = fals
     })
 
     if (!chatflow) {
-        throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowid} not found`)
+        throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowid} not found`)
     }
 
     const organizationId: string = orgId
@@ -1160,7 +1156,7 @@ export const utilBuildChatflow = async (req: Request, isInternal: boolean = fals
         if (!isInternal) {
             const isKeyValidated = await validateFlowAPIKey(req, chatflow, orgId)
             if (!isKeyValidated) {
-                throw new InternalAutonomousError(StatusCodes.UNAUTHORIZED, `Unauthorized`)
+                throw new InternalKodivianError(StatusCodes.UNAUTHORIZED, `Unauthorized`)
             }
         }
 
@@ -1171,7 +1167,7 @@ export const utilBuildChatflow = async (req: Request, isInternal: boolean = fals
 
         // Add userId to incomingInput so it can be used in agentflow execution
         if (userId) {
-            ;(incomingInput as any).userId = userId
+            ; (incomingInput as any).userId = userId
         }
 
         // Ensure chat session exists (create if not exists)
@@ -1199,7 +1195,7 @@ export const utilBuildChatflow = async (req: Request, isInternal: boolean = fals
                 req.body.chatId = chatId
             }
         }
-        // Product ID not needed for autonomous server
+        // Product ID not needed for kodivian server
         const productId = ''
 
         await checkPredictions(orgId, appServer.usageCacheManager)
@@ -1224,18 +1220,18 @@ export const utilBuildChatflow = async (req: Request, isInternal: boolean = fals
 
         if (process.env.MODE === MODE.QUEUE) {
             if (!orgId) {
-                throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, `orgId is required for queue mode`)
+                throw new InternalKodivianError(StatusCodes.BAD_REQUEST, `orgId is required for queue mode`)
             }
             const orgIdNum = parseInt(orgId)
             if (isNaN(orgIdNum)) {
-                throw new InternalAutonomousError(
+                throw new InternalKodivianError(
                     StatusCodes.BAD_REQUEST,
                     `Invalid organization ID: ${orgId}. orgId must be a valid number.`
                 )
             }
             const predictionQueue = appServer.queueManager.getQueue(orgIdNum, 'prediction')
             const job = await predictionQueue.addJob(omit(executeData, OMIT_QUEUE_JOB_DATA))
-            logDebug(`[server]: [${orgId}/${chatflow.guid}/${chatId}]: Job added to queue: ${job.id}`).catch(() => {})
+            logDebug(`[server]: [${orgId}/${chatflow.guid}/${chatId}]: Job added to queue: ${job.id}`).catch(() => { })
 
             const queueEvents = predictionQueue.getQueueEvents()
             const result = await job.waitUntilFinished(queueEvents)
@@ -1260,15 +1256,15 @@ export const utilBuildChatflow = async (req: Request, isInternal: boolean = fals
             return result
         }
     } catch (e) {
-        logError(`[server]:${organizationId}/${chatflow.guid}/${chatId} Error:`, e).catch(() => {})
+        logError(`[server]:${organizationId}/${chatflow.guid}/${chatId} Error:`, e).catch(() => { })
         appServer.abortControllerPool.remove(`${chatflow.guid}_${chatId}`)
         incrementFailedMetricCounter(appServer.metricsProvider, isInternal, isAgentFlow)
-        if (e instanceof InternalAutonomousError && e.statusCode === StatusCodes.UNAUTHORIZED) {
+        if (e instanceof InternalKodivianError && e.statusCode === StatusCodes.UNAUTHORIZED) {
             throw e
         } else {
             // Sanitize error message for frontend (full error already logged above)
             const sanitizedMessage = sanitizeErrorMessage(e, logError)
-            throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, sanitizedMessage)
+            throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, sanitizedMessage)
         }
     }
 }
@@ -1283,14 +1279,14 @@ const incrementSuccessMetricCounter = (metricsProvider: IMetricsProvider, isInte
     if (isAgentFlow) {
         metricsProvider?.incrementCounter(
             isInternal
-                ? AUTONOMOUS_METRIC_COUNTERS.AGENTFLOW_PREDICTION_INTERNAL
-                : AUTONOMOUS_METRIC_COUNTERS.AGENTFLOW_PREDICTION_EXTERNAL,
-            { status: AUTONOMOUS_COUNTER_STATUS.SUCCESS }
+                ? KODIVIAN_METRIC_COUNTERS.AGENTFLOW_PREDICTION_INTERNAL
+                : KODIVIAN_METRIC_COUNTERS.AGENTFLOW_PREDICTION_EXTERNAL,
+            { status: KODIVIAN_COUNTER_STATUS.SUCCESS }
         )
     } else {
         metricsProvider?.incrementCounter(
-            isInternal ? AUTONOMOUS_METRIC_COUNTERS.CHATFLOW_PREDICTION_INTERNAL : AUTONOMOUS_METRIC_COUNTERS.CHATFLOW_PREDICTION_EXTERNAL,
-            { status: AUTONOMOUS_COUNTER_STATUS.SUCCESS }
+            isInternal ? KODIVIAN_METRIC_COUNTERS.CHATFLOW_PREDICTION_INTERNAL : KODIVIAN_METRIC_COUNTERS.CHATFLOW_PREDICTION_EXTERNAL,
+            { status: KODIVIAN_COUNTER_STATUS.SUCCESS }
         )
     }
 }
@@ -1305,14 +1301,14 @@ const incrementFailedMetricCounter = (metricsProvider: IMetricsProvider, isInter
     if (isAgentFlow) {
         metricsProvider?.incrementCounter(
             isInternal
-                ? AUTONOMOUS_METRIC_COUNTERS.AGENTFLOW_PREDICTION_INTERNAL
-                : AUTONOMOUS_METRIC_COUNTERS.AGENTFLOW_PREDICTION_EXTERNAL,
-            { status: AUTONOMOUS_COUNTER_STATUS.FAILURE }
+                ? KODIVIAN_METRIC_COUNTERS.AGENTFLOW_PREDICTION_INTERNAL
+                : KODIVIAN_METRIC_COUNTERS.AGENTFLOW_PREDICTION_EXTERNAL,
+            { status: KODIVIAN_COUNTER_STATUS.FAILURE }
         )
     } else {
         metricsProvider?.incrementCounter(
-            isInternal ? AUTONOMOUS_METRIC_COUNTERS.CHATFLOW_PREDICTION_INTERNAL : AUTONOMOUS_METRIC_COUNTERS.CHATFLOW_PREDICTION_EXTERNAL,
-            { status: AUTONOMOUS_COUNTER_STATUS.FAILURE }
+            isInternal ? KODIVIAN_METRIC_COUNTERS.CHATFLOW_PREDICTION_INTERNAL : KODIVIAN_METRIC_COUNTERS.CHATFLOW_PREDICTION_EXTERNAL,
+            { status: KODIVIAN_COUNTER_STATUS.FAILURE }
         )
     }
 }

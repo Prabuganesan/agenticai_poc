@@ -1,5 +1,5 @@
 import { StatusCodes } from 'http-status-codes'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { getErrorMessage } from '../../errors/utils'
 import { getVoices } from 'kodivian-components'
 import { databaseEntities } from '../../utils'
@@ -26,10 +26,10 @@ export interface TTSResponse {
 const getVoicesForProvider = async (provider: string, orgId: string, credentialId?: string): Promise<any[]> => {
     try {
         if (!credentialId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Credential ID required for this provider')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Credential ID required for this provider')
         }
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'orgId is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'orgId is required')
         }
 
         const appDataSource = getDataSource(parseInt(orgId))
@@ -44,7 +44,7 @@ const getVoicesForProvider = async (provider: string, orgId: string, credentialI
 
         return await getVoices(provider, credentialId, options)
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: textToSpeechService.getVoices - ${getErrorMessage(error)}`
         )

@@ -1,6 +1,6 @@
 import { StatusCodes } from 'http-status-codes'
 import { IChatMessageFeedback } from '../../Interface'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { ChatMessage } from '../../database/entities/ChatMessage'
 import { ChatMessageFeedback } from '../../database/entities/ChatMessageFeedback'
 import { getDataSource } from '../../DataSource'
@@ -12,7 +12,7 @@ import { getDataSource } from '../../DataSource'
  */
 export const validateMessageExists = async (messageId: string, orgId: string): Promise<ChatMessage> => {
     if (!orgId) {
-        throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+        throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
     }
     const dataSource = getDataSource(parseInt(orgId))
     const message = await dataSource.getRepository(ChatMessage).findOne({
@@ -20,7 +20,7 @@ export const validateMessageExists = async (messageId: string, orgId: string): P
     })
 
     if (!message) {
-        throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Message with ID ${messageId} not found`)
+        throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Message with ID ${messageId} not found`)
     }
 
     return message
@@ -33,7 +33,7 @@ export const validateMessageExists = async (messageId: string, orgId: string): P
  */
 export const validateFeedbackExists = async (feedbackId: string, orgId: string): Promise<ChatMessageFeedback> => {
     if (!orgId) {
-        throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+        throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
     }
     const dataSource = getDataSource(parseInt(orgId))
     const feedbackExists = await dataSource.getRepository(ChatMessageFeedback).findOne({
@@ -41,7 +41,7 @@ export const validateFeedbackExists = async (feedbackId: string, orgId: string):
     })
 
     if (!feedbackExists) {
-        throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Feedback with ID ${feedbackId} not found`)
+        throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Feedback with ID ${feedbackId} not found`)
     }
 
     return feedbackExists
@@ -57,20 +57,20 @@ export const validateFeedbackForCreation = async (
     orgId: string
 ): Promise<Partial<IChatMessageFeedback>> => {
     if (!orgId) {
-        throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+        throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
     }
     // If messageId is provided, validate it exists and get the message
     let message: ChatMessage | null = null
     if (feedback.messageId) {
         message = await validateMessageExists(feedback.messageId, orgId)
     } else {
-        throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Message ID is required')
+        throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Message ID is required')
     }
 
     // If chatId is provided, validate it matches the message's chatId
     if (feedback.chatId) {
         if (message.chatId !== feedback.chatId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.BAD_REQUEST,
                 `Inconsistent chat ID: message with ID ${message.guid} does not belong to chat with ID ${feedback.chatId}`
             )
@@ -83,7 +83,7 @@ export const validateFeedbackForCreation = async (
     // If chatflowid is provided, validate it matches the message's chatflowid
     if (feedback.chatflowid) {
         if (message.chatflowid !== feedback.chatflowid) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.BAD_REQUEST,
                 `Inconsistent chatflow ID: message with ID ${message.guid} does not belong to chatflow with ID ${feedback.chatflowid}`
             )
@@ -108,7 +108,7 @@ export const validateFeedbackForUpdate = async (
     feedback: Partial<IChatMessageFeedback>
 ): Promise<Partial<IChatMessageFeedback>> => {
     if (!orgId) {
-        throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+        throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
     }
     // First validate the feedback exists
     const existingFeedback = await validateFeedbackExists(feedbackId, orgId)
@@ -126,7 +126,7 @@ export const validateFeedbackForUpdate = async (
     // If chatId is provided and we have a message, validate it matches the message's chatId
     if (feedback.chatId) {
         if (message?.chatId !== feedback.chatId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.BAD_REQUEST,
                 `Inconsistent chat ID: message with ID ${message?.guid} does not belong to chat with ID ${feedback.chatId}`
             )
@@ -136,7 +136,7 @@ export const validateFeedbackForUpdate = async (
     // If chatflowid is provided and we have a message, validate it matches the message's chatflowid
     if (feedback.chatflowid && message) {
         if (message?.chatflowid !== feedback.chatflowid) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.BAD_REQUEST,
                 `Inconsistent chatflow ID: message with ID ${message?.guid} does not belong to chatflow with ID ${feedback.chatflowid}`
             )

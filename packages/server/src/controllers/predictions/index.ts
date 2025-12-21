@@ -3,7 +3,7 @@ import { RateLimiterManager } from '../../utils/rateLimit'
 import chatflowsService from '../../services/chatflows'
 import { logInfo, logWarn } from '../../utils/logger/system-helper'
 import predictionsServices from '../../services/predictions'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { StatusCodes } from 'http-status-codes'
 import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
 import { v4 as uuidv4 } from 'uuid'
@@ -14,13 +14,13 @@ import { MODE } from '../../Interface'
 const createPrediction = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: predictionsController.createPrediction - id not provided!`
             )
         }
         if (!req.body) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: predictionsController.createPrediction - body not provided!`
             )
@@ -31,7 +31,7 @@ const createPrediction = async (req: Request, res: Response, next: NextFunction)
         // Otherwise, use orgId from session (set by middleware)
         let orgId: string | undefined = authReq.orgId || (req.headers['x-org-id'] as string | undefined)
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
         // Set orgId on request so utilBuildChatflow can access it
         authReq.orgId = orgId
@@ -45,11 +45,11 @@ const createPrediction = async (req: Request, res: Response, next: NextFunction)
 
         const chatflow = await chatflowsService.getChatflowById(req.params.id, orgId)
         if (!chatflow) {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Chatflow ${req.params.id} not found`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Chatflow ${req.params.id} not found`)
         }
         let isDomainAllowed = true
         let unauthorizedOriginError = 'This site is not allowed to access this chatbot'
-        logInfo(`[server]: Request originated from ${req.headers.origin || 'UNKNOWN ORIGIN'}`).catch(() => {})
+        logInfo(`[server]: Request originated from ${req.headers.origin || 'UNKNOWN ORIGIN'}`).catch(() => { })
         if (chatflow.chatbotConfig) {
             const parsedConfig = JSON.parse(chatflow.chatbotConfig)
             // check whether the first one is not empty. if it is empty that means the user set a value and then removed it.
@@ -95,13 +95,13 @@ const createPrediction = async (req: Request, res: Response, next: NextFunction)
                                 if (!isNaN(orgIdNum)) {
                                     getRunningExpressApp().redisSubscriber.subscribe(chatId, orgIdNum)
                                 } else {
-                                    logWarn(`[predictions] Invalid orgId: ${orgId}, skipping Redis subscription`).catch(() => {})
+                                    logWarn(`[predictions] Invalid orgId: ${orgId}, skipping Redis subscription`).catch(() => { })
                                 }
                             } else {
-                                logWarn(`[predictions] orgId is undefined, skipping Redis subscription`).catch(() => {})
+                                logWarn(`[predictions] orgId is undefined, skipping Redis subscription`).catch(() => { })
                             }
                         } else {
-                            logWarn(`[predictions] Invalid chatId: ${chatId}, skipping Redis subscription`).catch(() => {})
+                            logWarn(`[predictions] Invalid chatId: ${chatId}, skipping Redis subscription`).catch(() => { })
                         }
                     }
 
@@ -124,7 +124,7 @@ const createPrediction = async (req: Request, res: Response, next: NextFunction)
             if (isStreamingRequested) {
                 return res.status(StatusCodes.FORBIDDEN).send(unauthorizedOriginError)
             }
-            throw new InternalAutonomousError(StatusCodes.FORBIDDEN, unauthorizedOriginError)
+            throw new InternalKodivianError(StatusCodes.FORBIDDEN, unauthorizedOriginError)
         }
     } catch (error) {
         next(error)

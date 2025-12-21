@@ -6,7 +6,7 @@ import { useTheme } from '@mui/material/styles'
 
 // project imports
 import { useConfig } from '@/store/context/ConfigContext'
-import { getAutonomousDocsPath } from '@/store/constant'
+import { getKodivianDocsPath } from '@/store/constant'
 
 // icons
 import { IconFileText } from '@tabler/icons-react'
@@ -23,7 +23,7 @@ const CloudMenuList = () => {
                 <Box>
                     <Divider sx={{ height: '1px', borderColor: theme.palette.grey[900] + 25, my: 0 }} />
                     <List sx={{ p: '16px', py: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                        <a href={getAutonomousDocsPath()} target='_blank' rel='noreferrer' style={{ textDecoration: 'none' }}>
+                        <a href={getKodivianDocsPath()} target='_blank' rel='noreferrer' style={{ textDecoration: 'none' }}>
                             <ListItemButton
                                 sx={{
                                     borderRadius: `${customization.borderRadius}px`,

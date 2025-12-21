@@ -1,14 +1,14 @@
 import { Request, Response, NextFunction } from 'express'
 import feedbackService from '../../services/feedback'
 import { validateFeedbackForCreation, validateFeedbackForUpdate } from '../../services/feedback/validation'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { StatusCodes } from 'http-status-codes'
 import { AuthenticatedRequest } from '../../middlewares/session-validation.middleware'
 
 const getAllChatMessageFeedback = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: feedbackController.getAllChatMessageFeedback - id not provided!`
             )
@@ -16,7 +16,7 @@ const getAllChatMessageFeedback = async (req: Request, res: Response, next: Next
         const authReq = req as AuthenticatedRequest
         const orgId = authReq.orgId || (req as any).orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
         const chatflowid = req.params.id
         const chatId = req.query?.chatId as string | undefined
@@ -33,7 +33,7 @@ const getAllChatMessageFeedback = async (req: Request, res: Response, next: Next
 const createChatMessageFeedbackForChatflow = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (!req.body) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: feedbackController.createChatMessageFeedbackForChatflow - body not provided!`
             )
@@ -41,7 +41,7 @@ const createChatMessageFeedbackForChatflow = async (req: Request, res: Response,
         const authReq = req as AuthenticatedRequest
         const orgId = authReq.orgId || (req as any).orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
         await validateFeedbackForCreation(req.body, orgId)
         // Get userId from authenticated request and pass it to service
@@ -56,13 +56,13 @@ const createChatMessageFeedbackForChatflow = async (req: Request, res: Response,
 const updateChatMessageFeedbackForChatflow = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (!req.body) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: feedbackController.updateChatMessageFeedbackForChatflow - body not provided!`
             )
         }
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: feedbackController.updateChatMessageFeedbackForChatflow - id not provided!`
             )
@@ -70,7 +70,7 @@ const updateChatMessageFeedbackForChatflow = async (req: Request, res: Response,
         const authReq = req as AuthenticatedRequest
         const orgId = authReq.orgId || (req as any).orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
         await validateFeedbackForUpdate(req.params.id, orgId, req.body)
         const apiResponse = await feedbackService.updateChatMessageFeedbackForChatflow(req.params.id, orgId, req.body)

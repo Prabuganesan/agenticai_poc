@@ -145,7 +145,7 @@ const LoaderConfigPreviewChunks = () => {
                 if (
                     inputParam.type === 'credential' &&
                     !selectedDocumentLoader.credential &&
-                    !selectedDocumentLoader.inputs['AUTONOMOUS_CREDENTIAL_ID']
+                    !selectedDocumentLoader.inputs['KODIVIAN_CREDENTIAL_ID']
                 ) {
                     canSubmit = false
                     missingFields.push(inputParam.label || inputParam.name)
@@ -190,9 +190,8 @@ const LoaderConfigPreviewChunks = () => {
             } catch (error) {
                 setLoading(false)
                 enqueueSnackbar({
-                    message: `Failed to preview chunks: ${
-                        typeof error.response.data === 'object' ? error.response.data.message : error.response.data
-                    }`,
+                    message: `Failed to preview chunks: ${typeof error.response.data === 'object' ? error.response.data.message : error.response.data
+                        }`,
                     options: {
                         key: new Date().getTime() + Math.random(),
                         variant: 'error',
@@ -234,9 +233,8 @@ const LoaderConfigPreviewChunks = () => {
             } catch (error) {
                 setLoading(false)
                 enqueueSnackbar({
-                    message: `Failed to process chunking: ${
-                        typeof error.response.data === 'object' ? error.response.data.message : error.response.data
-                    }`,
+                    message: `Failed to process chunking: ${typeof error.response.data === 'object' ? error.response.data.message : error.response.data
+                        }`,
                     options: {
                         key: new Date().getTime() + Math.random(),
                         variant: 'error',

@@ -1,6 +1,6 @@
 import { Response, NextFunction } from 'express'
 import credentialsService from '../../services/credentials'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { StatusCodes } from 'http-status-codes'
 import { AuthenticatedRequest } from '../../middlewares/session-validation.middleware'
 import { transformEntityForResponse, transformEntitiesForResponse } from '../../utils/responseTransform'
@@ -8,7 +8,7 @@ import { transformEntityForResponse, transformEntitiesForResponse } from '../../
 const createCredential = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         if (!req.body) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: credentialsController.createCredential - body not provided!`
             )
@@ -23,7 +23,7 @@ const createCredential = async (req: AuthenticatedRequest, res: Response, next: 
 const deleteCredentials = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: credentialsController.deleteCredentials - id not provided!`
             )
@@ -47,7 +47,7 @@ const getAllCredentials = async (req: AuthenticatedRequest, res: Response, next:
 const getCredentialById = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: credentialsController.getCredentialById - id not provided!`
             )
@@ -62,13 +62,13 @@ const getCredentialById = async (req: AuthenticatedRequest, res: Response, next:
 const updateCredential = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: credentialsController.updateCredential - id not provided!`
             )
         }
         if (!req.body) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: credentialsController.updateCredential - body not provided!`
             )

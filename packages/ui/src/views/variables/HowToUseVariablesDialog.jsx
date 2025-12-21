@@ -2,7 +2,7 @@ import { createPortal } from 'react-dom'
 import PropTypes from 'prop-types'
 import { Dialog, DialogContent, DialogTitle } from '@mui/material'
 import { CodeEditor } from '@/ui-component/editor/CodeEditor'
-import { getAutonomousDocsPath } from '@/store/constant'
+import { getKodivianDocsPath } from '@/store/constant'
 
 const overrideConfig = `{
     overrideConfig: {
@@ -67,7 +67,7 @@ const HowToUseVariablesDialog = ({ show, onCancel }) => {
                 />
                 <p>
                     Read more from{' '}
-                    <a target='_blank' rel='noreferrer' href={`${getAutonomousDocsPath()}/using-autonomous/variables`}>
+                    <a target='_blank' rel='noreferrer' href={`${getKodivianDocsPath()}/using-kodivian/variables`}>
                         docs
                     </a>
                 </p>

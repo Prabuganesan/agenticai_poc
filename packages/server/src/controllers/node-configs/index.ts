@@ -1,12 +1,12 @@
 import { Request, Response, NextFunction } from 'express'
 import nodeConfigsService from '../../services/node-configs'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { StatusCodes } from 'http-status-codes'
 
 const getAllNodeConfigs = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (!req.body) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: nodeConfigsController.getAllNodeConfigs - body not provided!`
             )

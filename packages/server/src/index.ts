@@ -24,7 +24,7 @@ import autonomousApiV1Router from './routes'
 import { docsStaticRouter, docsApiRouter } from './routes/docs'
 import errorHandlerMiddleware from './middlewares/errors'
 import { WHITELIST_URLS, getServerPort } from './utils/constants'
-// IdentityManager removed - not needed for autonomous server
+// IdentityManager removed - not needed for kodivian server
 import { SSEStreamer } from './utils/SSEStreamer'
 import { validateAPIKey } from './utils/validateKey'
 interface LoggedInUser {
@@ -42,7 +42,7 @@ import 'global-agent/bootstrap'
 import { UsageCacheManager } from './UsageCacheManager'
 import { ExpressAdapter } from '@bull-board/express'
 import { OrganizationConfigService } from './services/org-config.service'
-import { AutonomousSessionService } from './services/autonomous-session.service'
+import { KodivianSessionService } from './services/kodivian-session.service'
 import { SessionService } from './services/session.service'
 import { getDataSourceManager, DataSourceManager } from './DataSourceManager'
 // UserDataService removed - created per-request in session-handler.route.ts
@@ -79,7 +79,7 @@ export class App {
     cachePool: CachePool
     rateLimiterManager: RateLimiterManager
     sseStreamer: SSEStreamer
-    // identityManager removed - not needed for autonomous server
+    // identityManager removed - not needed for kodivian server
     metricsProvider: IMetricsProvider
     queueManager: QueueManager
     redisSubscriber: RedisEventSubscriber
@@ -87,7 +87,7 @@ export class App {
     sessionStore: any
     orgConfigService: OrganizationConfigService
     sessionService: SessionService
-    autonomousSessionService: AutonomousSessionService
+    kodivianSessionService: KodivianSessionService
     dataSourceManager: DataSourceManager
 
     constructor() {
@@ -96,9 +96,9 @@ export class App {
 
     async config() {
         // Limit is needed to allow sending/receiving base64 encoded string
-        const autonomous_file_size_limit = process.env.AUTONOMOUS_FILE_SIZE_LIMIT || '50mb'
-        this.app.use(express.json({ limit: autonomous_file_size_limit }))
-        this.app.use(express.urlencoded({ limit: autonomous_file_size_limit, extended: true }))
+        const kodivian_file_size_limit = process.env.KODIVIAN_FILE_SIZE_LIMIT || '50mb'
+        this.app.use(express.json({ limit: kodivian_file_size_limit }))
+        this.app.use(express.urlencoded({ limit: kodivian_file_size_limit, extended: true }))
 
         // Enhanced trust proxy settings for load balancer
         let trustProxy: string | boolean | number | undefined = process.env.TRUST_PROXY
@@ -158,8 +158,8 @@ export class App {
         const URL_CASE_INSENSITIVE_REGEX: RegExp = /\/api\/v1\//i
         const URL_CASE_SENSITIVE_REGEX: RegExp = /\/api\/v1\//
 
-        // Create session validation middleware for autonomous server
-        const sessionValidationMiddleware = createSessionValidationMiddleware(this.autonomousSessionService, this.orgConfigService)
+        // Create session validation middleware for kodivian server
+        const sessionValidationMiddleware = createSessionValidationMiddleware(this.kodivianSessionService, this.orgConfigService)
 
         this.app.use(async (req, res, next) => {
             // Skip authentication for static files and UI routes (not API routes)
@@ -345,7 +345,7 @@ export class App {
 
                         // @ts-ignore
                         req.user = {
-                            permissions: [], // API keys don't have specific permissions in autonomous server
+                            permissions: [], // API keys don't have specific permissions in kodivian server
                             features,
                             orgId: orgId,
                             isOrganizationAdmin: true
@@ -420,7 +420,7 @@ export class App {
             })
         })
 
-        // BullMQ dashboard available for autonomous server (no platform restrictions)
+        // BullMQ dashboard available for kodivian server (no platform restrictions)
         // Enable dashboard by default when MODE=queue, unless explicitly disabled
         const shouldEnableDashboard = process.env.MODE === MODE.QUEUE && process.env.ENABLE_BULLMQ_DASHBOARD !== 'false'
         if (shouldEnableDashboard && this.queueManager) {
@@ -744,7 +744,7 @@ export async function start(): Promise<void> {
     // Fix SSL certificate verification issue for CouchDB and other HTTPS connections
     // This is required in environments where the SSL certificate chain cannot be verified
     // Only affects outgoing HTTPS requests, not incoming server connections
-    // EXACT PATTERN from autonomous server main.ts
+    // EXACT PATTERN from kodivian server main.ts
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
 
     // PostgreSQL only - Oracle support removed for simplicity
@@ -766,7 +766,7 @@ export async function start(): Promise<void> {
         await serverApp.orgConfigService.initialize()
 
         // Step 2: Load all organization configurations at startup
-        // This executes the exact startup process from autonomous server:
+        // This executes the exact startup process from kodivian server:
         // 1. Fetch Node Info (BUILDER nodes)
         // 2. Fetch CouchDB Details (for each org)
         // 3. Fetch PostgreSQL Details (for each org)
@@ -802,14 +802,14 @@ export async function start(): Promise<void> {
 
         // Step 4: Initialize autonomous session service
         // Note: UserDataService and SessionService are created per-request in session-handler.route.ts
-        serverApp.autonomousSessionService = new AutonomousSessionService(serverApp.orgConfigService)
+        serverApp.kodivianSessionService = new KodivianSessionService(serverApp.orgConfigService)
         logInfo('✅ [server]: Kodivian session service created').catch(() => { })
 
-        // Step 5: Initialize Redis pools for all organizations (matching autonomous server pattern)
+        // Step 5: Initialize Redis pools for all organizations (matching kodivian server pattern)
         // This must happen AFTER loadAllOrganizations() so Redis configs are available
-        // EXACT PATTERN from autonomous server: createOrgRedisPools() called after fetchRedisDetails()
+        // EXACT PATTERN from kodivian server: createOrgRedisPools() called after fetchRedisDetails()
         logInfo('🔴 [server]: Initializing session pools for all organizations...').catch(() => { })
-        await serverApp.autonomousSessionService.initializeRedisPools()
+        await serverApp.kodivianSessionService.initializeRedisPools()
         logInfo('✅ [server]: Session pools initialized successfully').catch(() => { })
     } catch (error) {
         logError('❌ [server]: Failed to initialize organization config service:', error).catch(() => { })
@@ -892,7 +892,7 @@ export async function start(): Promise<void> {
             logInfo('✅ [Queue]: Per-org queues initialized').catch(() => { })
 
             const serverAdapter = new ExpressAdapter()
-            const contextPath = process.env.CONTEXT_PATH || '/autonomous'
+            const contextPath = process.env.CONTEXT_PATH || '/kodivian'
             const dashboardPath = contextPath && contextPath !== '/' ? `${contextPath}/admin/queues` : '/admin/queues'
             // Note: setBasePath is called after createBullBoard to avoid Express 5.x compatibility issues
             // The base path will be set when mounting the router in config()
@@ -915,7 +915,7 @@ export async function start(): Promise<void> {
         await serverApp.config()
 
         // Log context path configuration
-        const contextPath = process.env.CONTEXT_PATH || '/autonomous'
+        const contextPath = process.env.CONTEXT_PATH || '/kodivian'
         if (contextPath && contextPath !== '/') {
             logInfo(`🌐 [server]: Server running with context path: ${contextPath}`).catch(() => { })
         }

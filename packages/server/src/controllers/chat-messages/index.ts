@@ -8,7 +8,7 @@ import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
 import { getDataSource } from '../../DataSource'
 import { Between, DeleteResult, FindOptionsWhere, In } from 'typeorm'
 import { ChatMessage } from '../../database/entities/ChatMessage'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { StatusCodes } from 'http-status-codes'
 import { utilGetChatMessage } from '../../utils/getChatMessage'
 import { getPageAndLimitParams } from '../../utils/pagination'
@@ -39,14 +39,14 @@ const getFeedbackTypeFilters = (_feedbackTypeFilters: ChatMessageRatingType[]): 
 const createChatMessage = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         if (!req.body) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 'Error: chatMessagesController.createChatMessage - request body not provided!'
             )
         }
         const orgId = req.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 'Error: chatMessagesController.createChatMessage - orgId is required!'
             )
@@ -90,7 +90,7 @@ const getAllChatMessages = async (req: AuthenticatedRequest, res: Response, next
             feedbackTypeFilters = getFeedbackTypeFilters(feedbackTypeFilters)
         }
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: chatMessageController.getAllChatMessages - id not provided!`
             )
@@ -159,14 +159,14 @@ const removeAllChatMessages = async (req: AuthenticatedRequest, res: Response, n
     try {
         const appServer = getRunningExpressApp()
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 'Error: chatMessagesController.removeAllChatMessages - id not provided!'
             )
         }
         const orgId = req.orgId || req.user?.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.NOT_FOUND,
                 `Error: chatMessagesController.removeAllChatMessages - organization ${orgId} not found!`
             )
@@ -314,14 +314,14 @@ const removeAllChatMessages = async (req: AuthenticatedRequest, res: Response, n
 const abortChatMessage = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params === 'undefined' || !req.params.chatflowid || !req.params.chatid) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: chatMessagesController.abortChatMessage - chatflowid or chatid not provided!`
             )
         }
         const orgId = req.orgId || (req as any).orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
         await chatMessagesService.abortChatMessage(req.params.chatid, req.params.chatflowid, orgId)
         return res.json({ status: 200, message: 'Chat message aborted' })

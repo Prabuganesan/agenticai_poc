@@ -1,12 +1,12 @@
 import { useSelector } from 'react-redux'
 
 export const useAuth = () => {
-    // For autonomous server, always allow all features (no license/platform restrictions)
+    // For kodivian server, always allow all features (no license/platform restrictions)
     const permissions = useSelector((state) => state.auth.permissions)
     const isGlobal = useSelector((state) => state.auth.isGlobal)
 
     const hasPermission = (permissionId) => {
-        // For autonomous server, always allow if global admin or no permission required
+        // For kodivian server, always allow if global admin or no permission required
         if (isGlobal || !permissionId) {
             return true
         }
@@ -18,17 +18,17 @@ export const useAuth = () => {
     }
 
     const hasAssignedWorkspace = (_workspaceId) => {
-        // For autonomous server, always allow (no workspace restrictions)
-        // Since autonomous server uses orgId instead of workspaceId, always return true
+        // For kodivian server, always allow (no workspace restrictions)
+        // Since kodivian server uses orgId instead of workspaceId, always return true
         return true
     }
 
     const hasDisplay = (display) => {
-        // For autonomous server, all features are enabled (no feature flag checks)
+        // For kodivian server, all features are enabled (no feature flag checks)
         if (!display) {
             return true
         }
-        // Always return true for autonomous server - all features available
+        // Always return true for kodivian server - all features available
         return true
     }
 

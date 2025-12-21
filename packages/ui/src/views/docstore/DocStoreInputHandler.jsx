@@ -24,7 +24,7 @@ import CredentialInputHandler from '@/views/canvas/CredentialInputHandler'
 import { flowContext } from '@/store/context/ReactFlowContext'
 
 // const
-import { AUTONOMOUS_CREDENTIAL_ID } from '@/store/constant'
+import { KODIVIAN_CREDENTIAL_ID } from '@/store/constant'
 
 // ===========================|| DocStoreInputHandler ||=========================== //
 
@@ -84,7 +84,7 @@ const DocStoreInputHandler = ({ inputParam, data, disabled = false, onNodeDataCh
     }
 
     const getCredential = () => {
-        const credential = data.inputs.credential || data.inputs[AUTONOMOUS_CREDENTIAL_ID]
+        const credential = data.inputs.credential || data.inputs[KODIVIAN_CREDENTIAL_ID]
         if (credential) {
             return { credential }
         }
@@ -145,7 +145,7 @@ const DocStoreInputHandler = ({ inputParam, data, disabled = false, onNodeDataCh
                                 inputParam={inputParam}
                                 onSelect={(newValue) => {
                                     data.credential = newValue
-                                    data.inputs[AUTONOMOUS_CREDENTIAL_ID] = newValue // in case data.credential is not updated
+                                    data.inputs[KODIVIAN_CREDENTIAL_ID] = newValue // in case data.credential is not updated
                                 }}
                             />
                         )}

@@ -1,6 +1,6 @@
 import express from 'express'
 import llmUsageController from '../../controllers/llm-usage'
-// Permission checks removed for autonomous server - handled externally
+// Permission checks removed for kodivian server - handled externally
 const router = express.Router()
 
 // Get aggregated statistics

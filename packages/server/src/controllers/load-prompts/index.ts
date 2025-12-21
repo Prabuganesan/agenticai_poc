@@ -1,12 +1,12 @@
 import { Request, Response, NextFunction } from 'express'
 import loadPromptsService from '../../services/load-prompts'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { StatusCodes } from 'http-status-codes'
 
 const createPrompt = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (typeof req.body === 'undefined' || !req.body.promptName) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: loadPromptsController.createPrompt - promptName not provided!`
             )

@@ -1,6 +1,6 @@
 import { StatusCodes } from 'http-status-codes'
 import { ChatFlow } from '../database/entities/ChatFlow'
-import { InternalAutonomousError } from '../errors/internalAutonomousError'
+import { InternalKodivianError } from '../errors/internalKodivianError'
 import { getErrorMessage } from '../errors/utils'
 import { getDataSource } from '../DataSource'
 
@@ -32,6 +32,6 @@ export const addChatflowsCount = async (keys: any, orgId: string) => {
         }
         return tmpResult
     } catch (error) {
-        throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: addChatflowsCount - ${getErrorMessage(error)}`)
+        throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: addChatflowsCount - ${getErrorMessage(error)}`)
     }
 }

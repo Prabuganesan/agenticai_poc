@@ -1,4 +1,4 @@
-import { InternalAutonomousError } from '../errors/internalAutonomousError'
+import { InternalKodivianError } from '../errors/internalKodivianError'
 import { StatusCodes } from 'http-status-codes'
 
 const FILE_SIGNATURES: Record<string, Buffer[]> = {
@@ -19,7 +19,7 @@ const FILE_SIGNATURES: Record<string, Buffer[]> = {
 
 export async function validateFileContent(fileBuffer: Buffer, declaredMimeType: string, allowedMimeTypes: string[]): Promise<boolean> {
     if (allowedMimeTypes.length > 0 && !allowedMimeTypes.includes(declaredMimeType)) {
-        throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, `File type '${declaredMimeType}' is not in the allowed types list`)
+        throw new InternalKodivianError(StatusCodes.BAD_REQUEST, `File type '${declaredMimeType}' is not in the allowed types list`)
     }
 
     return validateFileSignature(fileBuffer, declaredMimeType)
@@ -27,7 +27,7 @@ export async function validateFileContent(fileBuffer: Buffer, declaredMimeType: 
 
 function validateFileSignature(fileBuffer: Buffer, mimeType: string): boolean {
     if (fileBuffer.length === 0) {
-        throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'File is empty')
+        throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'File is empty')
     }
 
     const signatures = FILE_SIGNATURES[mimeType]
@@ -48,7 +48,7 @@ function validateFileSignature(fileBuffer: Buffer, mimeType: string): boolean {
     })
 
     if (!matches) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.BAD_REQUEST,
             `File content does not match expected file type signature for ${mimeType}. Possible file type spoofing detected.`
         )
@@ -61,13 +61,13 @@ export function validateFileSize(fileSize: number, maxSizeBytes: number): void {
     if (fileSize > maxSizeBytes) {
         const maxSizeMB = (maxSizeBytes / 1024 / 1024).toFixed(2)
         const fileSizeMB = (fileSize / 1024 / 1024).toFixed(2)
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.BAD_REQUEST,
             `File size (${fileSizeMB} MB) exceeds maximum allowed size (${maxSizeMB} MB)`
         )
     }
 
     if (fileSize === 0) {
-        throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'File is empty')
+        throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'File is empty')
     }
 }

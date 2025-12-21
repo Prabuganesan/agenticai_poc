@@ -1,5 +1,5 @@
 /**
- * Simplified Autonomous Session Service for Single-Org Kodivian
+ * Simplified Kodivian Session Service for Single-Org Kodivian
  * No Redis for session storage - uses in-memory Map (suitable for single-instance deployment)
  * Redis can still be used for prediction queue elsewhere
  */
@@ -15,7 +15,7 @@ interface SessionData {
     createdAt: number
 }
 
-export class AutonomousSessionService {
+export class KodivianSessionService {
     // In-memory session store (for single-instance deployment)
     private sessions: Map<string, SessionData> = new Map()
     private readonly SESSION_TTL = parseInt(process.env.SESSION_COOKIE_MAX_AGE || '900') * 1000 // Convert to ms
@@ -31,18 +31,18 @@ export class AutonomousSessionService {
     }
 
     /**
-     * Create autonomous session
-     * Token format: {uuid}$${chainsysSessionId}$${userId}$$Auto{orgId}
+     * Create Kodivian session
+     * Token format: {uuid}$${chainsysSessionId}$${userId}$$Kodi{orgId}
      */
-    async createAutonomousSession(
+    async createKodivianSession(
         chainsysSessionId: string,
         userId: string,
         orgId: string,
         userData: any
     ): Promise<string> {
         try {
-            // Generate token (exact format from autonomous server)
-            const token = `${uuidv4()}$$${chainsysSessionId}$$${userId}$$Auto${orgId}`
+            // Generate token (exact format from kodivian server)
+            const token = `${uuidv4()}$$${chainsysSessionId}$$${userId}$$Kodi${orgId}`
 
             // Store session in memory
             const sessionData: SessionData = {
@@ -69,7 +69,7 @@ export class AutonomousSessionService {
     /**
      * Validate autonomous session
      */
-    async validateAutonomousSession(token: string, orgId: string): Promise<any> {
+    async validateKodivianSession(token: string, orgId: string): Promise<any> {
         try {
             const sessionData = this.sessions.get(token)
 
@@ -95,10 +95,10 @@ export class AutonomousSessionService {
     /**
      * Extend session TTL
      */
-    async extendAutonomousSession(token: string, orgId: string): Promise<boolean> {
-        const sessionData = await this.validateAutonomousSession(token, orgId)
+    async extendKodivianSession(token: string, orgId: string): Promise<boolean> {
+        const sessionData = await this.validateKodivianSession(token, orgId)
         if (sessionData) {
-            return this.extendAutonomousSessionWithData(token, orgId, sessionData)
+            return this.extendKodivianSessionWithData(token, orgId, sessionData)
         }
         return false
     }
@@ -106,7 +106,7 @@ export class AutonomousSessionService {
     /**
      * Extend session using already-validated data
      */
-    async extendAutonomousSessionWithData(token: string, orgId: string, sessionData: any): Promise<boolean> {
+    async extendKodivianSessionWithData(token: string, orgId: string, sessionData: any): Promise<boolean> {
         try {
             // Reset creation time to extend TTL
             sessionData.createdAt = Date.now()
@@ -121,7 +121,7 @@ export class AutonomousSessionService {
     /**
      * Delete session
      */
-    async deleteAutonomousSession(token: string, orgId: string): Promise<boolean> {
+    async deleteKodivianSession(token: string, orgId: string): Promise<boolean> {
         try {
             this.sessions.delete(token)
             return true

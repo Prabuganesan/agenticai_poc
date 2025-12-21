@@ -252,7 +252,7 @@ const VectorStoreConfigure = () => {
             data.embeddingConfig = {}
             data.embeddingName = selectedEmbeddingsProvider.name
             Object.keys(selectedEmbeddingsProvider.inputs).map((key) => {
-                if (key === 'AUTONOMOUS_CREDENTIAL_ID') {
+                if (key === 'KODIVIAN_CREDENTIAL_ID') {
                     data.embeddingConfig['credential'] = selectedEmbeddingsProvider.inputs[key]
                 } else {
                     data.embeddingConfig[key] = selectedEmbeddingsProvider.inputs[key]
@@ -268,7 +268,7 @@ const VectorStoreConfigure = () => {
             data.vectorStoreConfig = {}
             data.vectorStoreName = selectedVectorStoreProvider.name
             Object.keys(selectedVectorStoreProvider.inputs).map((key) => {
-                if (key === 'AUTONOMOUS_CREDENTIAL_ID') {
+                if (key === 'KODIVIAN_CREDENTIAL_ID') {
                     data.vectorStoreConfig['credential'] = selectedVectorStoreProvider.inputs[key]
                 } else {
                     data.vectorStoreConfig[key] = selectedVectorStoreProvider.inputs[key]
@@ -284,7 +284,7 @@ const VectorStoreConfigure = () => {
             data.recordManagerConfig = {}
             data.recordManagerName = selectedRecordManagerProvider.name
             Object.keys(selectedRecordManagerProvider.inputs).map((key) => {
-                if (key === 'AUTONOMOUS_CREDENTIAL_ID') {
+                if (key === 'KODIVIAN_CREDENTIAL_ID') {
                     data.recordManagerConfig['credential'] = selectedRecordManagerProvider.inputs[key]
                 } else {
                     data.recordManagerConfig[key] = selectedRecordManagerProvider.inputs[key]
@@ -479,34 +479,34 @@ const VectorStoreConfigure = () => {
                                 >
                                     {(Object.keys(selectedEmbeddingsProvider).length > 0 ||
                                         Object.keys(selectedVectorStoreProvider).length > 0) && (
-                                        <Button
-                                            variant='outlined'
-                                            color='error'
-                                            sx={{
-                                                borderRadius: 2,
-                                                height: '100%'
-                                            }}
-                                            startIcon={<IconRefresh />}
-                                            onClick={() => resetVectorStoreConfig()}
-                                        >
-                                            Reset
-                                        </Button>
-                                    )}
+                                            <Button
+                                                variant='outlined'
+                                                color='error'
+                                                sx={{
+                                                    borderRadius: 2,
+                                                    height: '100%'
+                                                }}
+                                                startIcon={<IconRefresh />}
+                                                onClick={() => resetVectorStoreConfig()}
+                                            >
+                                                Reset
+                                            </Button>
+                                        )}
                                     {(Object.keys(selectedEmbeddingsProvider).length > 0 ||
                                         Object.keys(selectedVectorStoreProvider).length > 0) && (
-                                        <Button
-                                            variant='outlined'
-                                            color='secondary'
-                                            sx={{
-                                                borderRadius: 2,
-                                                height: '100%'
-                                            }}
-                                            startIcon={<IconDeviceFloppy />}
-                                            onClick={() => saveVectorStoreConfig()}
-                                        >
-                                            Save Config
-                                        </Button>
-                                    )}
+                                            <Button
+                                                variant='outlined'
+                                                color='secondary'
+                                                sx={{
+                                                    borderRadius: 2,
+                                                    height: '100%'
+                                                }}
+                                                startIcon={<IconDeviceFloppy />}
+                                                onClick={() => saveVectorStoreConfig()}
+                                            >
+                                                Save Config
+                                            </Button>
+                                        )}
                                     {Object.keys(selectedEmbeddingsProvider).length > 0 &&
                                         Object.keys(selectedVectorStoreProvider).length > 0 && (
                                             <Button

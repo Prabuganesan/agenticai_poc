@@ -56,7 +56,7 @@ import { CachePool } from '../CachePool'
 import { Variable } from '../database/entities/Variable'
 import { DocumentStore } from '../database/entities/DocumentStore'
 import { DocumentStoreFileChunk } from '../database/entities/DocumentStoreFileChunk'
-import { InternalAutonomousError } from '../errors/internalAutonomousError'
+import { InternalKodivianError } from '../errors/internalKodivianError'
 import { StatusCodes } from 'http-status-codes'
 export const QUESTION_VAR_PREFIX = 'question'
 export const FILE_ATTACHMENT_PREFIX = 'file_attachment'
@@ -64,7 +64,7 @@ export const CHAT_HISTORY_VAR_PREFIX = 'chat_history'
 export const RUNTIME_MESSAGES_LENGTH_VAR_PREFIX = 'runtime_messages_length'
 export const LOOP_COUNT_VAR_PREFIX = 'loop_count'
 export const CURRENT_DATE_TIME_VAR_PREFIX = 'current_date_time'
-export const REDACTED_CREDENTIAL_VALUE = '_AUTONOMOUS_BLANK_07167752-1a71-43b1-bf8f-4f32252165db'
+export const REDACTED_CREDENTIAL_VALUE = '_KODIVIAN_BLANK_07167752-1a71-43b1-bf8f-4f32252165db'
 
 export const databaseEntities: IDatabaseEntity = {
     ChatFlow: ChatFlow,
@@ -98,13 +98,13 @@ export const getUserHome = (): string => {
 }
 
 /**
- * Returns the base autonomous server data directory path
- * Uses AUTONOMOUS_DATA_PATH if set, otherwise uses .autonomous inside the server folder
- * This ensures all autonomous server data (database, encryption key, uploads) is in one place
+ * Returns the base kodivian server data directory path
+ * Uses KODIVIAN_DATA_PATH if set, otherwise uses .kodivian inside the server folder
+ * This ensures all kodivian server data (database, encryption key, uploads) is in one place
  */
 export const getAutonomousDataPath = (): string => {
-    if (process.env.AUTONOMOUS_DATA_PATH) {
-        return path.join(process.env.AUTONOMOUS_DATA_PATH, '.autonomous')
+    if (process.env.KODIVIAN_DATA_PATH) {
+        return path.join(process.env.KODIVIAN_DATA_PATH, '.kodivian')
     }
     // Default to .autonomous inside the server package directory
     // __dirname in compiled code will be dist/utils, so we go up to server root
@@ -113,7 +113,7 @@ export const getAutonomousDataPath = (): string => {
 }
 
 /**
- * Ensures the autonomous server data directory exists
+ * Ensures the kodivian server data directory exists
  */
 export const ensureAutonomousDataPath = (): void => {
     const dataPath = getAutonomousDataPath()
@@ -335,11 +335,11 @@ export const getEndingNodes = (
     // If there are multiple endingnodes, the failed ones will be automatically ignored.
     // And only ensure that at least one can pass the verification.
     const verifiedEndingNodes: typeof endingNodes = []
-    let error: InternalAutonomousError | null = null
+    let error: InternalKodivianError | null = null
     for (const endingNode of endingNodes) {
         const endingNodeData = endingNode.data
         if (!endingNodeData) {
-            error = new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Ending node ${endingNode.id} data not found`)
+            error = new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Ending node ${endingNode.id} data not found`)
 
             continue
         }
@@ -355,7 +355,7 @@ export const getEndingNodes = (
                 endingNodeData.category !== 'Multi Agents' &&
                 endingNodeData.category !== 'Sequential Agents'
             ) {
-                error = new InternalAutonomousError(
+                error = new InternalKodivianError(
                     StatusCodes.INTERNAL_SERVER_ERROR,
                     `Ending node must be either a Chain or Agent or Engine`
                 )
@@ -370,7 +370,7 @@ export const getEndingNodes = (
     }
 
     if (endingNodes.length === 0 || error === null) {
-        error = new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Ending nodes not found`)
+        error = new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Ending nodes not found`)
     }
 
     throw error
@@ -1059,7 +1059,7 @@ export const getVariableValue = async (
             /**
              * Apply string transformation to convert special chars:
              * FROM: hello i am ben\n\n\thow are you?
-             * TO: hello i am benAUTONOMOUS_NEWLINEAUTONOMOUS_NEWLINEAUTONOMOUS_TABhow are you?
+             * TO: hello i am benKODIVIAN_NEWLINEKODIVIAN_NEWLINEKODIVIAN_TABhow are you?
              */
             if (isAcceptVariable && variableFullPath === QUESTION_VAR_PREFIX) {
                 variableDict[`{{${variableFullPath}}}`] = handleEscapeCharacters(question, false)
@@ -1731,7 +1731,7 @@ const backupEncryptionKey = async (key: string): Promise<void> => {
 
 /**
  * Get encryption key from file (primary location only)
- * For cluster environments, use AUTONOMOUS_DATA_PATH to point to shared volume
+ * For cluster environments, use KODIVIAN_DATA_PATH to point to shared volume
  * All instances will read from the same file location
  *
  * Note: Backup folder is NOT used for automatic recovery - it's for manual backup only
@@ -2088,7 +2088,7 @@ export const getAPIOverrideConfig = (chatflow: IChatFlow) => {
 }
 
 export const getUploadPath = (): string => {
-    // Use centralized autonomous server data path
+    // Use centralized kodivian server data path
     const dataPath = getAutonomousDataPath()
     const uploadPath = path.join(dataPath, 'uploads')
     ensureAutonomousDataPath() // Ensure base directory exists
@@ -2213,7 +2213,7 @@ export const _removeCredentialId = (obj: any): any => {
 
     const newObj: Record<string, any> = {}
     for (const [key, value] of Object.entries(obj)) {
-        if (key === 'AUTONOMOUS_CREDENTIAL_ID') continue
+        if (key === 'KODIVIAN_CREDENTIAL_ID') continue
         newObj[key] = _removeCredentialId(value)
     }
     return newObj

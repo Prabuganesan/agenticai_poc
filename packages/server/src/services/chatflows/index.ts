@@ -1,14 +1,14 @@
 import { ICommonObject, removeFolderFromStorage } from 'kodivian-components'
 import { StatusCodes } from 'http-status-codes'
 import { ChatflowType, IReactFlowObject } from '../../Interface'
-import { AUTONOMOUS_COUNTER_STATUS, AUTONOMOUS_METRIC_COUNTERS } from '../../Interface.Metrics'
+import { KODIVIAN_COUNTER_STATUS, KODIVIAN_METRIC_COUNTERS } from '../../Interface.Metrics'
 import { UsageCacheManager } from '../../UsageCacheManager'
 import { ChatFlow, EnumChatflowType } from '../../database/entities/ChatFlow'
 import { ChatMessage } from '../../database/entities/ChatMessage'
 import { ChatMessageFeedback } from '../../database/entities/ChatMessageFeedback'
 import { UpsertHistory } from '../../database/entities/UpsertHistory'
-// Workspace and getWorkspaceSearchOptions removed for autonomous server
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+// Workspace and getWorkspaceSearchOptions removed for kodivian server
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { getErrorMessage } from '../../errors/utils'
 import documentStoreService from '../../services/documentstore'
 import { constructGraphs, getEndingNodes, isFlowValidForStream } from '../../utils'
@@ -27,7 +27,7 @@ export const enum ChatflowErrorMessage {
 
 export function validateChatflowType(type: ChatflowType | undefined) {
     if (!Object.values(EnumChatflowType).includes(type as EnumChatflowType))
-        throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, ChatflowErrorMessage.INVALID_CHATFLOW_TYPE)
+        throw new InternalKodivianError(StatusCodes.BAD_REQUEST, ChatflowErrorMessage.INVALID_CHATFLOW_TYPE)
 }
 
 // Check if chatflow valid for streaming
@@ -62,7 +62,7 @@ const checkIfChatflowIsValidForStreaming = async (chatflowId: string, orgId: str
         }
 
         if (!chatflow) {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowId} not found`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowId} not found`)
         }
 
         /* Check for post-processing settings, if available isStreamValid is always false */
@@ -106,7 +106,7 @@ const checkIfChatflowIsValidForStreaming = async (chatflowId: string, orgId: str
         const dbResponse = { isStreaming: isStreaming }
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: chatflowsService.checkIfChatflowIsValidForStreaming - ${getErrorMessage(error)}`
         )
@@ -119,7 +119,7 @@ const checkIfChatflowIsValidForUploads = async (chatflowId: string, orgId: strin
         const dbResponse = await utilGetUploadsConfig(chatflowId, orgId)
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: chatflowsService.checkIfChatflowIsValidForUploads - ${getErrorMessage(error)}`
         )
@@ -131,7 +131,7 @@ const deleteChatflow = async (req: AuthenticatedRequest, chatflowId: string): Pr
         const appServer = getRunningExpressApp()
         const orgId = req.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
 
         const dataSource = getDataSource(parseInt(orgId))
@@ -169,7 +169,7 @@ const deleteChatflow = async (req: AuthenticatedRequest, chatflowId: string): Pr
         }
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: chatflowsService.deleteChatflow - ${getErrorMessage(error)}`
         )
@@ -180,7 +180,7 @@ const getAllChatflows = async (req: AuthenticatedRequest, type?: ChatflowType, p
     try {
         const orgId = req.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
 
         const dataSource = getDataSource(parseInt(orgId))
@@ -247,7 +247,7 @@ const getAllChatflows = async (req: AuthenticatedRequest, type?: ChatflowType, p
             return dataWithCreatorFlag
         }
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: chatflowsService.getAllChatflows - ${getErrorMessage(error)}`
         )
@@ -258,14 +258,14 @@ async function getAllChatflowsCountByOrganization(type: ChatflowType, organizati
     try {
         const dataSource = getDataSource(parseInt(organizationId))
 
-        // For autonomous server, use orgId directly
+        // For kodivian server, use orgId directly
         const chatflowsCount = await dataSource.getRepository(ChatFlow).countBy({
             type
         })
 
         return chatflowsCount
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: chatflowsService.getAllChatflowsCountByOrganization - ${getErrorMessage(error)}`
         )
@@ -276,7 +276,7 @@ const getAllChatflowsCount = async (req: AuthenticatedRequest, type?: ChatflowTy
     try {
         const orgId = req.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
 
         const dataSource = getDataSource(parseInt(orgId))
@@ -290,7 +290,7 @@ const getAllChatflowsCount = async (req: AuthenticatedRequest, type?: ChatflowTy
         const dbResponse = await dataSource.getRepository(ChatFlow).countBy({})
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: chatflowsService.getAllChatflowsCount - ${getErrorMessage(error)}`
         )
@@ -308,11 +308,11 @@ const getChatflowByApiKey = async (apiKeyId: string, orgId: string, keyonly?: un
 
         const dbResponse = await query.orderBy('cf.name', 'ASC').getMany()
         if (dbResponse.length < 1) {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Chatflow not found in the database!`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Chatflow not found in the database!`)
         }
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: chatflowsService.getChatflowByApiKey - ${getErrorMessage(error)}`
         )
@@ -332,7 +332,7 @@ const getChatflowById = async (chatflowId: string, orgId: string, userId?: numbe
         })
 
         if (!dbResponse) {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowId} not found in the database!`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowId} not found in the database!`)
         }
 
         // Add isCreator flag for permission checks
@@ -344,7 +344,7 @@ const getChatflowById = async (chatflowId: string, orgId: string, userId?: numbe
 
         return responseWithCreatorFlag
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: chatflowsService.getChatflowById - ${getErrorMessage(error)}`
         )
@@ -358,7 +358,7 @@ const saveChatflow = async (req: AuthenticatedRequest, newChatFlow: ChatFlow, us
     const userId = req.userId
 
     if (!orgId) {
-        throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+        throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
     }
 
     const dataSource = getDataSource(parseInt(orgId))
@@ -374,7 +374,7 @@ const saveChatflow = async (req: AuthenticatedRequest, newChatFlow: ChatFlow, us
         newChatFlow.created_by = userIdNum
         newChatFlow.created_on = Date.now()
     } else {
-        throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'User ID is required')
+        throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'User ID is required')
     }
 
     // Check if a chatflow with the same name already exists in this org
@@ -399,7 +399,7 @@ const saveChatflow = async (req: AuthenticatedRequest, newChatFlow: ChatFlow, us
                     }
                 })
                 if (existingByName && existingByName.guid !== newChatFlow.guid) {
-                    throw new InternalAutonomousError(
+                    throw new InternalKodivianError(
                         StatusCodes.CONFLICT,
                         `A chatflow with the name "${newChatFlow.name}" already exists in this organization. Please use a different name.`
                     )
@@ -414,7 +414,7 @@ const saveChatflow = async (req: AuthenticatedRequest, newChatFlow: ChatFlow, us
                 }
             })
             if (existingByName) {
-                throw new InternalAutonomousError(
+                throw new InternalKodivianError(
                     StatusCodes.CONFLICT,
                     `A chatflow with the name "${newChatFlow.name}" already exists in this organization. Please use a different name.`
                 )
@@ -447,14 +447,14 @@ const saveChatflow = async (req: AuthenticatedRequest, newChatFlow: ChatFlow, us
         dbResponse = await dataSource.getRepository(ChatFlow).save(chatflow)
     }
 
-    // Product ID not needed for autonomous server
+    // Product ID not needed for kodivian server
     const productId = ''
 
     // Telemetry removed
 
     appServer.metricsProvider?.incrementCounter(
-        dbResponse?.type === 'AGENTFLOW' ? AUTONOMOUS_METRIC_COUNTERS.AGENTFLOW_CREATED : AUTONOMOUS_METRIC_COUNTERS.CHATFLOW_CREATED,
-        { status: AUTONOMOUS_COUNTER_STATUS.SUCCESS }
+        dbResponse?.type === 'AGENTFLOW' ? KODIVIAN_METRIC_COUNTERS.AGENTFLOW_CREATED : KODIVIAN_METRIC_COUNTERS.CHATFLOW_CREATED,
+        { status: KODIVIAN_COUNTER_STATUS.SUCCESS }
     )
 
     return dbResponse
@@ -465,7 +465,7 @@ const updateChatflow = async (req: AuthenticatedRequest, chatflow: ChatFlow, upd
     const orgId = req.orgId
     const userId = req.userId
     if (!orgId) {
-        throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+        throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
     }
 
     const dataSource = getDataSource(parseInt(orgId))
@@ -492,7 +492,7 @@ const updateChatflow = async (req: AuthenticatedRequest, chatflow: ChatFlow, upd
             }
         })
         if (existingChatflow && existingChatflow.guid !== chatflow.guid) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.CONFLICT,
                 `A chatflow with the name "${updateChatFlow.name}" already exists in this organization. Please use a different name.`
             )
@@ -556,10 +556,10 @@ const getSinglePublicChatbotConfig = async (chatflowId: string, baseURL?: string
             }
         } else {
             // Require orgId upfront - no cross-org search
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
         if (!dbResponse) {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowId} not found`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowId} not found`)
         }
         const uploadsConfig = await utilGetUploadsConfig(chatflowId, orgId)
         // Default theme configuration for embed
@@ -722,7 +722,7 @@ const getSinglePublicChatbotConfig = async (chatflowId: string, baseURL?: string
                     : defaultTheme
                 return { ...parsedConfig, theme: mergedTheme, uploads: uploadsConfig, flowData: dbResponse.flowData, isTTSEnabled }
             } catch (e) {
-                throw new InternalAutonomousError(
+                throw new InternalKodivianError(
                     StatusCodes.INTERNAL_SERVER_ERROR,
                     `Error parsing Chatbot Config for Chatflow ${chatflowId}`
                 )
@@ -731,7 +731,7 @@ const getSinglePublicChatbotConfig = async (chatflowId: string, baseURL?: string
         // Return default config with theme even if no chatbotConfig exists
         return { theme: defaultTheme, uploads: uploadsConfig, flowData: dbResponse.flowData, isTTSEnabled: false }
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: chatflowsService.getSinglePublicChatbotConfig - ${getErrorMessage(error)}`
         )
@@ -742,7 +742,7 @@ const getEmbedTheme = async (chatflowId: string, baseURL?: string, orgId?: strin
     try {
         // Require orgId upfront - no cross-org search
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
 
         const dataSource = getDataSource(parseInt(orgId))
@@ -751,7 +751,7 @@ const getEmbedTheme = async (chatflowId: string, baseURL?: string, orgId?: strin
         })
 
         if (!dbResponse) {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowId} not found`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowId} not found`)
         }
         // Construct baseURL
         const contextPath = process.env.CONTEXT_PATH || '/autonomous'
@@ -908,7 +908,7 @@ const getEmbedTheme = async (chatflowId: string, baseURL?: string, orgId?: strin
         // Return default theme only (no sensitive data)
         return defaultTheme
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: chatflowsService.getEmbedTheme - ${getErrorMessage(error)}`
         )
@@ -935,7 +935,7 @@ const checkIfChatflowHasChanged = async (chatflowId: string, lastUpdatedDateTime
             guid: chatflowId
         })
         if (!chatflow) {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowId} not found`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowId} not found`)
         }
         // Handle undefined or empty lastUpdatedDateTime
         if (!lastUpdatedDateTime || lastUpdatedDateTime === 'undefined' || lastUpdatedDateTime === 'null') {
@@ -986,7 +986,7 @@ const checkIfChatflowHasChanged = async (chatflowId: string, lastUpdatedDateTime
         const difference = Math.abs(dbTimestamp - frontendTimestamp)
         return { hasChanged: difference > 1000 } // Changed if difference is more than 1 second
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: chatflowsService.checkIfChatflowHasChanged - ${getErrorMessage(error)}`
         )

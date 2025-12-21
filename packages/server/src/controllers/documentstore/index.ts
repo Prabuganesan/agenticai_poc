@@ -2,12 +2,12 @@ import { NextFunction, Response } from 'express'
 import { AuthenticatedRequest } from '../../middlewares/session-validation.middleware'
 import { StatusCodes } from 'http-status-codes'
 import documentStoreService from '../../services/documentstore'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { DocumentStoreDTO } from '../../Interface'
 import { DocumentStore } from '../../database/entities/DocumentStore'
 import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
 import { Request } from 'express'
-import { AUTONOMOUS_COUNTER_STATUS, AUTONOMOUS_METRIC_COUNTERS } from '../../Interface.Metrics'
+import { KODIVIAN_COUNTER_STATUS, KODIVIAN_METRIC_COUNTERS } from '../../Interface.Metrics'
 import { getPageAndLimitParams } from '../../utils/pagination'
 import { getDataSource } from '../../DataSource'
 import { canModifyResource } from '../../utils/permissions'
@@ -15,7 +15,7 @@ import { canModifyResource } from '../../utils/permissions'
 const createDocumentStore = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         if (typeof req.body === 'undefined') {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.createDocumentStore - body not provided!`
             )
@@ -23,7 +23,7 @@ const createDocumentStore = async (req: AuthenticatedRequest, res: Response, nex
 
         const orgId = (req as any).orgId || req.user?.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.createDocumentStore - organizationId not provided!`
             )
@@ -33,7 +33,7 @@ const createDocumentStore = async (req: AuthenticatedRequest, res: Response, nex
         const userId = req.userId
         body.orgId = req.orgId
         if (!body.orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.createDocumentStore - orgId not provided!`
             )
@@ -52,7 +52,7 @@ const getAllDocumentStores = async (req: AuthenticatedRequest, res: Response, ne
 
         const orgId = req.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.getAllDocumentStores - orgId not provided!`
             )
@@ -78,7 +78,7 @@ const deleteLoaderFromDocumentStore = async (req: AuthenticatedRequest, res: Res
         const loaderId = req.params.loaderId
 
         if (!storeId || !loaderId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.deleteLoaderFromDocumentStore - missing storeId or loaderId.`
             )
@@ -86,7 +86,7 @@ const deleteLoaderFromDocumentStore = async (req: AuthenticatedRequest, res: Res
 
         const orgId = req.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.deleteLoaderFromDocumentStore - orgId not provided!`
             )
@@ -107,14 +107,14 @@ const deleteLoaderFromDocumentStore = async (req: AuthenticatedRequest, res: Res
 const getDocumentStoreById = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params.id === 'undefined' || req.params.id === '') {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.getDocumentStoreById - id not provided!`
             )
         }
         const orgId = req.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.getDocumentStoreById - orgId not provided!`
             )
@@ -132,20 +132,20 @@ const getDocumentStoreById = async (req: AuthenticatedRequest, res: Response, ne
 const getDocumentStoreFileChunks = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params.storeId === 'undefined' || req.params.storeId === '') {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.getDocumentStoreFileChunks - storeId not provided!`
             )
         }
         if (typeof req.params.fileId === 'undefined' || req.params.fileId === '') {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.getDocumentStoreFileChunks - fileId not provided!`
             )
         }
         const orgId = req.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.getDocumentStoreFileChunks - orgId not provided!`
             )
@@ -168,26 +168,26 @@ const getDocumentStoreFileChunks = async (req: AuthenticatedRequest, res: Respon
 const deleteDocumentStoreFileChunk = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params.storeId === 'undefined' || req.params.storeId === '') {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.deleteDocumentStoreFileChunk - storeId not provided!`
             )
         }
         if (typeof req.params.loaderId === 'undefined' || req.params.loaderId === '') {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.deleteDocumentStoreFileChunk - loaderId not provided!`
             )
         }
         if (typeof req.params.chunkId === 'undefined' || req.params.chunkId === '') {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.deleteDocumentStoreFileChunk - chunkId not provided!`
             )
         }
         const orgId = req.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.deleteDocumentStoreFileChunk - orgId not provided!`
             )
@@ -207,33 +207,33 @@ const deleteDocumentStoreFileChunk = async (req: AuthenticatedRequest, res: Resp
 const editDocumentStoreFileChunk = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params.storeId === 'undefined' || req.params.storeId === '') {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.editDocumentStoreFileChunk - storeId not provided!`
             )
         }
         if (typeof req.params.loaderId === 'undefined' || req.params.loaderId === '') {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.editDocumentStoreFileChunk - loaderId not provided!`
             )
         }
         if (typeof req.params.chunkId === 'undefined' || req.params.chunkId === '') {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.editDocumentStoreFileChunk - chunkId not provided!`
             )
         }
         const body = req.body
         if (typeof body === 'undefined') {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.editDocumentStoreFileChunk - body not provided!`
             )
         }
         const orgId = req.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.editDocumentStoreFileChunk - orgId not provided!`
             )
@@ -256,7 +256,7 @@ const saveProcessingLoader = async (req: AuthenticatedRequest, res: Response, ne
     try {
         const appServer = getRunningExpressApp()
         if (typeof req.body === 'undefined') {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.saveProcessingLoader - body not provided!`
             )
@@ -264,7 +264,7 @@ const saveProcessingLoader = async (req: AuthenticatedRequest, res: Response, ne
         const body = req.body
         const orgId = req.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.saveProcessingLoader - orgId not provided!`
             )
@@ -281,20 +281,20 @@ const saveProcessingLoader = async (req: AuthenticatedRequest, res: Response, ne
 const processLoader = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params.loaderId === 'undefined' || req.params.loaderId === '') {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.processLoader - loaderId not provided!`
             )
         }
         if (typeof req.body === 'undefined') {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.processLoader - body not provided!`
             )
         }
         const orgId = req.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.deleteLoaderFromDocumentStore - orgId not provided!`
             )
@@ -318,20 +318,20 @@ const processLoader = async (req: AuthenticatedRequest, res: Response, next: Nex
 const updateDocumentStore = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params.id === 'undefined' || req.params.id === '') {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.updateDocumentStore - storeId not provided!`
             )
         }
         if (typeof req.body === 'undefined') {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.updateDocumentStore - body not provided!`
             )
         }
         const orgId = req.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.updateDocumentStore - orgId not provided!`
             )
@@ -341,12 +341,12 @@ const updateDocumentStore = async (req: AuthenticatedRequest, res: Response, nex
         const { canModify } = await canModifyResource('documentstore', req.params.id, req.userId!, req.orgId!)
 
         if (!canModify) {
-            throw new InternalAutonomousError(StatusCodes.FORBIDDEN, 'Only the creator can modify this document store')
+            throw new InternalKodivianError(StatusCodes.FORBIDDEN, 'Only the creator can modify this document store')
         }
 
         const store = await documentStoreService.getDocumentStoreById(req.params.id, orgId)
         if (!store) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.NOT_FOUND,
                 `Error: documentStoreController.updateDocumentStore - DocumentStore ${req.params.id} not found in the database`
             )
@@ -368,14 +368,14 @@ const updateDocumentStore = async (req: AuthenticatedRequest, res: Response, nex
 const deleteDocumentStore = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params.id === 'undefined' || req.params.id === '') {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.deleteDocumentStore - storeId not provided!`
             )
         }
         const orgId = req.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.deleteLoaderFromDocumentStore - orgId not provided!`
             )
@@ -385,7 +385,7 @@ const deleteDocumentStore = async (req: AuthenticatedRequest, res: Response, nex
         const { canModify } = await canModifyResource('documentstore', req.params.id, req.userId!, req.orgId!)
 
         if (!canModify) {
-            throw new InternalAutonomousError(StatusCodes.FORBIDDEN, 'Only the creator can delete this document store')
+            throw new InternalKodivianError(StatusCodes.FORBIDDEN, 'Only the creator can delete this document store')
         }
 
         const apiResponse = await documentStoreService.deleteDocumentStore(req.params.id, orgId, getRunningExpressApp().usageCacheManager)
@@ -398,14 +398,14 @@ const deleteDocumentStore = async (req: AuthenticatedRequest, res: Response, nex
 const previewFileChunks = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         if (typeof req.body === 'undefined') {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.previewFileChunks - body not provided!`
             )
         }
         const orgId = req.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.deleteLoaderFromDocumentStore - orgId not provided!`
             )
@@ -435,7 +435,7 @@ const insertIntoVectorStore = async (req: AuthenticatedRequest, res: Response, n
         }
         const orgId = req.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.deleteLoaderFromDocumentStore - orgId not provided!`
             )
@@ -447,13 +447,13 @@ const insertIntoVectorStore = async (req: AuthenticatedRequest, res: Response, n
             orgId,
             getRunningExpressApp().usageCacheManager
         )
-        getRunningExpressApp().metricsProvider?.incrementCounter(AUTONOMOUS_METRIC_COUNTERS.VECTORSTORE_UPSERT, {
-            status: AUTONOMOUS_COUNTER_STATUS.SUCCESS
+        getRunningExpressApp().metricsProvider?.incrementCounter(KODIVIAN_METRIC_COUNTERS.VECTORSTORE_UPSERT, {
+            status: KODIVIAN_COUNTER_STATUS.SUCCESS
         })
         return res.json(DocumentStoreDTO.fromEntity(apiResponse))
     } catch (error) {
-        getRunningExpressApp().metricsProvider?.incrementCounter(AUTONOMOUS_METRIC_COUNTERS.VECTORSTORE_UPSERT, {
-            status: AUTONOMOUS_COUNTER_STATUS.FAILURE
+        getRunningExpressApp().metricsProvider?.incrementCounter(KODIVIAN_METRIC_COUNTERS.VECTORSTORE_UPSERT, {
+            status: KODIVIAN_COUNTER_STATUS.FAILURE
         })
         next(error)
     }
@@ -467,7 +467,7 @@ const queryVectorStore = async (req: AuthenticatedRequest, res: Response, next: 
         const body = req.body
         const orgId = req.orgId || (req as any).orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
         const apiResponse = await documentStoreService.queryVectorStore(body, orgId)
         return res.json(apiResponse)
@@ -479,14 +479,14 @@ const queryVectorStore = async (req: AuthenticatedRequest, res: Response, next: 
 const deleteVectorStoreFromStore = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params.storeId === 'undefined' || req.params.storeId === '') {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.deleteVectorStoreFromStore - storeId not provided!`
             )
         }
         const orgId = req.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.deleteVectorStoreFromStore - orgId not provided!`
             )
@@ -506,7 +506,7 @@ const saveVectorStoreConfig = async (req: AuthenticatedRequest, res: Response, n
         const body = req.body
         const orgId = req.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.saveVectorStoreConfig - orgId not provided!`
             )
@@ -527,7 +527,7 @@ const updateVectorStoreConfigOnly = async (req: AuthenticatedRequest, res: Respo
         const body = req.body
         const orgId = req.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.updateVectorStoreConfigOnly - orgId not provided!`
             )
@@ -569,7 +569,7 @@ const getRecordManagerProviders = async (req: Request, res: Response, next: Next
 const upsertDocStoreMiddleware = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params.id === 'undefined' || req.params.id === '') {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.upsertDocStoreMiddleware - storeId not provided!`
             )
@@ -579,7 +579,7 @@ const upsertDocStoreMiddleware = async (req: AuthenticatedRequest, res: Response
         }
         const orgId = req.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.deleteLoaderFromDocumentStore - orgId not provided!`
             )
@@ -593,13 +593,13 @@ const upsertDocStoreMiddleware = async (req: AuthenticatedRequest, res: Response
             orgId,
             getRunningExpressApp().usageCacheManager
         )
-        getRunningExpressApp().metricsProvider?.incrementCounter(AUTONOMOUS_METRIC_COUNTERS.VECTORSTORE_UPSERT, {
-            status: AUTONOMOUS_COUNTER_STATUS.SUCCESS
+        getRunningExpressApp().metricsProvider?.incrementCounter(KODIVIAN_METRIC_COUNTERS.VECTORSTORE_UPSERT, {
+            status: KODIVIAN_COUNTER_STATUS.SUCCESS
         })
         return res.json(apiResponse)
     } catch (error) {
-        getRunningExpressApp().metricsProvider?.incrementCounter(AUTONOMOUS_METRIC_COUNTERS.VECTORSTORE_UPSERT, {
-            status: AUTONOMOUS_COUNTER_STATUS.FAILURE
+        getRunningExpressApp().metricsProvider?.incrementCounter(KODIVIAN_METRIC_COUNTERS.VECTORSTORE_UPSERT, {
+            status: KODIVIAN_COUNTER_STATUS.FAILURE
         })
         next(error)
     }
@@ -608,14 +608,14 @@ const upsertDocStoreMiddleware = async (req: AuthenticatedRequest, res: Response
 const refreshDocStoreMiddleware = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params.id === 'undefined' || req.params.id === '') {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.refreshDocStoreMiddleware - storeId not provided!`
             )
         }
         const orgId = req.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.deleteLoaderFromDocumentStore - orgId not provided!`
             )
@@ -627,13 +627,13 @@ const refreshDocStoreMiddleware = async (req: AuthenticatedRequest, res: Respons
             orgId,
             getRunningExpressApp().usageCacheManager
         )
-        getRunningExpressApp().metricsProvider?.incrementCounter(AUTONOMOUS_METRIC_COUNTERS.VECTORSTORE_UPSERT, {
-            status: AUTONOMOUS_COUNTER_STATUS.SUCCESS
+        getRunningExpressApp().metricsProvider?.incrementCounter(KODIVIAN_METRIC_COUNTERS.VECTORSTORE_UPSERT, {
+            status: KODIVIAN_COUNTER_STATUS.SUCCESS
         })
         return res.json(apiResponse)
     } catch (error) {
-        getRunningExpressApp().metricsProvider?.incrementCounter(AUTONOMOUS_METRIC_COUNTERS.VECTORSTORE_UPSERT, {
-            status: AUTONOMOUS_COUNTER_STATUS.FAILURE
+        getRunningExpressApp().metricsProvider?.incrementCounter(KODIVIAN_METRIC_COUNTERS.VECTORSTORE_UPSERT, {
+            status: KODIVIAN_COUNTER_STATUS.FAILURE
         })
         next(error)
     }
@@ -642,7 +642,7 @@ const refreshDocStoreMiddleware = async (req: AuthenticatedRequest, res: Respons
 const generateDocStoreToolDesc = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params.id === 'undefined' || req.params.id === '') {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.generateDocStoreToolDesc - storeId not provided!`
             )
@@ -652,7 +652,7 @@ const generateDocStoreToolDesc = async (req: AuthenticatedRequest, res: Response
         }
         const orgId = req.orgId || (req as any).orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
         const apiResponse = await documentStoreService.generateDocStoreToolDesc(req.params.id, req.body.selectedChatModel, orgId)
         return res.json(apiResponse)
@@ -664,20 +664,20 @@ const generateDocStoreToolDesc = async (req: AuthenticatedRequest, res: Response
 const getDocStoreConfigs = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params.id === 'undefined' || req.params.id === '') {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.getDocStoreConfigs - storeId not provided!`
             )
         }
         if (typeof req.params.loaderId === 'undefined' || req.params.loaderId === '') {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: documentStoreController.getDocStoreConfigs - doc loader Id not provided!`
             )
         }
         const orgId = req.orgId || (req as any).orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
         const apiResponse = await documentStoreService.findDocStoreAvailableConfigs(req.params.id, req.params.loaderId, orgId)
         return res.json(apiResponse)

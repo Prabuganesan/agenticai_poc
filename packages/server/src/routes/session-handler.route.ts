@@ -12,20 +12,20 @@ router.use((req, res, next) => {
     logInfo(`Session handler middleware called (path: ${req.path}, url: ${req.url}, method: ${req.method})`).catch(() => {})
 
     const app = getInstance()
-    if (!app || !app.orgConfigService || !app.autonomousSessionService) {
+    if (!app || !app.orgConfigService || !app.kodivianSessionService) {
         logError('Services not initialized for session handler').catch(() => {})
         return res.status(503).json({ error: 'Services not initialized' })
     }
 
     // Use services from app instance (already initialized at startup)
     const orgConfigService = app.orgConfigService
-    const autonomousSessionService = app.autonomousSessionService
+    const kodivianSessionService = app.kodivianSessionService
 
     // Create session service instances (lightweight, no heavy initialization)
     const userDataService = new UserDataService(orgConfigService)
     const sessionService = new SessionService(userDataService, orgConfigService)
 
-    const sessionHandlerController = new SessionHandlerController(orgConfigService, sessionService, autonomousSessionService)
+    const sessionHandlerController = new SessionHandlerController(orgConfigService, sessionService, kodivianSessionService)
 
     // Attach controller to request for use in route handlers
     ;(req as any).sessionHandlerController = sessionHandlerController

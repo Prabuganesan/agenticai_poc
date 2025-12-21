@@ -5,8 +5,8 @@ import { MODE } from './Interface'
 import { LICENSE_QUOTAS } from './utils/constants'
 import { OrganizationConfigService } from './services/org-config.service'
 import { logInfo, logWarn } from './utils/logger/system-helper'
-// Subscription-related code removed - autonomous server has unlimited quotas
-// StripeManager removed - Stripe/Pricing removed for autonomous server deployment
+// Subscription-related code removed - kodivian server has unlimited quotas
+// StripeManager removed - Stripe/Pricing removed for kodivian server deployment
 
 const UNLIMITED_QUOTAS = {
     [LICENSE_QUOTAS.PREDICTIONS_LIMIT]: -1,
@@ -85,14 +85,14 @@ export class UsageCacheManager {
         }
     }
 
-    // getSubscriptionDetails removed - not used in autonomous server
+    // getSubscriptionDetails removed - not used in kodivian server
 
     public async getQuotas(_subscriptionId?: string, withoutCache: boolean = false): Promise<Record<string, number>> {
-        // No subscription concept in autonomous server - always return unlimited quotas
+        // No subscription concept in kodivian server - always return unlimited quotas
         return UNLIMITED_QUOTAS
     }
 
-    // getSubscriptionDataFromCache and updateSubscriptionDataToCache removed - not used in autonomous server
+    // getSubscriptionDataFromCache and updateSubscriptionDataToCache removed - not used in kodivian server
 
     public async get<T>(key: string): Promise<T | null> {
         if (!this.cache) await this.initialize()

@@ -5,7 +5,7 @@ import { INodeData, MODE } from '../../Interface'
 import { INodeOptionsValue } from 'kodivian-components'
 import { databaseEntities } from '../../utils'
 import { logInfo, logError, logWarn, logDebug } from '../../utils/logger/system-helper'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { getErrorMessage } from '../../errors/utils'
 import { OMIT_QUEUE_JOB_DATA } from '../../utils/constants'
 import { executeCustomNodeFunction } from '../../utils/executeCustomNodeFunction'
@@ -22,7 +22,7 @@ const getAllNodes = async () => {
         }
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: nodesService.getAllNodes - ${getErrorMessage(error)}`)
+        throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: nodesService.getAllNodes - ${getErrorMessage(error)}`)
     }
 }
 
@@ -40,7 +40,7 @@ const getAllNodesForCategory = async (category: string) => {
         }
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: nodesService.getAllNodesForCategory - ${getErrorMessage(error)}`
         )
@@ -55,10 +55,10 @@ const getNodeByName = async (nodeName: string) => {
             const dbResponse = appServer.nodesPool.componentNodes[nodeName]
             return dbResponse
         } else {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Node ${nodeName} not found`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Node ${nodeName} not found`)
         }
     } catch (error) {
-        throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: nodesService.getAllNodes - ${getErrorMessage(error)}`)
+        throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: nodesService.getAllNodes - ${getErrorMessage(error)}`)
     }
 }
 
@@ -69,20 +69,20 @@ const getSingleNodeIcon = async (nodeName: string) => {
         if (Object.prototype.hasOwnProperty.call(appServer.nodesPool.componentNodes, nodeName)) {
             const nodeInstance = appServer.nodesPool.componentNodes[nodeName]
             if (nodeInstance.icon === undefined) {
-                throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Node ${nodeName} icon not found`)
+                throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Node ${nodeName} icon not found`)
             }
 
             if (nodeInstance.icon.endsWith('.svg') || nodeInstance.icon.endsWith('.png') || nodeInstance.icon.endsWith('.jpg')) {
                 const filepath = nodeInstance.icon
                 return filepath
             } else {
-                throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Node ${nodeName} icon is missing icon`)
+                throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Node ${nodeName} icon is missing icon`)
             }
         } else {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Node ${nodeName} not found`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Node ${nodeName} not found`)
         }
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: nodesService.getSingleNodeIcon - ${getErrorMessage(error)}`
         )
@@ -95,7 +95,7 @@ const getSingleNodeAsyncOptions = async (nodeName: string, requestBody: any): Pr
         const nodeData: INodeData = requestBody || {}
 
         if (!Object.prototype.hasOwnProperty.call(appServer.nodesPool.componentNodes, nodeName)) {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Node ${nodeName} not found`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Node ${nodeName} not found`)
         }
 
         const nodeInstance = appServer.nodesPool.componentNodes[nodeName]
@@ -124,7 +124,7 @@ const getSingleNodeAsyncOptions = async (nodeName: string, requestBody: any): Pr
             // Get orgId from requestBody - required
             const orgId = requestBody.orgId || (requestBody as any).activeOrgId
             if (!orgId) {
-                throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'orgId is required in request body')
+                throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'orgId is required in request body')
             }
             const appDataSource = getDataSource(parseInt(orgId))
 
@@ -149,7 +149,7 @@ const getSingleNodeAsyncOptions = async (nodeName: string, requestBody: any): Pr
             return []
         }
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: nodesService.getSingleNodeAsyncOptions - ${getErrorMessage(error)}`
         )
@@ -159,12 +159,12 @@ const getSingleNodeAsyncOptions = async (nodeName: string, requestBody: any): Pr
 // execute custom function node
 const executeCustomFunction = async (requestBody: any, orgId: string) => {
     if (!orgId) {
-        throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'orgId is required for custom function execution')
+        throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'orgId is required for custom function execution')
     }
     const appServer = getRunningExpressApp()
     const orgIdNum = parseInt(orgId)
     if (isNaN(orgIdNum)) {
-        throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, `Invalid orgId: ${orgId}. Must be a valid number.`)
+        throw new InternalKodivianError(StatusCodes.BAD_REQUEST, `Invalid orgId: ${orgId}. Must be a valid number.`)
     }
     const appDataSource = getDataSource(orgIdNum)
 

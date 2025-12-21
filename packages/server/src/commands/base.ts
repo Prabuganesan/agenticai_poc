@@ -13,8 +13,8 @@ enum EXIT_CODE {
 export abstract class BaseCommand extends Command {
     static flags = {
         // Data Path
-        AUTONOMOUS_DATA_PATH: Flags.string({
-            description: 'Base path for all autonomous server data (database, uploads, logs, etc.). Defaults to server folder/.autonomous'
+        KODIVIAN_DATA_PATH: Flags.string({
+            description: 'Base path for all kodivian server data (database, uploads, logs, etc.). Defaults to server folder/.autonomous'
         }),
 
         // Encryption
@@ -60,7 +60,7 @@ export abstract class BaseCommand extends Command {
         CORS_ORIGINS: Flags.string(),
         IFRAME_ORIGINS: Flags.string(),
         CHATBOT_IFRAME_ORIGINS: Flags.string(),
-        AUTONOMOUS_FILE_SIZE_LIMIT: Flags.string(),
+        KODIVIAN_FILE_SIZE_LIMIT: Flags.string(),
         NUMBER_OF_PROXIES: Flags.string(),
         TRUST_PROXY: Flags.string(),
 

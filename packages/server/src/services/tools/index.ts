@@ -1,9 +1,9 @@
 import { StatusCodes } from 'http-status-codes'
 import { QueryRunner } from 'typeorm'
 import { Tool } from '../../database/entities/Tool'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { getErrorMessage } from '../../errors/utils'
-import { AUTONOMOUS_COUNTER_STATUS, AUTONOMOUS_METRIC_COUNTERS } from '../../Interface.Metrics'
+import { KODIVIAN_COUNTER_STATUS, KODIVIAN_METRIC_COUNTERS } from '../../Interface.Metrics'
 import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
 import { getDataSource } from '../../DataSource'
 import { generateGuid } from '../../utils/guidGenerator'
@@ -24,17 +24,17 @@ const createTool = async (requestBody: any, orgId: string, userId?: string | num
         // Set created_by and created_on
         const userIdNum = userId ? (typeof userId === 'number' ? userId : parseInt(userId)) : undefined
         if (userIdNum === undefined) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'User ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'User ID is required')
         }
         newTool.created_by = userIdNum
         newTool.created_on = Date.now()
         const tool = await dataSource.getRepository(Tool).create(newTool)
         const dbResponse = await dataSource.getRepository(Tool).save(tool)
         // Telemetry removed
-        appServer.metricsProvider?.incrementCounter(AUTONOMOUS_METRIC_COUNTERS.TOOL_CREATED, { status: AUTONOMOUS_COUNTER_STATUS.SUCCESS })
+        appServer.metricsProvider?.incrementCounter(KODIVIAN_METRIC_COUNTERS.TOOL_CREATED, { status: KODIVIAN_COUNTER_STATUS.SUCCESS })
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: toolsService.createTool - ${getErrorMessage(error)}`)
+        throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: toolsService.createTool - ${getErrorMessage(error)}`)
     }
 }
 
@@ -51,7 +51,7 @@ const deleteTool = async (toolId: string, orgId: string, userId?: number): Promi
         const dbResponse = await dataSource.getRepository(Tool).delete(whereClause)
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: toolsService.deleteTool - ${getErrorMessage(error)}`)
+        throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: toolsService.deleteTool - ${getErrorMessage(error)}`)
     }
 }
 
@@ -82,7 +82,7 @@ const getAllTools = async (orgId: string, userId?: number, page: number = -1, li
             return dataWithCreatorFlag
         }
     } catch (error) {
-        throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: toolsService.getAllTools - ${getErrorMessage(error)}`)
+        throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: toolsService.getAllTools - ${getErrorMessage(error)}`)
     }
 }
 
@@ -96,7 +96,7 @@ const getToolById = async (toolId: string, orgId: string, userId?: number): Prom
         })
 
         if (!dbResponse) {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Tool ${toolId} not found`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Tool ${toolId} not found`)
         }
 
         // Add isCreator flag
@@ -106,7 +106,7 @@ const getToolById = async (toolId: string, orgId: string, userId?: number): Prom
             creatorId: dbResponse.created_by
         }
     } catch (error) {
-        throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: toolsService.getToolById - ${getErrorMessage(error)}`)
+        throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: toolsService.getToolById - ${getErrorMessage(error)}`)
     }
 }
 
@@ -123,7 +123,7 @@ const updateTool = async (toolId: string, toolBody: any, orgId: string, userId?:
         }
         const tool = await dataSource.getRepository(Tool).findOneBy(whereClause)
         if (!tool) {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Tool ${toolId} not found`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Tool ${toolId} not found`)
         }
         // Map frontend 'id' (which is actually guid) to 'guid', and remove 'id' to prevent it from being assigned to numeric id field
         const { id, ...toolBodyWithoutId } = toolBody
@@ -139,7 +139,7 @@ const updateTool = async (toolId: string, toolBody: any, orgId: string, userId?:
         const dbResponse = await dataSource.getRepository(Tool).save(tool)
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: toolsService.updateTool - ${getErrorMessage(error)}`)
+        throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: toolsService.updateTool - ${getErrorMessage(error)}`)
     }
 }
 
@@ -186,7 +186,7 @@ const importTools = async (newTools: Partial<Tool>[], orgId: string, userId: num
 
         return insertResponse
     } catch (error) {
-        throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: toolsService.importTools - ${getErrorMessage(error)}`)
+        throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: toolsService.importTools - ${getErrorMessage(error)}`)
     }
 }
 

@@ -1,6 +1,6 @@
 import { FindManyOptions, Between, LessThanOrEqual, MoreThanOrEqual } from 'typeorm'
 import { LlmUsage } from '../../database/entities/LlmUsage'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { StatusCodes } from 'http-status-codes'
 import { getErrorMessage } from '../../errors/utils'
 import { getDataSource } from '../../DataSource'
@@ -45,7 +45,7 @@ const trackUsage = async (options: TrackLLMUsageOptions): Promise<LlmUsage> => {
         // In a production system, you might want to modify trackLLMUsage to return the entity
         const orgIdNum = parseInt(options.orgId)
         if (isNaN(orgIdNum)) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Invalid orgId')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Invalid orgId')
         }
         const dataSource = getDataSource(orgIdNum)
         const repository = dataSource.getRepository(LlmUsage)
@@ -55,11 +55,11 @@ const trackUsage = async (options: TrackLLMUsageOptions): Promise<LlmUsage> => {
             order: { createdAt: 'DESC' }
         })
         if (!usage) {
-            throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to retrieve tracked usage')
+            throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to retrieve tracked usage')
         }
         return usage
     } catch (error) {
-        throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error tracking LLM usage: ${getErrorMessage(error)}`)
+        throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error tracking LLM usage: ${getErrorMessage(error)}`)
     }
 }
 
@@ -70,7 +70,7 @@ const queryUsage = async (filters: QueryUsageFilters): Promise<{ data: LlmUsage[
     try {
         const orgIdNum = parseInt(filters.orgId)
         if (isNaN(orgIdNum)) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Invalid orgId')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Invalid orgId')
         }
 
         const dataSource = getDataSource(orgIdNum)
@@ -131,7 +131,7 @@ const queryUsage = async (filters: QueryUsageFilters): Promise<{ data: LlmUsage[
 
         return { data, total }
     } catch (error) {
-        throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error querying LLM usage: ${getErrorMessage(error)}`)
+        throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error querying LLM usage: ${getErrorMessage(error)}`)
     }
 }
 
@@ -142,7 +142,7 @@ const getStats = async (filters: Omit<QueryUsageFilters, 'page' | 'limit'>): Pro
     try {
         const orgIdNum = parseInt(filters.orgId)
         if (isNaN(orgIdNum)) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Invalid orgId')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Invalid orgId')
         }
 
         const dataSource = getDataSource(orgIdNum)
@@ -261,7 +261,7 @@ const getStats = async (filters: Omit<QueryUsageFilters, 'page' | 'limit'>): Pro
 
         return stats
     } catch (error) {
-        throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error getting LLM usage stats: ${getErrorMessage(error)}`)
+        throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error getting LLM usage stats: ${getErrorMessage(error)}`)
     }
 }
 
@@ -272,7 +272,7 @@ const getFilters = async (orgId: string): Promise<{ providers: string[]; models:
     try {
         const orgIdNum = parseInt(orgId)
         if (isNaN(orgIdNum)) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Invalid orgId')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Invalid orgId')
         }
 
         const dataSource = getDataSource(orgIdNum)
@@ -314,7 +314,7 @@ const getFilters = async (orgId: string): Promise<{ providers: string[]; models:
                 .sort()
         }
     } catch (error) {
-        throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error getting LLM usage filters: ${getErrorMessage(error)}`)
+        throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error getting LLM usage filters: ${getErrorMessage(error)}`)
     }
 }
 
@@ -336,7 +336,7 @@ const getTimeSeries = async (
     try {
         const orgIdNum = parseInt(filters.orgId)
         if (isNaN(orgIdNum)) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Invalid orgId')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Invalid orgId')
         }
 
         const dataSource = getDataSource(orgIdNum)
@@ -422,7 +422,7 @@ const getTimeSeries = async (
 
         return timeSeries
     } catch (error) {
-        throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error getting time-series data: ${getErrorMessage(error)}`)
+        throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error getting time-series data: ${getErrorMessage(error)}`)
     }
 }
 

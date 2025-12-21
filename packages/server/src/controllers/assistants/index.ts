@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
 import { StatusCodes } from 'http-status-codes'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { AssistantType } from '../../Interface'
 import assistantsService from '../../services/assistants'
 import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
@@ -10,7 +10,7 @@ import { transformEntityForResponse, transformEntitiesForResponse } from '../../
 const createAssistant = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (!req.body) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: assistantsController.createAssistant - body not provided!`
             )
@@ -18,7 +18,7 @@ const createAssistant = async (req: Request, res: Response, next: NextFunction) 
         const body = req.body
         const orgId = (req as any).orgId || req.user?.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.NOT_FOUND,
                 `Error: assistantsController.createAssistant - organization ${orgId} not found!`
             )
@@ -38,14 +38,14 @@ const createAssistant = async (req: Request, res: Response, next: NextFunction) 
 const deleteAssistant = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: assistantsController.deleteAssistant - id not provided!`
             )
         }
         const orgId = (req as any).orgId || req.user?.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.NOT_FOUND,
                 `Error: assistantsController.deleteAssistant - organization ${orgId} not found!`
             )
@@ -63,7 +63,7 @@ const getAllAssistants = async (req: Request, res: Response, next: NextFunction)
         const type = req.query.type as AssistantType
         const orgId = (req as any).orgId || req.user?.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.NOT_FOUND,
                 `Error: assistantsController.getAllAssistants - organization ${orgId} not found!`
             )
@@ -79,14 +79,14 @@ const getAllAssistants = async (req: Request, res: Response, next: NextFunction)
 const getAssistantById = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: assistantsController.getAssistantById - id not provided!`
             )
         }
         const orgId = (req as any).orgId || req.user?.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.NOT_FOUND,
                 `Error: assistantsController.getAssistantById - organization ${orgId} not found!`
             )
@@ -102,13 +102,13 @@ const getAssistantById = async (req: Request, res: Response, next: NextFunction)
 const updateAssistant = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: assistantsController.updateAssistant - id not provided!`
             )
         }
         if (!req.body) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: assistantsController.updateAssistant - body not provided!`
             )
@@ -116,7 +116,7 @@ const updateAssistant = async (req: Request, res: Response, next: NextFunction) 
         const orgId = (req as any).orgId || req.user?.orgId
         const userId = (req as any).userId
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.NOT_FOUND,
                 `Error: assistantsController.updateAssistant - organization ${orgId} not found!`
             )
@@ -157,7 +157,7 @@ const getDocumentStores = async (req: Request, res: Response, next: NextFunction
         }
 
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.NOT_FOUND,
                 `Error: assistantsController.getDocumentStores - organization ID is required. Provide orgId in query parameter (GET) or ensure session/API key authentication is configured.`
             )
@@ -181,7 +181,7 @@ const getTools = async (req: Request, res: Response, next: NextFunction) => {
 const generateAssistantInstruction = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (!req.body) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: assistantsController.generateAssistantInstruction - body not provided!`
             )
@@ -189,7 +189,7 @@ const generateAssistantInstruction = async (req: Request, res: Response, next: N
         const authReq = req as any
         const orgId = authReq.orgId || (req as any).orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
         const apiResponse = await assistantsService.generateAssistantInstruction(req.body.task, req.body.selectedChatModel, orgId)
         return res.json(apiResponse)

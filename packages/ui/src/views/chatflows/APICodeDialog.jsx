@@ -30,7 +30,7 @@ import EmbedChat from './EmbedChat'
 import { Available } from '@/ui-component/rbac/available'
 
 // Const
-import { baseURL, getAutonomousDocsPath } from '@/store/constant'
+import { baseURL, getKodivianDocsPath } from '@/store/constant'
 import { SET_CHATFLOW } from '@/store/actions'
 
 // Images
@@ -792,7 +792,7 @@ formData.append("openAIApiKey[openAIEmbeddings_0]", "sk-my-openai-2nd-key")`
                                                     <a
                                                         rel='noreferrer'
                                                         target='_blank'
-                                                        href={`${getAutonomousDocsPath()}/using-autonomous/prediction#configuration-override`}
+                                                        href={`${getKodivianDocsPath()}/using-kodivian/prediction#configuration-override`}
                                                     >
                                                         here
                                                     </a>{' '}
@@ -932,7 +932,7 @@ formData.append("openAIApiKey[openAIEmbeddings_0]", "sk-my-openai-2nd-key")`
                                 {getIsChatflowStreamingApi.data?.isStreaming && (
                                     <p>
                                         Read&nbsp;
-                                        <a rel='noreferrer' target='_blank' href={`${getAutonomousDocsPath()}/using-autonomous/streaming`}>
+                                        <a rel='noreferrer' target='_blank' href={`${getKodivianDocsPath()}/using-kodivian/streaming`}>
                                             here
                                         </a>
                                         &nbsp;on how to stream response back to application

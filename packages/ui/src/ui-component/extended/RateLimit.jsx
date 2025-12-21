@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { enqueueSnackbar as enqueueSnackbarAction, closeSnackbar as closeSnackbarAction, SET_CHATFLOW } from '@/store/actions'
-import { getAutonomousDocsPath } from '@/store/constant'
+import { getKodivianDocsPath } from '@/store/constant'
 import PropTypes from 'prop-types'
 
 import { Typography, Button, OutlinedInput, Stack } from '@mui/material'
@@ -153,7 +153,7 @@ const RateLimit = ({ dialogProps }) => {
                 <TooltipWithParser
                     style={{ marginLeft: 10 }}
                     title={
-                        `Visit <a target="_blank" href="${getAutonomousDocsPath()}/configuration/rate-limit">Rate Limit Setup Guide</a> to set up Rate Limit correctly in your hosting environment.`
+                        `Visit <a target="_blank" href="${getKodivianDocsPath()}/configuration/rate-limit">Rate Limit Setup Guide</a> to set up Rate Limit correctly in your hosting environment.`
                     }
                 />
             </Typography>

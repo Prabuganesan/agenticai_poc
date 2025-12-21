@@ -6,7 +6,7 @@
 import { Request, Response } from 'express'
 import { OrganizationConfigService } from '../services/org-config.service'
 import { SessionService } from '../services/session.service'
-import { AutonomousSessionService } from '../services/autonomous-session.service'
+import { KodivianSessionService } from '../services/kodivian-session.service'
 import { logInfo, logWarn, logError } from '../utils/logger/system-helper'
 const SimpleCrypto = require('simple-crypto-js').default
 
@@ -16,7 +16,7 @@ export class SessionHandlerController {
     constructor(
         private orgConfigService: OrganizationConfigService,
         private sessionService: SessionService,
-        private autonomousSessionService: AutonomousSessionService
+        private kodivianSessionService: KodivianSessionService
     ) {
         this.simpleCrypto = new SimpleCrypto(process.env.SIMPLE_CRYPTO_KEY || '$mrT@pP-6!dr')
     }
@@ -60,7 +60,7 @@ export class SessionHandlerController {
             const formattedUserData = this.sessionService.getUserDataForLocalStorage(userData)
 
             // Create session
-            const autonomousToken = await this.autonomousSessionService.createAutonomousSession(
+            const autonomousToken = await this.kodivianSessionService.createKodivianSession(
                 SessionId || 'single-org-session',
                 formattedUserData.userId,
                 orgId,
@@ -73,7 +73,7 @@ export class SessionHandlerController {
             const cleanContextPath = contextPath.startsWith('/') ? contextPath.substring(1) : contextPath
             const baseUrl = `${proxyUrl}/${cleanContextPath}/api/v1`
 
-            const autonomousStore = {
+            const kodivianStore = {
                 sessionId: autonomousToken,
                 baseUrl: baseUrl,
                 orgId: orgId,
@@ -83,7 +83,7 @@ export class SessionHandlerController {
             }
 
             const encryptionResult = {
-                autonomousStore: JSON.stringify(this.simpleCrypto.encryptObject(autonomousStore))
+                kodivianStore: JSON.stringify(this.simpleCrypto.encryptObject(kodivianStore))
             }
 
             // Set KODIID cookie
@@ -115,7 +115,7 @@ export class SessionHandlerController {
     <div class="loading"><div class="spinner"></div><p>Setting up session...</p></div>
     <script>
         try {
-            localStorage.setItem('autonomousStore', '${encryptionResult.autonomousStore.replace(/'/g, "\\'")}');
+            localStorage.setItem('kodivianStore', '${encryptionResult.kodivianStore.replace(/'/g, "\\'")}');
             window.location.href = '${homePageUrl}';
         } catch (e) {
             document.body.innerHTML = '<div class="loading"><p>Error. Please try again.</p></div>';
@@ -146,15 +146,15 @@ export class SessionHandlerController {
             const parts = autonomousToken.split('$$')
             const autoPart = parts[parts.length - 1]
 
-            if (!autoPart?.startsWith('Auto')) {
+            if (!autoPart?.startsWith('Kodi')) {
                 return res.json({ valid: false, message: 'Invalid token format' })
             }
 
             const orgId = autoPart.substring(4)
-            const sessionData = await this.autonomousSessionService.validateAutonomousSession(autonomousToken, orgId)
+            const sessionData = await this.kodivianSessionService.validateKodivianSession(autonomousToken, orgId)
 
             if (sessionData) {
-                await this.autonomousSessionService.extendAutonomousSessionWithData(autonomousToken, orgId, sessionData)
+                await this.kodivianSessionService.extendKodivianSessionWithData(autonomousToken, orgId, sessionData)
                 return res.json({ valid: true, message: 'Session valid', orgId })
             }
 

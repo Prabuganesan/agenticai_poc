@@ -43,7 +43,7 @@ export const DefaultRedirect = () => {
         { component: Logs, permission: 'logs:view', display: 'feat:logs' }
     ]
 
-    // For autonomous server, authentication is handled externally
+    // For kodivian server, authentication is handled externally
     // Check both currentUser and isAuthenticated - if either is missing, redirect to unauthorized
     // This ensures session validation happens even if localStorage has stale data
     if (!currentUser || !isAuthenticated) {

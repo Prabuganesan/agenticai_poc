@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from 'express'
 import _ from 'lodash'
 import nodesService from '../../services/nodes'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { StatusCodes } from 'http-status-codes'
-// getWorkspaceSearchOptionsFromReq removed for autonomous server
+// getWorkspaceSearchOptionsFromReq removed for kodivian server
 
 const getAllNodes = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -17,7 +17,7 @@ const getAllNodes = async (req: Request, res: Response, next: NextFunction) => {
 const getNodeByName = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params === 'undefined' || !req.params.name) {
-            throw new InternalAutonomousError(StatusCodes.PRECONDITION_FAILED, `Error: nodesController.getNodeByName - name not provided!`)
+            throw new InternalKodivianError(StatusCodes.PRECONDITION_FAILED, `Error: nodesController.getNodeByName - name not provided!`)
         }
         const apiResponse = await nodesService.getNodeByName(req.params.name)
         return res.json(apiResponse)
@@ -29,7 +29,7 @@ const getNodeByName = async (req: Request, res: Response, next: NextFunction) =>
 const getNodesByCategory = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params.name === 'undefined' || req.params.name === '') {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: nodesController.getNodesByCategory - name not provided!`
             )
@@ -45,7 +45,7 @@ const getNodesByCategory = async (req: Request, res: Response, next: NextFunctio
 const getSingleNodeIcon = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params === 'undefined' || !req.params.name) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: nodesController.getSingleNodeIcon - name not provided!`
             )
@@ -63,13 +63,13 @@ const getSingleNodeAsyncOptions = async (req: Request, res: Response, next: Next
         const body = req.body || {}
 
         if (typeof req.params === 'undefined' || !req.params.name) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: nodesController.getSingleNodeAsyncOptions - name not provided!`
             )
         }
 
-        // searchOptions removed for autonomous server - orgId handled via middleware
+        // searchOptions removed for kodivian server - orgId handled via middleware
         const apiResponse = await nodesService.getSingleNodeAsyncOptions(req.params.name, body)
         return res.json(apiResponse)
     } catch (error) {
@@ -80,7 +80,7 @@ const getSingleNodeAsyncOptions = async (req: Request, res: Response, next: Next
 const executeCustomFunction = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (!req.body) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: nodesController.executeCustomFunction - body not provided!`
             )

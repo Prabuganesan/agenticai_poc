@@ -49,7 +49,7 @@ const CanvasHeader = ({ chatflow, isAgentCanvas, isAgentflowV2, handleSaveFlow, 
     const [apiDialogProps, setAPIDialogProps] = useState({})
     const [viewMessagesDialogOpen, setViewMessagesDialogOpen] = useState(false)
     const [viewMessagesDialogProps, setViewMessagesDialogProps] = useState({})
-    // Leads feature removed for autonomous server deployment
+    // Leads feature removed for kodivian server deployment
     // const [viewLeadsDialogOpen, setViewLeadsDialogOpen] = useState(false)
     // const [viewLeadsDialogProps, setViewLeadsDialogProps] = useState({})
     const [upsertHistoryDialogOpen, setUpsertHistoryDialogOpen] = useState(false)
@@ -81,7 +81,7 @@ const CanvasHeader = ({ chatflow, isAgentCanvas, isAgentflowV2, handleSaveFlow, 
                 isChatflow: isAgentflowV2 ? false : true
             })
             setViewMessagesDialogOpen(true)
-            // Leads feature removed for autonomous server deployment
+            // Leads feature removed for kodivian server deployment
             // } else if (setting === 'viewLeads') {
             //     setViewLeadsDialogProps({
             //         title: 'View Leads',
@@ -481,7 +481,7 @@ const CanvasHeader = ({ chatflow, isAgentCanvas, isAgentflowV2, handleSaveFlow, 
                 dialogProps={viewMessagesDialogProps}
                 onCancel={() => setViewMessagesDialogOpen(false)}
             />
-            {/* Leads feature removed for autonomous server deployment */}
+            {/* Leads feature removed for kodivian server deployment */}
             {/* <ViewLeadsDialog show={viewLeadsDialogOpen} dialogProps={viewLeadsDialogProps} onCancel={() => setViewLeadsDialogOpen(false)} /> */}
             {exportAsTemplateDialogOpen && (
                 <ExportAsTemplateDialog

@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
 import { StatusCodes } from 'http-status-codes'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import marketplacesService from '../../services/marketplaces'
 import { transformEntityForResponse, transformEntitiesForResponse } from '../../utils/responseTransform'
 
@@ -17,14 +17,14 @@ const getAllTemplates = async (req: Request, res: Response, next: NextFunction) 
 const deleteCustomTemplate = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: marketplacesService.deleteCustomTemplate - id not provided!`
             )
         }
         const orgId = (req as any).orgId || req.user?.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.NOT_FOUND,
                 `Error: marketplacesController.deleteCustomTemplate - organization ${orgId} not found!`
             )
@@ -50,7 +50,7 @@ const saveCustomTemplate = async (req: Request, res: Response, next: NextFunctio
     try {
         // Check if req.body exists first to avoid TypeError when accessing properties
         if (!req.body || (!req.body.name && !(req.body.chatflowId || req.body.tool))) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: marketplacesService.saveCustomTemplate - body not provided!`
             )
@@ -59,7 +59,7 @@ const saveCustomTemplate = async (req: Request, res: Response, next: NextFunctio
         const orgId = (req as any).orgId || req.user?.orgId
         const userId = (req as any).userId
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.NOT_FOUND,
                 `Error: marketplacesController.saveCustomTemplate - organization ${orgId} not found!`
             )

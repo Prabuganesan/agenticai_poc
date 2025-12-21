@@ -6,11 +6,11 @@ import { DeleteResult, QueryRunner } from 'typeorm'
 import { Assistant } from '../../database/entities/Assistant'
 import { Credential } from '../../database/entities/Credential'
 import { DocumentStore } from '../../database/entities/DocumentStore'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { getErrorMessage } from '../../errors/utils'
 import { AssistantType } from '../../Interface'
 import { INodeParams } from 'kodivian-components'
-import { AUTONOMOUS_COUNTER_STATUS, AUTONOMOUS_METRIC_COUNTERS } from '../../Interface.Metrics'
+import { KODIVIAN_COUNTER_STATUS, KODIVIAN_METRIC_COUNTERS } from '../../Interface.Metrics'
 import { databaseEntities, decryptCredentialData } from '../../utils'
 import { INPUT_PARAMS_TYPE } from '../../utils/constants'
 import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
@@ -27,7 +27,7 @@ const createAssistant = async (requestBody: any, orgId: string, userId?: string)
         const appServer = getRunningExpressApp()
         const dataSource = getDataSource(parseInt(orgId))
         if (!requestBody.details) {
-            throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Invalid request body`)
+            throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Invalid request body`)
         }
         const assistantDetails = JSON.parse(requestBody.details)
 
@@ -63,7 +63,7 @@ const createAssistant = async (requestBody: any, orgId: string, userId?: string)
             // Set created_by and created_on
             const userIdNum = userId ? parseInt(userId) : undefined
             if (userIdNum === undefined) {
-                throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'User ID is required')
+                throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'User ID is required')
             }
             newAssistant.created_by = userIdNum
             newAssistant.created_on = Date.now()
@@ -92,7 +92,7 @@ const createAssistant = async (requestBody: any, orgId: string, userId?: string)
                         durationMs: saveDuration,
                         success: true,
                         recordId: dbResponse.guid
-                    }).catch(() => {})
+                    }).catch(() => { })
                 } catch (logError) {
                     // Silently fail
                 }
@@ -109,7 +109,7 @@ const createAssistant = async (requestBody: any, orgId: string, userId?: string)
                         durationMs: saveDuration,
                         success: false,
                         error: dbError instanceof Error ? dbError.message : String(dbError)
-                    }).catch(() => {})
+                    }).catch(() => { })
                 } catch (logError) {
                     // Silently fail
                 }
@@ -117,8 +117,8 @@ const createAssistant = async (requestBody: any, orgId: string, userId?: string)
             }
 
             // Telemetry removed
-            appServer.metricsProvider?.incrementCounter(AUTONOMOUS_METRIC_COUNTERS.ASSISTANT_CREATED, {
-                status: AUTONOMOUS_COUNTER_STATUS.SUCCESS
+            appServer.metricsProvider?.incrementCounter(KODIVIAN_METRIC_COUNTERS.ASSISTANT_CREATED, {
+                status: KODIVIAN_COUNTER_STATUS.SUCCESS
             })
 
             // Log assistant creation
@@ -130,7 +130,7 @@ const createAssistant = async (requestBody: any, orgId: string, userId?: string)
                     assistantId: dbResponse.guid,
                     assistantType: dbResponse.type || 'CUSTOM',
                     assistantName: assistantDetails.name || 'Unnamed'
-                }).catch(() => {}) // Don't fail if logging fails
+                }).catch(() => { }) // Don't fail if logging fails
             } catch (logError) {
                 // Silently fail - logging should not break assistant creation
             }
@@ -143,11 +143,11 @@ const createAssistant = async (requestBody: any, orgId: string, userId?: string)
             // Validate credential is a guid (15 chars), not a UUID
             let credentialGuid = requestBody.credential
             if (!credentialGuid) {
-                throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Credential is required')
+                throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Credential is required')
             }
             // If credential is a UUID (36 chars), it's invalid - we need a 15-char guid
             if (credentialGuid.length !== 15) {
-                throw new InternalAutonomousError(
+                throw new InternalKodivianError(
                     StatusCodes.BAD_REQUEST,
                     `Invalid credential ID. Expected 15-character GUID, got ${credentialGuid.length}-character value. Please select a valid credential.`
                 )
@@ -158,14 +158,14 @@ const createAssistant = async (requestBody: any, orgId: string, userId?: string)
             })
 
             if (!credential) {
-                throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Credential ${credentialGuid} not found`)
+                throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Credential ${credentialGuid} not found`)
             }
 
             // Decrpyt credentialData
             const decryptedCredentialData = await decryptCredentialData(credential.encryptedData)
             const openAIApiKey = decryptedCredentialData['openAIApiKey']
             if (!openAIApiKey) {
-                throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `OpenAI ApiKey not found`)
+                throw new InternalKodivianError(StatusCodes.NOT_FOUND, `OpenAI ApiKey not found`)
             }
             const openai = new OpenAI({ apiKey: openAIApiKey })
 
@@ -235,7 +235,7 @@ const createAssistant = async (requestBody: any, orgId: string, userId?: string)
 
             requestBody.details = JSON.stringify(newAssistantDetails)
         } catch (error) {
-            throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error creating new assistant - ${getErrorMessage(error)}`)
+            throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error creating new assistant - ${getErrorMessage(error)}`)
         }
         const newAssistant = new Assistant()
         Object.assign(newAssistant, requestBody)
@@ -246,7 +246,7 @@ const createAssistant = async (requestBody: any, orgId: string, userId?: string)
         // Set created_by and created_on
         const userIdNum = userId ? parseInt(userId) : undefined
         if (userIdNum === undefined) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'User ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'User ID is required')
         }
         newAssistant.created_by = userIdNum
         newAssistant.created_on = Date.now()
@@ -268,8 +268,8 @@ const createAssistant = async (requestBody: any, orgId: string, userId?: string)
 
         // Telemetry removed
 
-        appServer.metricsProvider?.incrementCounter(AUTONOMOUS_METRIC_COUNTERS.ASSISTANT_CREATED, {
-            status: AUTONOMOUS_COUNTER_STATUS.SUCCESS
+        appServer.metricsProvider?.incrementCounter(KODIVIAN_METRIC_COUNTERS.ASSISTANT_CREATED, {
+            status: KODIVIAN_COUNTER_STATUS.SUCCESS
         })
 
         // Log assistant creation
@@ -281,14 +281,14 @@ const createAssistant = async (requestBody: any, orgId: string, userId?: string)
                 assistantId: dbResponse.guid,
                 assistantType: dbResponse.type || 'CUSTOM',
                 assistantName: assistantDetails.name || 'Unnamed'
-            }).catch(() => {}) // Don't fail if logging fails
+            }).catch(() => { }) // Don't fail if logging fails
         } catch (logError) {
             // Silently fail - logging should not break assistant creation
         }
 
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: assistantsService.createAssistant - ${getErrorMessage(error)}`
         )
@@ -308,7 +308,7 @@ const deleteAssistant = async (assistantId: string, isDeleteBoth: any, orgId: st
         }
         const assistant = await dataSource.getRepository(Assistant).findOneBy(whereClause)
         if (!assistant) {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Assistant ${assistantId} not found`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Assistant ${assistantId} not found`)
         }
         if (assistant.type === 'CUSTOM') {
             const dbResponse = await dataSource.getRepository(Assistant).delete({ guid: assistantId })
@@ -323,7 +323,7 @@ const deleteAssistant = async (assistantId: string, isDeleteBoth: any, orgId: st
                     assistantType: assistant.type || 'CUSTOM',
                     assistantName: assistantDetails.name || 'Unnamed',
                     isDeleteBoth: isDeleteBoth ? 'true' : 'false'
-                }).catch(() => {}) // Don't fail if logging fails
+                }).catch(() => { }) // Don't fail if logging fails
             } catch (logError) {
                 // Silently fail - logging should not break assistant deletion
             }
@@ -338,7 +338,7 @@ const deleteAssistant = async (assistantId: string, isDeleteBoth: any, orgId: st
             if (credentialGuid) {
                 // Validate credential guid is 15 chars (should already be valid from database, but check for safety)
                 if (credentialGuid.length !== 15) {
-                    throw new InternalAutonomousError(
+                    throw new InternalKodivianError(
                         StatusCodes.BAD_REQUEST,
                         `Invalid credential ID in database. Expected 15-character GUID, got ${credentialGuid.length}-character value.`
                     )
@@ -349,14 +349,14 @@ const deleteAssistant = async (assistantId: string, isDeleteBoth: any, orgId: st
                 })
 
                 if (!credential) {
-                    throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Credential ${credentialGuid} not found`)
+                    throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Credential ${credentialGuid} not found`)
                 }
 
                 // Decrpyt credentialData
                 const decryptedCredentialData = await decryptCredentialData(credential.encryptedData)
                 const openAIApiKey = decryptedCredentialData['openAIApiKey']
                 if (!openAIApiKey) {
-                    throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `OpenAI ApiKey not found`)
+                    throw new InternalKodivianError(StatusCodes.NOT_FOUND, `OpenAI ApiKey not found`)
                 }
 
                 const openai = new OpenAI({ apiKey: openAIApiKey })
@@ -373,7 +373,7 @@ const deleteAssistant = async (assistantId: string, isDeleteBoth: any, orgId: st
                         assistantName: assistantDetails.name || 'Unnamed',
                         isDeleteBoth: isDeleteBoth ? 'true' : 'false',
                         openaiAssistantId: assistantDetails.id
-                    }).catch(() => {}) // Don't fail if logging fails
+                    }).catch(() => { }) // Don't fail if logging fails
                 } catch (logError) {
                     // Silently fail - logging should not break assistant deletion
                 }
@@ -385,10 +385,10 @@ const deleteAssistant = async (assistantId: string, isDeleteBoth: any, orgId: st
                 return dbResponse
             }
         } catch (error: any) {
-            throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error deleting assistant - ${getErrorMessage(error)}`)
+            throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error deleting assistant - ${getErrorMessage(error)}`)
         }
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: assistantsService.deleteAssistant - ${getErrorMessage(error)}`
         )
@@ -399,7 +399,7 @@ async function getAssistantsCountByOrganization(type: AssistantType, organizatio
     try {
         const dataSource = getDataSource(parseInt(organizationId))
 
-        // For autonomous server, use orgId directly
+        // For kodivian server, use orgId directly
         // Handle CLOB comparison for Oracle by using TO_CHAR() if needed
         const dbType = (dataSource.options.type as 'postgres' | 'oracle') || 'postgres'
         const columnName = getColumnName('type', dbType)
@@ -413,7 +413,7 @@ async function getAssistantsCountByOrganization(type: AssistantType, organizatio
 
         return assistantsCount
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: assistantsService.getAssistantsCountByOrganization - ${getErrorMessage(error)}`
         )
@@ -444,7 +444,7 @@ const getAllAssistants = async (orgId: string, userId?: number, type?: Assistant
             creatorId: assistant.created_by
         })) as Assistant[]
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: assistantsService.getAllAssistants - ${getErrorMessage(error)}`
         )
@@ -468,7 +468,7 @@ const getAllAssistantsCount = async (orgId: string, type?: AssistantType): Promi
         const dbResponse = await queryBuilder.getCount()
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: assistantsService.getAllAssistantsCount - ${getErrorMessage(error)}`
         )
@@ -485,7 +485,7 @@ const getAssistantById = async (assistantId: string, orgId: string, userId?: num
         })
 
         if (!dbResponse) {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Assistant ${assistantId} not found`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Assistant ${assistantId} not found`)
         }
 
         // Add isCreator flag
@@ -495,7 +495,7 @@ const getAssistantById = async (assistantId: string, orgId: string, userId?: num
             creatorId: dbResponse.created_by
         } as Assistant
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: assistantsService.getAssistantById - ${getErrorMessage(error)}`
         )
@@ -517,7 +517,7 @@ const updateAssistant = async (assistantId: string, requestBody: any, orgId: str
         const assistant = await dataSource.getRepository(Assistant).findOneBy(whereClause)
 
         if (!assistant) {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Assistant ${assistantId} not found`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Assistant ${assistantId} not found`)
         }
 
         if (assistant.type === 'CUSTOM') {
@@ -577,7 +577,7 @@ const updateAssistant = async (assistantId: string, requestBody: any, orgId: str
             // Validate credential is a guid (15 chars), not a UUID
             let credentialGuid = body.credential
             if (credentialGuid && credentialGuid.length !== 15) {
-                throw new InternalAutonomousError(
+                throw new InternalKodivianError(
                     StatusCodes.BAD_REQUEST,
                     `Invalid credential ID. Expected 15-character GUID, got ${credentialGuid.length}-character value. Please select a valid credential.`
                 )
@@ -588,14 +588,14 @@ const updateAssistant = async (assistantId: string, requestBody: any, orgId: str
             })
 
             if (!credential) {
-                throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Credential ${credentialGuid} not found`)
+                throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Credential ${credentialGuid} not found`)
             }
 
             // Decrpyt credentialData
             const decryptedCredentialData = await decryptCredentialData(credential.encryptedData)
             const openAIApiKey = decryptedCredentialData['openAIApiKey']
             if (!openAIApiKey) {
-                throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `OpenAI ApiKey not found`)
+                throw new InternalKodivianError(StatusCodes.NOT_FOUND, `OpenAI ApiKey not found`)
             }
 
             const openai = new OpenAI({ apiKey: openAIApiKey })
@@ -674,17 +674,17 @@ const updateAssistant = async (assistantId: string, requestBody: any, orgId: str
                     assistantId: dbResponse.guid,
                     assistantType: dbResponse.type || 'CUSTOM',
                     assistantName: assistantDetails.name || 'Unnamed'
-                }).catch(() => {}) // Don't fail if logging fails
+                }).catch(() => { }) // Don't fail if logging fails
             } catch (logError) {
                 // Silently fail - logging should not break assistant update
             }
 
             return dbResponse
         } catch (error) {
-            throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error updating assistant - ${getErrorMessage(error)}`)
+            throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error updating assistant - ${getErrorMessage(error)}`)
         }
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: assistantsService.updateAssistant - ${getErrorMessage(error)}`
         )
@@ -746,7 +746,7 @@ const importAssistants = async (
 
         return insertResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: assistantsService.importAssistants - ${getErrorMessage(error)}`
         )
@@ -758,7 +758,7 @@ const getChatModels = async (): Promise<any> => {
         const dbResponse = await nodesService.getAllNodesForCategory('Chat Models')
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: assistantsService.getChatModels - ${getErrorMessage(error)}`
         )
@@ -782,7 +782,7 @@ const getDocumentStores = async (orgId: string): Promise<any> => {
         }
         return returnData
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: assistantsService.getDocumentStores - ${getErrorMessage(error)}`
         )
@@ -801,7 +801,7 @@ const getTools = async (): Promise<any> => {
         })
         return filteredTools
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: assistantsService.getTools - ${getErrorMessage(error)}`
         )
@@ -818,7 +818,7 @@ const generateAssistantInstruction = async (task: string, selectedChatModel: ICo
             const nodeModule = await import(nodeInstanceFilePath)
             const newNodeInstance = new nodeModule.nodeClass()
             const nodeData = {
-                credential: selectedChatModel.credential || selectedChatModel.inputs['AUTONOMOUS_CREDENTIAL_ID'] || undefined,
+                credential: selectedChatModel.credential || selectedChatModel.inputs['KODIVIAN_CREDENTIAL_ID'] || undefined,
                 inputs: selectedChatModel.inputs,
                 id: `${selectedChatModel.name}_0`
             }
@@ -872,12 +872,12 @@ const generateAssistantInstruction = async (task: string, selectedChatModel: ICo
             return { content }
         }
 
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: assistantsService.generateAssistantInstruction - Error generating tool description`
         )
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: assistantsService.generateAssistantInstruction - ${getErrorMessage(error)}`
         )

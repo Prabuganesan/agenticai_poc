@@ -5,7 +5,7 @@ import { DeleteResult } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 import { CustomTemplate } from '../../database/entities/CustomTemplate'
 // Removed getWorkspaceSearchOptions import - using orgId directly
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { getErrorMessage } from '../../errors/utils'
 import { IReactFlowEdge, IReactFlowNode } from '../../Interface'
 import { getDataSource } from '../../DataSource'
@@ -136,7 +136,7 @@ const getAllTemplates = async () => {
         const dbResponse = sortedTemplates
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: marketplacesService.getAllTemplates - ${getErrorMessage(error)}`
         )
@@ -148,7 +148,7 @@ const deleteCustomTemplate = async (templateId: string, orgId: string): Promise<
         const dataSource = getDataSource(parseInt(orgId))
         return await dataSource.getRepository(CustomTemplate).delete({ guid: templateId })
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: marketplacesService.deleteCustomTemplate - ${getErrorMessage(error)}`
         )
@@ -180,17 +180,17 @@ const _modifyTemplates = (templates: any[]) => {
 const getAllCustomTemplates = async (orgId: string): Promise<any> => {
     try {
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
         const dataSource = getDataSource(parseInt(orgId))
         const templates: any[] = await dataSource.getRepository(CustomTemplate).findBy({})
         const dbResponse = []
         _modifyTemplates(templates)
         dbResponse.push(...templates)
-        // Note: Removed workspace sharing logic - autonomous server doesn't support workspace sharing
+        // Note: Removed workspace sharing logic - kodivian server doesn't support workspace sharing
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: marketplacesService.getAllCustomTemplates - ${getErrorMessage(error)}`
         )
@@ -200,7 +200,7 @@ const getAllCustomTemplates = async (orgId: string): Promise<any> => {
 const saveCustomTemplate = async (body: any, orgId: string, userId?: string): Promise<any> => {
     try {
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
         const dataSource = getDataSource(parseInt(orgId))
         let flowDataStr = ''
@@ -214,7 +214,7 @@ const saveCustomTemplate = async (body: any, orgId: string, userId?: string): Pr
         // Set created_by and created_on
         const userIdNum = userId ? (typeof userId === 'number' ? userId : parseInt(userId)) : undefined
         if (userIdNum === undefined) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'User ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'User ID is required')
         }
         customTemplate.created_by = userIdNum
         customTemplate.created_on = Date.now()
@@ -243,7 +243,7 @@ const saveCustomTemplate = async (body: any, orgId: string, userId?: string): Pr
         const flowTemplate = await dataSource.getRepository(CustomTemplate).save(entity)
         return flowTemplate
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: marketplacesService.saveCustomTemplate - ${getErrorMessage(error)}`
         )

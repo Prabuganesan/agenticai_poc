@@ -62,7 +62,7 @@ import { Request, Response, NextFunction } from 'express'
 import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
 import { Credential } from '../../database/entities/Credential'
 import { decryptCredentialData, encryptCredentialData } from '../../utils'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { StatusCodes } from 'http-status-codes'
 import { generateSuccessPage, generateErrorPage } from './templates'
 
@@ -175,7 +175,7 @@ router.post('/authorize/:credentialId', async (req: Request, res: Response, next
         })
     } catch (error) {
         next(
-            new InternalAutonomousError(
+            new InternalKodivianError(
                 StatusCodes.INTERNAL_SERVER_ERROR,
                 `OAuth2 authorization error: ${error instanceof Error ? error.message : 'Unknown error'}`
             )
@@ -508,7 +508,7 @@ router.post('/refresh/:credentialId', async (req: Request, res: Response, next: 
         }
 
         next(
-            new InternalAutonomousError(
+            new InternalKodivianError(
                 StatusCodes.INTERNAL_SERVER_ERROR,
                 `OAuth2 token refresh error: ${error instanceof Error ? error.message : 'Unknown error'}`
             )

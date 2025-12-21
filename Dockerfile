@@ -1,8 +1,8 @@
 # Build local monorepo image
-# docker build --no-cache -t  autonomous .
+# docker build --no-cache -t  kodivian .
 
 # Run image
-# docker run -d -p 3030:3030 autonomous
+# docker run -d -p 3030:3030 kodivian
 
 FROM node:22.21.1-alpine
 

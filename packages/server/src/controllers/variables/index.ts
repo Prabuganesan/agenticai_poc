@@ -1,7 +1,7 @@
 import { Response, NextFunction } from 'express'
 import variablesService from '../../services/variables'
 import { Variable } from '../../database/entities/Variable'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { StatusCodes } from 'http-status-codes'
 import { getPageAndLimitParams } from '../../utils/pagination'
 import { AuthenticatedRequest } from '../../middlewares/session-validation.middleware'
@@ -10,14 +10,14 @@ import { transformEntityForResponse, transformPaginatedResponse } from '../../ut
 const createVariable = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         if (typeof req.body === 'undefined') {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: variablesController.createVariable - body not provided!`
             )
         }
         const orgId = req.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.NOT_FOUND,
                 `Error: variablesController.createVariable - organization ${orgId} not found!`
             )
@@ -39,14 +39,14 @@ const createVariable = async (req: AuthenticatedRequest, res: Response, next: Ne
 const deleteVariable = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 'Error: variablesController.deleteVariable - id not provided!'
             )
         }
         const orgId = req.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.NOT_FOUND,
                 `Error: variablesController.deleteVariable - organization ${orgId} not found!`
             )
@@ -64,7 +64,7 @@ const getAllVariables = async (req: AuthenticatedRequest, res: Response, next: N
         const { page, limit } = getPageAndLimitParams(req as any)
         const orgId = req.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.NOT_FOUND,
                 `Error: variablesController.getAllVariables - organization ${orgId} not found!`
             )
@@ -80,13 +80,13 @@ const getAllVariables = async (req: AuthenticatedRequest, res: Response, next: N
 const updateVariable = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 'Error: variablesController.updateVariable - id not provided!'
             )
         }
         if (typeof req.body === 'undefined') {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 'Error: variablesController.updateVariable - body not provided!'
             )
@@ -95,7 +95,7 @@ const updateVariable = async (req: AuthenticatedRequest, res: Response, next: Ne
         const authReq = req as any
         const orgId = authReq.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
         const userId = req.userId
         const userIdNum = userId ? parseInt(userId) : undefined

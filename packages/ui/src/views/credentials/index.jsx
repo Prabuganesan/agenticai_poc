@@ -90,7 +90,7 @@ const Credentials = () => {
     const [credentials, setCredentials] = useState([])
     const [componentsCredentials, setComponentsCredentials] = useState([])
 
-    // Share credential dialog removed - not needed for autonomous server
+    // Share credential dialog removed - not needed for kodivian server
 
     const { confirm } = useConfirm()
 

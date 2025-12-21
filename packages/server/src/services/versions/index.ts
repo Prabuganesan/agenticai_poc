@@ -1,7 +1,7 @@
 import path from 'path'
 import * as fs from 'fs'
 import { StatusCodes } from 'http-status-codes'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { getErrorMessage } from '../../errors/utils'
 
 const getVersion = async () => {
@@ -23,7 +23,7 @@ const getVersion = async () => {
         }
         const packagejsonPath = getPackageJsonPath()
         if (!packagejsonPath) {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Version not found`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Version not found`)
         }
         try {
             const content = await fs.promises.readFile(packagejsonPath, 'utf8')
@@ -32,10 +32,10 @@ const getVersion = async () => {
                 version: parsedContent.version
             }
         } catch (error) {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Version not found- ${getErrorMessage(error)}`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Version not found- ${getErrorMessage(error)}`)
         }
     } catch (error) {
-        throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: versionService.getVersion - ${getErrorMessage(error)}`)
+        throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: versionService.getVersion - ${getErrorMessage(error)}`)
     }
 }
 

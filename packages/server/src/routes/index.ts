@@ -60,7 +60,7 @@ import shareChatBot from './share-chatbot'
 import docsApiRouter from './docs'
 import backRouter from './back'
 
-// IdentityManager removed - not needed for autonomous server
+// IdentityManager removed - not needed for kodivian server
 
 const router = express.Router()
 
@@ -123,7 +123,7 @@ router.use('/share-chatbot', shareChatBot)
 router.use('/docs', docsApiRouter)
 router.use('/back', backRouter)
 
-// Audit route removed for autonomous server
+// Audit route removed for kodivian server
 router.use('/logs', logsRouter)
 router.use('/files', filesRouter)
 

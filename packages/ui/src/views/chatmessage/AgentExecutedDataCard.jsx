@@ -37,7 +37,7 @@ import { IconArrowsMaximize, IconLoader, IconCircleXFilled, IconRelationOneToMan
 
 // Project imports
 import { useTheme } from '@mui/material/styles'
-import { AUTONOMOUS_CREDENTIAL_ID, AGENTFLOW_ICONS } from '@/store/constant'
+import { KODIVIAN_CREDENTIAL_ID, AGENTFLOW_ICONS } from '@/store/constant'
 import { NodeExecutionDetails } from '@/views/agentexecutions/NodeExecutionDetails'
 
 const getIconColor = (status) => {
@@ -336,19 +336,19 @@ const AgentExecutedDataCard = ({ status, execution, agentflowId, sessionId }) =>
 
     // Transform the execution data into a tree structure
     const buildTreeData = (nodes) => {
-        // for each node, loop through each and every nested key of node.data, and remove the key if it is equal to AUTONOMOUS_CREDENTIAL_ID
+        // for each node, loop through each and every nested key of node.data, and remove the key if it is equal to KODIVIAN_CREDENTIAL_ID
         nodes.forEach((node) => {
-            const removeAutonomousCredentialId = (data) => {
+            const removeKodivianCredentialId = (data) => {
                 for (const key in data) {
-                    if (key === AUTONOMOUS_CREDENTIAL_ID) {
+                    if (key === KODIVIAN_CREDENTIAL_ID) {
                         delete data[key]
                     }
                     if (typeof data[key] === 'object') {
-                        removeAutonomousCredentialId(data[key])
+                        removeKodivianCredentialId(data[key])
                     }
                 }
             }
-            removeAutonomousCredentialId(node.data)
+            removeKodivianCredentialId(node.data)
         })
 
         // Create a map for quick node lookup
@@ -409,10 +409,10 @@ const AgentExecutedDataCard = ({ status, execution, agentflowId, sessionId }) =>
                 const iterationStatus = childNodes.some((n) => n.status === 'ERROR')
                     ? 'ERROR'
                     : childNodes.some((n) => n.status === 'INPROGRESS')
-                    ? 'INPROGRESS'
-                    : childNodes.every((n) => n.status === 'FINISHED')
-                    ? 'FINISHED'
-                    : 'UNKNOWN'
+                        ? 'INPROGRESS'
+                        : childNodes.every((n) => n.status === 'FINISHED')
+                            ? 'FINISHED'
+                            : 'UNKNOWN'
 
                 // Create the virtual node and add to nodeMap
                 const virtualNode = {

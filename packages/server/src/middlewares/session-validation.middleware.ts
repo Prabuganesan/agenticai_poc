@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
-import { AutonomousSessionService } from '../services/autonomous-session.service'
+import { KodivianSessionService } from '../services/kodivian-session.service'
 import { OrganizationConfigService } from '../services/org-config.service'
 import { logError, logWarn } from '../utils/logger/system-helper'
 
@@ -17,22 +17,22 @@ export interface AuthenticatedRequest extends Omit<Request, 'user'> {
 
 /**
  * Create session validation middleware
- * EXACT IMPLEMENTATION from autonomous server SessionAuthGuard, adapted to Express
+ * EXACT IMPLEMENTATION from kodivian server SessionAuthGuard, adapted to Express
  */
 export function createSessionValidationMiddleware(
-    autonomousSessionService: AutonomousSessionService,
+    kodivianSessionService: KodivianSessionService,
     orgConfigService: OrganizationConfigService
 ) {
     return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
         try {
-            // Only check for autonomous server token (KODIID) - exact logic from autonomous server
+            // Only check for kodivian server token (KODIID) - exact logic from kodivian server
             const autonomousToken = req.cookies?.KODIID
 
             if (!autonomousToken) {
                 return res.status(401).json({ error: 'Session Expired' })
             }
 
-            // Validate autonomous token (exact logic from autonomous server)
+            // Validate autonomous token (exact logic from kodivian server)
             return await validateAutonomousToken(autonomousToken, req, res, next)
         } catch (error) {
             logError(
@@ -44,24 +44,24 @@ export function createSessionValidationMiddleware(
     }
 
     /**
-     * Validate autonomous server session
-     * EXACT IMPLEMENTATION from autonomous server
+     * Validate kodivian server session
+     * EXACT IMPLEMENTATION from kodivian server
      */
     async function validateAutonomousToken(token: string, req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         // Extract orgId from token (format: {uuid}$${chainsysSessionId}$${userId}$$Auto{orgId})
-        // EXACT LOGIC from autonomous server
+        // EXACT LOGIC from kodivian server
         const parts = token.split('$$')
-        const autoPart = parts[parts.length - 1] // "Auto{orgId}"
+        const autoPart = parts[parts.length - 1] // "Kodi{orgId}"
 
-        if (!autoPart || !autoPart.startsWith('Auto')) {
+        if (!autoPart || !autoPart.startsWith('Kodi')) {
             res.status(401).json({ error: 'Invalid token format' })
             return
         }
 
-        const orgId = autoPart.substring(4) // Remove "Auto" prefix to get orgId
+        const orgId = autoPart.substring(4) // Remove "Kodi" prefix to get orgId
 
-        // Validate session (exact logic from autonomous server)
-        const session = await autonomousSessionService.validateAutonomousSession(token, orgId)
+        // Validate session (exact logic from kodivian server)
+        const session = await kodivianSessionService.validateKodivianSession(token, orgId)
 
         if (!session) {
             logWarn(`Kodivian server session not found or expired (token: ${token.substring(0, 30)}...)`).catch(() => { })
@@ -86,11 +86,11 @@ export function createSessionValidationMiddleware(
             return
         }
 
-        // Extend session TTL (exact logic from autonomous server)
+        // Extend session TTL (exact logic from kodivian server)
         // Use the already-validated session data to avoid double validation
         // CRITICAL: Also refresh cookie to prevent browser from deleting it after initial expiration
         try {
-            const extended = await autonomousSessionService.extendAutonomousSessionWithData(token, orgId, session)
+            const extended = await kodivianSessionService.extendKodivianSessionWithData(token, orgId, session)
 
             if (extended) {
                 // Refresh cookie expiration to match Redis TTL
@@ -117,7 +117,7 @@ export function createSessionValidationMiddleware(
             ).catch(() => { })
         }
 
-        // Attach to request (exact structure from autonomous server)
+        // Attach to request (exact structure from kodivian server)
         req.user = {
             userId: session.userId,
             userName: session.userData?.userName || session.userData?.UserInfoDetails?.UserInfo?.personalInfo?.userName || '',

@@ -1,5 +1,5 @@
 import { StatusCodes } from 'http-status-codes'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { getErrorMessage } from '../../errors/utils'
 import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
 import path from 'path'
@@ -309,19 +309,19 @@ const generateAgentflowv2 = async (question: string, selectedChatModel: Record<s
                 const violations = quotaFailure.violations.map((v: any) => v.quotaId).join(', ')
                 errorMessage += ` Quota limits: ${violations}`
             }
-            throw new InternalAutonomousError(StatusCodes.TOO_MANY_REQUESTS, `Error: generateAgentflowv2 - ${errorMessage}`)
+            throw new InternalKodivianError(StatusCodes.TOO_MANY_REQUESTS, `Error: generateAgentflowv2 - ${errorMessage}`)
         }
         
         // Check if error message indicates undefined/null access
         const errorMsg = getErrorMessage(error)
         if (errorMsg.includes('Cannot read properties of undefined') || errorMsg.includes('reading \'length\'')) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.INTERNAL_SERVER_ERROR,
                 `Error: generateAgentflowv2 - Invalid response format received. This may be due to API rate limits or service errors. Original error: ${errorMsg}`
             )
         }
         
-        throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: generateAgentflowv2 - ${errorMsg}`)
+        throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: generateAgentflowv2 - ${errorMsg}`)
     }
 }
 

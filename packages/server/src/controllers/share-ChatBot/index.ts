@@ -5,11 +5,11 @@ const simpleCrypto = new SimpleCryptoConfig(process.env.SIMPLE_CRYPTO_KEY || '$m
 const shareChatBot = async (req: any, res: Response, next: NextFunction) => {
     // Get services from request (attached by route middleware)
     const orgConfigService = req.orgConfigService
-    const autonomousSessionService = req.autonomousSessionService
+    const kodivianSessionService = req.kodivianSessionService
     const sessionService = req.sessionService
 
     // Validate required dependencies
-    if (!orgConfigService || !autonomousSessionService || !sessionService) {
+    if (!orgConfigService || !kodivianSessionService || !sessionService) {
         return res.status(500).json({ error: 'Server configuration error' })
     }
 
@@ -19,10 +19,10 @@ const shareChatBot = async (req: any, res: Response, next: NextFunction) => {
 
     try {
         if (existingToken) {
-            const existingSession = await autonomousSessionService.validateAutonomousSession(existingToken, orgId)
+            const existingSession = await kodivianSessionService.validateKodivianSession(existingToken, orgId)
 
             if (existingSession) {
-                await autonomousSessionService.extendAutonomousSessionWithData(existingToken, orgId, existingSession)
+                await kodivianSessionService.extendKodivianSessionWithData(existingToken, orgId, existingSession)
 
                 const proxyUrl = process.env.PROXY_URL || ''
                 const contextPath = orgConfigService.getContextPath(parseInt(orgId)) || '/autonomous'
@@ -40,10 +40,10 @@ const shareChatBot = async (req: any, res: Response, next: NextFunction) => {
                     })
                 }
 
-                // Format user data for localStorage (exact logic from autonomous server)
+                // Format user data for localStorage (exact logic from kodivian server)
                 const formattedUserData = sessionService.getUserDataForLocalStorage(userData)
 
-                const autonomousStore = {
+                const kodivianStore = {
                     sessionId: existingToken, // KODIID for session validation
                     baseUrl: baseUrl, // API base URL for requests
                     orgId: orgId, // Organization ID
@@ -52,12 +52,12 @@ const shareChatBot = async (req: any, res: Response, next: NextFunction) => {
                     email: formattedUserData.email // User email for display
                 }
 
-                // Encrypt only autonomousStore (exact logic from autonomous server)
+                // Encrypt only kodivianStore (exact logic from kodivian server)
                 const encryptionResult = {
-                    autonomousStore: JSON.stringify(simpleCrypto.encryptObject(autonomousStore))
+                    kodivianStore: JSON.stringify(simpleCrypto.encryptObject(kodivianStore))
                 }
 
-                // Set KODIID cookie (exact settings from autonomous server)
+                // Set KODIID cookie (exact settings from kodivian server)
                 const cookieDomain = process.env.COOKIE_DOMAIN || undefined
                 let cleanCookieDomain = cookieDomain?.startsWith('.') ? cookieDomain.substring(1) : cookieDomain
 
@@ -127,9 +127,9 @@ const shareChatBot = async (req: any, res: Response, next: NextFunction) => {
     </div>
     <script>
         try {
-            // Set autonomousStore (separate from Browser App's localStore to avoid collision)
-            // Note: autonomousStore is encrypted and JSON stringified, so we need to quote it
-            localStorage.setItem('autonomousStore', '${encryptionResult.autonomousStore.replace(/'/g, "\\'")}');
+            // Set kodivianStore (separate from Browser App's localStore to avoid collision)
+            // Note: kodivianStore is encrypted and JSON stringified, so we need to quote it
+            localStorage.setItem('kodivianStore', '${encryptionResult.kodivianStore.replace(/'/g, "\\'")}');
             
             window.location.href = '${chatBotPageUrl}';
         } catch (error) {

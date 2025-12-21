@@ -8,7 +8,7 @@ import { useTheme, styled } from '@mui/material/styles'
 
 // project imports
 import ProfileSection from './ProfileSection'
-// WorkspaceSwitcher, OrgWorkspaceBreadcrumbs, PricingDialog removed - not needed for autonomous server
+// WorkspaceSwitcher, OrgWorkspaceBreadcrumbs, PricingDialog removed - not needed for kodivian server
 
 // assets
 import { IconMenu2 } from '@tabler/icons-react'
@@ -80,7 +80,7 @@ const Header = ({ handleLeftDrawerToggle }) => {
 
     const [isDark, setIsDark] = useState(customization.isDarkMode)
     const dispatch = useDispatch()
-    // Platform type checks removed - autonomous server always allows all features
+    // Platform type checks removed - kodivian server always allows all features
     const isAuthenticated = useSelector((state) => state.auth.isAuthenticated)
 
     useNotifier()

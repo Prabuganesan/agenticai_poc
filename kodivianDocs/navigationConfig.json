@@ -248,84 +248,84 @@
       "path": "src/api-reference/README.md"
     },
     {
-      "title": "Using Autonomous",
+      "title": "Using Kodivian",
       "children": [
         {
           "title": "Agentflow",
-          "path": "src/using-autonomous/agentflow.md"
+          "path": "src/using-kodivian/agentflow.md"
         },
         {
           "title": "Analytics",
           "children": [
             {
               "title": "Arize",
-              "path": "src/using-autonomous/analytics/arize.md"
+              "path": "src/using-kodivian/analytics/arize.md"
             },
             {
               "title": "Langfuse",
-              "path": "src/using-autonomous/analytics/langfuse.md"
+              "path": "src/using-kodivian/analytics/langfuse.md"
             },
             {
               "title": "Langwatch",
-              "path": "src/using-autonomous/analytics/langwatch.md"
+              "path": "src/using-kodivian/analytics/langwatch.md"
             },
             {
               "title": "Lunary",
-              "path": "src/using-autonomous/analytics/lunary.md"
+              "path": "src/using-kodivian/analytics/lunary.md"
             },
             {
               "title": "Opik",
-              "path": "src/using-autonomous/analytics/opik.md"
+              "path": "src/using-kodivian/analytics/opik.md"
             },
             {
               "title": "Phoenix",
-              "path": "src/using-autonomous/analytics/phoenix.md"
+              "path": "src/using-kodivian/analytics/phoenix.md"
             }
           ],
-          "path": "src/using-autonomous/analytics/README.md"
+          "path": "src/using-kodivian/analytics/README.md"
         },
         {
           "title": "Document Stores",
-          "path": "src/using-autonomous/document-stores.md"
+          "path": "src/using-kodivian/document-stores.md"
         },
         {
           "title": "Embed",
-          "path": "src/using-autonomous/embed.md"
+          "path": "src/using-kodivian/embed.md"
         },
         {
           "title": "Evaluations",
-          "path": "src/using-autonomous/evaluations.md"
+          "path": "src/using-kodivian/evaluations.md"
         },
         {
           "title": "Monitoring",
-          "path": "src/using-autonomous/monitoring.md"
+          "path": "src/using-kodivian/monitoring.md"
         },
         {
           "title": "Prediction",
-          "path": "src/using-autonomous/prediction.md"
+          "path": "src/using-kodivian/prediction.md"
         },
         {
           "title": "Streaming",
-          "path": "src/using-autonomous/streaming.md"
+          "path": "src/using-kodivian/streaming.md"
         },
         {
           "title": "Uploads",
-          "path": "src/using-autonomous/uploads.md"
+          "path": "src/using-kodivian/uploads.md"
         },
         {
           "title": "Upsertion",
-          "path": "src/using-autonomous/upsertion.md"
+          "path": "src/using-kodivian/upsertion.md"
         },
         {
           "title": "Variables",
-          "path": "src/using-autonomous/variables.md"
+          "path": "src/using-kodivian/variables.md"
         },
         {
           "title": "Workspaces",
-          "path": "src/using-autonomous/workspaces.md"
+          "path": "src/using-kodivian/workspaces.md"
         }
       ],
-      "path": "src/using-autonomous/README.md"
+      "path": "src/using-kodivian/README.md"
     },
     {
       "title": "Configurations",
@@ -403,12 +403,12 @@
           "path": "src/configuration/rate-limit.md"
         },
         {
-          "title": "Running Autonomous Behind Company Proxy",
-          "path": "src/configuration/running-autonomous-behind-company-proxy.md"
+          "title": "Running Kodivian Behind Company Proxy",
+          "path": "src/configuration/running-kodivian-behind-company-proxy.md"
         },
         {
-          "title": "Running Autonomous Using Queue",
-          "path": "src/configuration/running-autonomous-using-queue.md"
+          "title": "Running Kodivian Using Queue",
+          "path": "src/configuration/running-kodivian-using-queue.md"
         },
         {
           "title": "Running In Production",

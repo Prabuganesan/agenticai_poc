@@ -64,7 +64,7 @@ apiClient.interceptors.response.use(
     },
     async (error) => {
         if (error.response?.status === 401) {
-            // For autonomous server, sessions are managed via cookies (AUTOID)
+            // For kodivian server, sessions are managed via cookies (AUTOID)
             // No token refresh needed - session is validated server-side
             // If 401, session is expired/invalid - clear local storage and redirect
             localStorage.removeItem('username')

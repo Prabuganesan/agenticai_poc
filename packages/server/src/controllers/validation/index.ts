@@ -1,13 +1,13 @@
 import { Request, Response, NextFunction } from 'express'
 import validationService from '../../services/validation'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { StatusCodes } from 'http-status-codes'
 
 const checkFlowValidation = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const flowId = req.params?.id as string | undefined
         if (!flowId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: validationController.checkFlowValidation - id not provided!`
             )

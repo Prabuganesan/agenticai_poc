@@ -17,11 +17,11 @@ import useNotifier from '@/utils/useNotifier'
 
 // API
 import chatflowsApi from '@/api/chatflows'
-import { getAutonomousDocsPath } from '@/store/constant'
+import { getKodivianDocsPath } from '@/store/constant'
 
 const message = `The full contents of uploaded files will be converted to text and sent to the Agent.
 <br />
-Refer <a href='${getAutonomousDocsPath()}/using-autonomous/uploads#files' target='_blank'>docs</a> for more details.`
+Refer <a href='${getKodivianDocsPath()}/using-kodivian/uploads#files' target='_blank'>docs</a> for more details.`
 
 const availableFileTypes = [
     { name: 'CSS', ext: 'text/css', extension: '.css' },

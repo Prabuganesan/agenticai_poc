@@ -2,7 +2,7 @@ import { StatusCodes } from 'http-status-codes'
 import { omit } from 'lodash'
 import { ICredentialReturnResponse } from '../../Interface'
 import { Credential } from '../../database/entities/Credential'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { getErrorMessage } from '../../errors/utils'
 import { decryptCredentialData, transformToCredentialEntity, REDACTED_CREDENTIAL_VALUE } from '../../utils'
 import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
@@ -17,7 +17,7 @@ const createCredential = async (req: AuthenticatedRequest, requestBody: any) => 
         const userId = req.userId
 
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
 
         const newCredential = await transformToCredentialEntity(requestBody)
@@ -32,7 +32,7 @@ const createCredential = async (req: AuthenticatedRequest, requestBody: any) => 
         // Set created_by and created_on
         const userIdNum = userId ? parseInt(userId) : undefined
         if (userIdNum === undefined) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'User ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'User ID is required')
         }
         newCredential.created_by = userIdNum
         newCredential.created_on = Date.now()
@@ -42,7 +42,7 @@ const createCredential = async (req: AuthenticatedRequest, requestBody: any) => 
         const dbResponse = await dataSource.getRepository(Credential).save(credential)
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: credentialsService.createCredential - ${getErrorMessage(error)}`
         )
@@ -55,7 +55,7 @@ const deleteCredentials = async (req: AuthenticatedRequest, credentialId: string
         const appServer = getRunningExpressApp()
         const orgId = req.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
 
         const dataSource = getDataSource(parseInt(orgId))
@@ -69,11 +69,11 @@ const deleteCredentials = async (req: AuthenticatedRequest, credentialId: string
         }
         const dbResponse = await dataSource.getRepository(Credential).delete(whereClause)
         if (!dbResponse || dbResponse.affected === 0) {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Credential ${credentialId} not found`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Credential ${credentialId} not found`)
         }
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: credentialsService.deleteCredential - ${getErrorMessage(error)}`
         )
@@ -85,7 +85,7 @@ const getAllCredentials = async (req: AuthenticatedRequest, paramCredentialName?
         const appServer = getRunningExpressApp()
         const orgId = req.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
 
         const dataSource = getDataSource(parseInt(orgId))
@@ -116,7 +116,7 @@ const getAllCredentials = async (req: AuthenticatedRequest, paramCredentialName?
         }
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: credentialsService.getAllCredentials - ${getErrorMessage(error)}`
         )
@@ -128,7 +128,7 @@ const getCredentialById = async (req: AuthenticatedRequest, credentialId: string
         const appServer = getRunningExpressApp()
         const orgId = req.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
 
         const dataSource = getDataSource(parseInt(orgId))
@@ -137,7 +137,7 @@ const getCredentialById = async (req: AuthenticatedRequest, credentialId: string
         }
         const credential = await dataSource.getRepository(Credential).findOneBy(whereClause)
         if (!credential) {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Credential ${credentialId} not found`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Credential ${credentialId} not found`)
         }
         // Decrpyt credentialData
         const decryptedCredentialData = await decryptCredentialData(
@@ -152,7 +152,7 @@ const getCredentialById = async (req: AuthenticatedRequest, credentialId: string
         const dbResponse: any = omit(returnCredential, ['encryptedData'])
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: credentialsService.getCredentialById - ${getErrorMessage(error)}`
         )
@@ -164,7 +164,7 @@ const updateCredential = async (req: AuthenticatedRequest, credentialId: string,
         const appServer = getRunningExpressApp()
         const orgId = req.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
 
         const dataSource = getDataSource(parseInt(orgId))
@@ -178,7 +178,7 @@ const updateCredential = async (req: AuthenticatedRequest, credentialId: string,
         }
         const credential = await dataSource.getRepository(Credential).findOneBy(whereClause)
         if (!credential) {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Credential ${credentialId} not found`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Credential ${credentialId} not found`)
         }
         const decryptedCredentialData = await decryptCredentialData(credential.encryptedData)
 
@@ -200,7 +200,7 @@ const updateCredential = async (req: AuthenticatedRequest, credentialId: string,
         const dbResponse = await dataSource.getRepository(Credential).save(credential)
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: credentialsService.updateCredential - ${getErrorMessage(error)}`
         )

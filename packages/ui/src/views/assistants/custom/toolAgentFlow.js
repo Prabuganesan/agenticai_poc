@@ -1,4 +1,4 @@
-import { getAutonomousDocsPath } from '@/store/constant'
+import { getKodivianDocsPath } from '@/store/constant'
 
 export const toolAgentFlow = {
     nodes: [
@@ -19,7 +19,7 @@ export const toolAgentFlow = {
                         name: 'sessionId',
                         type: 'string',
                         description:
-                            `If not specified, a random id will be used. Learn <a target="_blank" href="${getAutonomousDocsPath()}/memory#ui-and-embedded-chat">more</a>`,
+                            `If not specified, a random id will be used. Learn <a target="_blank" href="${getKodivianDocsPath()}/memory#ui-and-embedded-chat">more</a>`,
                         default: '',
                         additionalParams: true,
                         optional: true,
@@ -180,7 +180,7 @@ export const toolAgentFlow = {
                         name: 'allowImageUploads',
                         type: 'boolean',
                         description:
-                            `Allow image input. Refer to the <a href="${getAutonomousDocsPath()}/using-autonomous/uploads#image" target="_blank">docs</a> for more details.`,
+                            `Allow image input. Refer to the <a href="${getKodivianDocsPath()}/using-kodivian/uploads#image" target="_blank">docs</a> for more details.`,
                         default: false,
                         optional: true,
                         id: 'chatOpenAI_0-input-allowImageUploads-boolean'

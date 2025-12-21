@@ -1,6 +1,6 @@
 import { handleEscapeCharacters, ICommonObject } from 'kodivian-components'
 import { databaseEntities } from '.'
-import { InternalAutonomousError } from '../errors/internalAutonomousError'
+import { InternalKodivianError } from '../errors/internalKodivianError'
 import { StatusCodes } from 'http-status-codes'
 import { getErrorMessage } from '../errors/utils'
 import { DataSource } from 'typeorm'
@@ -48,13 +48,13 @@ export const executeCustomNodeFunction = async ({
 
                 return dbResponse
             } catch (error) {
-                throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error running custom function: ${error}`)
+                throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error running custom function: ${error}`)
             }
         } else {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Node customFunction not found`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Node customFunction not found`)
         }
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: nodesService.executeCustomFunction - ${getErrorMessage(error)}`
         )

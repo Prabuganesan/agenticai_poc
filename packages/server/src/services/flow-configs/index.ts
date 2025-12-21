@@ -3,7 +3,7 @@ import { findAvailableConfigs } from '../../utils'
 import { IReactFlowObject } from '../../Interface'
 import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
 import chatflowsService from '../chatflows'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { getErrorMessage } from '../../errors/utils'
 
 const getSingleFlowConfig = async (chatflowId: string, orgId: string): Promise<any> => {
@@ -11,7 +11,7 @@ const getSingleFlowConfig = async (chatflowId: string, orgId: string): Promise<a
         const appServer = getRunningExpressApp()
         const chatflow = await chatflowsService.getChatflowById(chatflowId, orgId)
         if (!chatflow) {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowId} not found in the database!`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowId} not found in the database!`)
         }
         const flowData = chatflow.flowData
         const parsedFlowData: IReactFlowObject = JSON.parse(flowData)
@@ -19,7 +19,7 @@ const getSingleFlowConfig = async (chatflowId: string, orgId: string): Promise<a
         const dbResponse = findAvailableConfigs(nodes, appServer.nodesPool.componentCredentials)
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: flowConfigService.getSingleFlowConfig - ${getErrorMessage(error)}`
         )

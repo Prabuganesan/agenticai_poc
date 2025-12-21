@@ -1,4 +1,4 @@
-import { InternalAutonomousError } from '../errors/internalAutonomousError'
+import { InternalKodivianError } from '../errors/internalKodivianError'
 import { StatusCodes } from 'http-status-codes'
 import { Request } from 'express'
 
@@ -18,14 +18,14 @@ export const getPageAndLimitParams = (req: Request): Pagination => {
         // if page is provided, make sure it's a positive number
         page = parseInt(pageParam as string)
         if (page < 0) {
-            throw new InternalAutonomousError(StatusCodes.PRECONDITION_FAILED, `Error: page cannot be negative!`)
+            throw new InternalKodivianError(StatusCodes.PRECONDITION_FAILED, `Error: page cannot be negative!`)
         }
     }
     if (limitParam) {
         // if limit is provided, make sure it's a positive number
         limit = parseInt(limitParam as string)
         if (limit < 0) {
-            throw new InternalAutonomousError(StatusCodes.PRECONDITION_FAILED, `Error: limit cannot be negative!`)
+            throw new InternalKodivianError(StatusCodes.PRECONDITION_FAILED, `Error: limit cannot be negative!`)
         }
     }
     return { page, limit }

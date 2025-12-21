@@ -1,4 +1,4 @@
-export class InternalAutonomousError extends Error {
+export class InternalKodivianError extends Error {
     statusCode: number
     constructor(statusCode: number, message: string) {
         super(message)

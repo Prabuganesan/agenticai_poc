@@ -24,12 +24,12 @@ import { IncomingInput, INodeDirectedGraph, IReactFlowObject, IExecuteFlowParams
 import { ChatFlow } from '../database/entities/ChatFlow'
 import { getRunningExpressApp } from '../utils/getRunningExpressApp'
 import { UpsertHistory } from '../database/entities/UpsertHistory'
-import { InternalAutonomousError } from '../errors/internalAutonomousError'
+import { InternalKodivianError } from '../errors/internalKodivianError'
 import { StatusCodes } from 'http-status-codes'
 import { checkStorage, updateStorageUsage } from './quotaUsage'
 import { getErrorMessage } from '../errors/utils'
 import { v4 as uuidv4 } from 'uuid'
-import { AUTONOMOUS_COUNTER_STATUS, AUTONOMOUS_METRIC_COUNTERS } from '../Interface.Metrics'
+import { KODIVIAN_COUNTER_STATUS, KODIVIAN_METRIC_COUNTERS } from '../Interface.Metrics'
 import { Variable } from '../database/entities/Variable'
 import { OMIT_QUEUE_JOB_DATA } from './constants'
 
@@ -55,7 +55,7 @@ export const executeUpsert = async ({
 
     if (files?.length) {
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'orgId is required for file uploads')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'orgId is required for file uploads')
         }
         overrideConfig = { ...incomingInput }
         for (const file of files) {
@@ -131,21 +131,21 @@ export const executeUpsert = async ({
     const vsNodes = nodes.filter((node) => node.data.category === 'Vector Stores')
     const vsNodesWithFileUpload = vsNodes.filter((node) => node.data.inputs?.fileUpload)
     if (vsNodesWithFileUpload.length > 1) {
-        throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, 'Multiple vector store nodes with fileUpload enabled')
+        throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, 'Multiple vector store nodes with fileUpload enabled')
     } else if (vsNodesWithFileUpload.length === 1 && !stopNodeId) {
         stopNodeId = vsNodesWithFileUpload[0].data.id
     }
 
     /*** Check if multiple vector store nodes exist, and if stopNodeId is specified ***/
     if (vsNodes.length > 1 && !stopNodeId) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             'There are multiple vector nodes, please provide stopNodeId in body request'
         )
     } else if (vsNodes.length === 1 && !stopNodeId) {
         stopNodeId = vsNodes[0].data.id
     } else if (!vsNodes.length && !stopNodeId) {
-        throw new InternalAutonomousError(StatusCodes.NOT_FOUND, 'No vector node found')
+        throw new InternalKodivianError(StatusCodes.NOT_FOUND, 'No vector node found')
     }
 
     /*** Get Starting Nodes with Reversed Graph ***/
@@ -234,7 +234,7 @@ export const upsertVector = async (req: Request, isInternal: boolean = false) =>
         const authReq = req as any
         const orgId: string | undefined = authReq.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
 
         // Get org-specific DataSource from pool
@@ -246,11 +246,11 @@ export const upsertVector = async (req: Request, isInternal: boolean = false) =>
         })
 
         if (!chatflow) {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowid} not found`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowid} not found`)
         }
 
         const organizationId = orgId
-        // Product ID not needed for autonomous server
+        // Product ID not needed for kodivian server
         const productId = ''
 
         const httpProtocol = req.get('x-forwarded-proto') || req.protocol
@@ -262,7 +262,7 @@ export const upsertVector = async (req: Request, isInternal: boolean = false) =>
         if (!isInternal) {
             const isKeyValidated = await validateFlowAPIKey(req, chatflow, orgId)
             if (!isKeyValidated) {
-                throw new InternalAutonomousError(StatusCodes.UNAUTHORIZED, `Unauthorized`)
+                throw new InternalKodivianError(StatusCodes.UNAUTHORIZED, `Unauthorized`)
             }
         }
 
@@ -286,7 +286,7 @@ export const upsertVector = async (req: Request, isInternal: boolean = false) =>
         if (process.env.MODE === MODE.QUEUE) {
             const orgIdNum = parseInt(orgId)
             if (isNaN(orgIdNum)) {
-                throw new InternalAutonomousError(
+                throw new InternalKodivianError(
                     StatusCodes.BAD_REQUEST,
                     `Invalid organization ID: ${orgId}. orgId must be a valid number.`
                 )
@@ -294,7 +294,7 @@ export const upsertVector = async (req: Request, isInternal: boolean = false) =>
             const upsertQueue = appServer.queueManager.getQueue(orgIdNum, 'upsert')
 
             const job = await upsertQueue.addJob(omit(executeData, OMIT_QUEUE_JOB_DATA))
-            logDebug(`[server]: [${orgId}]: Job added to queue: ${job.id}`).catch(() => {})
+            logDebug(`[server]: [${orgId}]: Job added to queue: ${job.id}`).catch(() => { })
 
             const queueEvents = upsertQueue.getQueueEvents()
             const result = await job.waitUntilFinished(queueEvents)
@@ -303,28 +303,28 @@ export const upsertVector = async (req: Request, isInternal: boolean = false) =>
                 throw new Error('Job execution failed')
             }
 
-            appServer.metricsProvider?.incrementCounter(AUTONOMOUS_METRIC_COUNTERS.VECTORSTORE_UPSERT, {
-                status: AUTONOMOUS_COUNTER_STATUS.SUCCESS
+            appServer.metricsProvider?.incrementCounter(KODIVIAN_METRIC_COUNTERS.VECTORSTORE_UPSERT, {
+                status: KODIVIAN_COUNTER_STATUS.SUCCESS
             })
             return result
         } else {
             const result = await executeUpsert(executeData)
 
-            appServer.metricsProvider?.incrementCounter(AUTONOMOUS_METRIC_COUNTERS.VECTORSTORE_UPSERT, {
-                status: AUTONOMOUS_COUNTER_STATUS.SUCCESS
+            appServer.metricsProvider?.incrementCounter(KODIVIAN_METRIC_COUNTERS.VECTORSTORE_UPSERT, {
+                status: KODIVIAN_COUNTER_STATUS.SUCCESS
             })
             return result
         }
     } catch (e) {
-        logError(`[server]: Error in upsertVector: ${e instanceof Error ? e.message : String(e)}`, e).catch(() => {})
-        appServer.metricsProvider?.incrementCounter(AUTONOMOUS_METRIC_COUNTERS.VECTORSTORE_UPSERT, {
-            status: AUTONOMOUS_COUNTER_STATUS.FAILURE
+        logError(`[server]: Error in upsertVector: ${e instanceof Error ? e.message : String(e)}`, e).catch(() => { })
+        appServer.metricsProvider?.incrementCounter(KODIVIAN_METRIC_COUNTERS.VECTORSTORE_UPSERT, {
+            status: KODIVIAN_COUNTER_STATUS.FAILURE
         })
 
-        if (e instanceof InternalAutonomousError && e.statusCode === StatusCodes.UNAUTHORIZED) {
+        if (e instanceof InternalKodivianError && e.statusCode === StatusCodes.UNAUTHORIZED) {
             throw e
         } else {
-            throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, getErrorMessage(e))
+            throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, getErrorMessage(e))
         }
     }
 }

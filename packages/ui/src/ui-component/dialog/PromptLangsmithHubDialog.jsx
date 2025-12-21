@@ -140,7 +140,7 @@ const PromptLangsmithHubDialog = ({ promptType, show, onCancel, onSubmit }) => {
     const usecases = [
         { id: 201, name: 'Agents' },
         { id: 202, name: 'Agent Stimulation' },
-        { id: 203, name: 'Autonomous agents' },
+        { id: 203, name: 'Kodivian agents' },
         { id: 204, name: 'Classification' },
         { id: 205, name: 'Chatbots' },
         { id: 206, name: 'Code understanding' },

@@ -2,7 +2,7 @@ import OpenAI from 'openai'
 import { StatusCodes } from 'http-status-codes'
 import { decryptCredentialData } from '../../utils'
 import { Credential } from '../../database/entities/Credential'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { getErrorMessage } from '../../errors/utils'
 import { getFileFromUpload, removeSpecificFileFromUpload } from 'kodivian-components'
 import { getDataSource } from '../../DataSource'
@@ -15,27 +15,27 @@ import { getDataSource } from '../../DataSource'
 const getAllOpenaiAssistants = async (credentialId: string, orgId: string): Promise<any> => {
     try {
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
         const dataSource = getDataSource(parseInt(orgId))
         const credential = await dataSource.getRepository(Credential).findOneBy({
             guid: credentialId
         })
         if (!credential) {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Credential ${credentialId} not found in the database!`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Credential ${credentialId} not found in the database!`)
         }
         // Decrpyt credentialData
         const decryptedCredentialData = await decryptCredentialData(credential.encryptedData)
         const openAIApiKey = decryptedCredentialData['openAIApiKey']
         if (!openAIApiKey) {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `OpenAI ApiKey not found`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `OpenAI ApiKey not found`)
         }
         const openai = new OpenAI({ apiKey: openAIApiKey })
         const retrievedAssistants = await openai.beta.assistants.list()
         const dbResponse = retrievedAssistants.data
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: openaiAssistantsService.getAllOpenaiAssistants - ${getErrorMessage(error)}`
         )
@@ -46,20 +46,20 @@ const getAllOpenaiAssistants = async (credentialId: string, orgId: string): Prom
 const getSingleOpenaiAssistant = async (credentialId: string, assistantId: string, orgId: string): Promise<any> => {
     try {
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
         const dataSource = getDataSource(parseInt(orgId))
         const credential = await dataSource.getRepository(Credential).findOneBy({
             guid: credentialId
         })
         if (!credential) {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Credential ${credentialId} not found in the database!`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Credential ${credentialId} not found in the database!`)
         }
         // Decrpyt credentialData
         const decryptedCredentialData = await decryptCredentialData(credential.encryptedData)
         const openAIApiKey = decryptedCredentialData['openAIApiKey']
         if (!openAIApiKey) {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `OpenAI ApiKey not found`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `OpenAI ApiKey not found`)
         }
 
         const openai = new OpenAI({ apiKey: openAIApiKey })
@@ -81,7 +81,7 @@ const getSingleOpenaiAssistant = async (credentialId: string, assistantId: strin
         }
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: openaiAssistantsService.getSingleOpenaiAssistant - ${getErrorMessage(error)}`
         )
@@ -90,20 +90,20 @@ const getSingleOpenaiAssistant = async (credentialId: string, assistantId: strin
 
 const uploadFilesToAssistant = async (credentialId: string, orgId: string, files: { filePath: string; fileName: string }[]) => {
     if (!orgId) {
-        throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+        throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
     }
     const dataSource = getDataSource(parseInt(orgId))
     const credential = await dataSource.getRepository(Credential).findOneBy({
         guid: credentialId
     })
     if (!credential) {
-        throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Credential ${credentialId} not found in the database!`)
+        throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Credential ${credentialId} not found in the database!`)
     }
     // Decrpyt credentialData
     const decryptedCredentialData = await decryptCredentialData(credential.encryptedData)
     const openAIApiKey = decryptedCredentialData['openAIApiKey']
     if (!openAIApiKey) {
-        throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `OpenAI ApiKey not found`)
+        throw new InternalKodivianError(StatusCodes.NOT_FOUND, `OpenAI ApiKey not found`)
     }
 
     const openai = new OpenAI({ apiKey: openAIApiKey })

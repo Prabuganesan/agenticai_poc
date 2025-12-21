@@ -1,5 +1,5 @@
 import { StatusCodes } from 'http-status-codes'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { getErrorMessage } from '../../errors/utils'
 import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
 import { ChatFlow } from '../../database/entities/ChatFlow'
@@ -21,7 +21,7 @@ const checkFlowValidation = async (flowId: string, orgId?: string): Promise<IVal
         const componentNodes = appServer.nodesPool.componentNodes
 
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
         const dataSource = getDataSource(parseInt(orgId))
         const flow = await dataSource.getRepository(ChatFlow).findOne({
@@ -29,7 +29,7 @@ const checkFlowValidation = async (flowId: string, orgId?: string): Promise<IVal
         })
 
         if (!flow) {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Error: validationService.checkFlowValidation - flow not found!`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Error: validationService.checkFlowValidation - flow not found!`)
         }
 
         const flowData = JSON.parse(flow.flowData)
@@ -242,7 +242,7 @@ const checkFlowValidation = async (flowId: string, orgId?: string): Promise<IVal
 
                             // Check for credential requirement in the component
                             if (componentNodes[componentName].credential && !componentNodes[componentName].credential.optional) {
-                                if (!configValue.AUTONOMOUS_CREDENTIAL_ID && !configValue.credential) {
+                                if (!configValue.KODIVIAN_CREDENTIAL_ID && !configValue.credential) {
                                     nodeIssues.push(`${param.label} requires a credential`)
                                 }
                             }
@@ -317,7 +317,7 @@ const checkFlowValidation = async (flowId: string, orgId?: string): Promise<IVal
 
         return validationResults
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: validationService.checkFlowValidation - ${getErrorMessage(error)}`
         )

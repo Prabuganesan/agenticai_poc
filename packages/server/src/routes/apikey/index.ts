@@ -1,6 +1,6 @@
 import express from 'express'
 import apikeyController from '../../controllers/apikey'
-// Permission checks removed for autonomous server - handled externally
+// Permission checks removed for kodivian server - handled externally
 const router = express.Router()
 
 // CREATE

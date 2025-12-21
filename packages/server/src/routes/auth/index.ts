@@ -10,7 +10,7 @@ const router = Router()
 router.get('/permissions', (req, res, next) => {
     // Get autonomous session service and org config service from running app
     const appServer = getRunningExpressApp()
-    const sessionValidationMiddleware = createSessionValidationMiddleware(appServer.autonomousSessionService, appServer.orgConfigService)
+    const sessionValidationMiddleware = createSessionValidationMiddleware(appServer.kodivianSessionService, appServer.orgConfigService)
     // Call the middleware, then the controller
     return (sessionValidationMiddleware as any)(req, res, (err?: any) => {
         if (err) return next(err)

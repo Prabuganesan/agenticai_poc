@@ -2,23 +2,23 @@ import express from 'express'
 import path from 'path'
 import fs from 'fs'
 
-// Resolve path to autonomousDocs directory
+// Resolve path to kodivianDocs directory
 const getDocsPath = () => {
     // for prod
-    if (process.env.AUTONOMOUS_DATA_PATH) {
-        const docsPath = path.join(process.env.AUTONOMOUS_DATA_PATH, 'autonomousDocs')
+    if (process.env.KODIVIAN_DATA_PATH) {
+        const docsPath = path.join(process.env.KODIVIAN_DATA_PATH, 'kodivianDocs')
         if (fs.existsSync(docsPath)) {
             return docsPath
         }
     }
 
     // for development
-    const docsPathDev = path.join(__dirname, '..', '..', '..', '..', '..', 'autonomousDocs')
+    const docsPathDev = path.join(__dirname, '..', '..', '..', '..', '..', 'kodivianDocs')
     if (fs.existsSync(docsPathDev)) {
         return docsPathDev
     }
 
-    console.warn('⚠️ [Docs]: autonomousDocs directory not found. Documentation will not be available.')
+    console.warn('⚠️ [Docs]: kodivianDocs directory not found. Documentation will not be available.')
     return null
 }
 
@@ -44,9 +44,8 @@ function preprocessGitBookSyntax(markdown: string): string {
             .map((line: string) => line.trim())
             .join('<br>')
 
-        return `\n<div style="background: ${styleConfig.bg}; border-left: 4px solid ${styleConfig.border}; color: ${
-            styleConfig.color
-        }; padding: 16px 20px; border-radius: 8px; margin: 24px 0;">
+        return `\n<div style="background: ${styleConfig.bg}; border-left: 4px solid ${styleConfig.border}; color: ${styleConfig.color
+            }; padding: 16px 20px; border-radius: 8px; margin: 24px 0;">
 <strong style="display: block; margin-bottom: 8px; font-size: 14px;">${styleConfig.icon} ${style.toUpperCase()}</strong>
 ${htmlContent}
 </div>\n`
@@ -166,7 +165,7 @@ apiRouter.post('/convertMdtohtml', async (req, res) => {
 
             // Resolve relative path from markdown file location
             const resolvedPath = path.join(mdDir, src).replace(/\\/g, '/')
-            const apiContextPath = process.env.CONTEXT_PATH || '/autonomous'
+            const apiContextPath = process.env.CONTEXT_PATH || '/kodivian'
             return `src="${apiContextPath}/docs/${resolvedPath}"`
         })
 
@@ -183,7 +182,7 @@ apiRouter.post('/convertMdtohtml', async (req, res) => {
 
                 // Resolve relative path
                 const resolvedPath = path.join(mdDir, src).replace(/\\/g, '/')
-                const apiContextPath = process.env.CONTEXT_PATH || '/autonomous'
+                const apiContextPath = process.env.CONTEXT_PATH || '/kodivian'
                 parts[0] = `${apiContextPath}/docs/${resolvedPath}`
                 return parts.join(' ')
             })
@@ -208,7 +207,7 @@ if (docsPath) {
     })
 } else {
     staticRouter.use('*', (req, res) => {
-        res.status(404).send('Documentation not found (autonomousDocs directory missing)')
+        res.status(404).send('Documentation not found (kodivianDocs directory missing)')
     })
 }
 

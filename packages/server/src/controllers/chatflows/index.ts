@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express'
 import { StatusCodes } from 'http-status-codes'
 import { ChatFlow } from '../../database/entities/ChatFlow'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { ChatflowType } from '../../Interface'
 import apiKeyService from '../../services/apikey'
 import chatflowsService from '../../services/chatflows'
@@ -10,7 +10,7 @@ import { checkUsageLimit } from '../../utils/quotaUsage'
 import { RateLimiterManager } from '../../utils/rateLimit'
 import { getPageAndLimitParams } from '../../utils/pagination'
 import { canModifyResource } from '../../utils/permissions'
-// WorkspaceUserService removed for autonomous server
+// WorkspaceUserService removed for kodivian server
 import { GeneralErrorMessage } from '../../utils/constants'
 import { AuthenticatedRequest } from '../../middlewares/session-validation.middleware'
 import { transformEntityForResponse, transformPaginatedResponse } from '../../utils/responseTransform'
@@ -20,7 +20,7 @@ const checkIfChatflowIsValidForStreaming = async (req: Request, res: Response, n
         // Handle both / and /:id routes
         const chatflowId = req.params.id
         if (!chatflowId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: chatflowsController.checkIfChatflowIsValidForStreaming - id not provided!`
             )
@@ -28,7 +28,7 @@ const checkIfChatflowIsValidForStreaming = async (req: Request, res: Response, n
         const authReq = req as AuthenticatedRequest
         const orgId = authReq.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
         // Extract userId for user-based isolation (optional - allows access to public flows)
         const userId = authReq.userId ? parseInt(authReq.userId) : undefined
@@ -42,7 +42,7 @@ const checkIfChatflowIsValidForStreaming = async (req: Request, res: Response, n
 const checkIfChatflowIsValidForUploads = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: chatflowsController.checkIfChatflowIsValidForUploads - id not provided!`
             )
@@ -51,7 +51,7 @@ const checkIfChatflowIsValidForUploads = async (req: Request, res: Response, nex
         const authReq = req as AuthenticatedRequest
         const orgId = authReq.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
         const apiResponse = await chatflowsService.checkIfChatflowIsValidForUploads(req.params.id, orgId)
         return res.json(apiResponse)
@@ -63,7 +63,7 @@ const checkIfChatflowIsValidForUploads = async (req: Request, res: Response, nex
 const deleteChatflow = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: chatflowsController.deleteChatflow - id not provided!`
             )
@@ -73,7 +73,7 @@ const deleteChatflow = async (req: AuthenticatedRequest, res: Response, next: Ne
         const { canModify } = await canModifyResource('chatflow', req.params.id, req.userId!, req.orgId!)
 
         if (!canModify) {
-            throw new InternalAutonomousError(StatusCodes.FORBIDDEN, 'Only the creator can delete this chatflow')
+            throw new InternalKodivianError(StatusCodes.FORBIDDEN, 'Only the creator can delete this chatflow')
         }
 
         const apiResponse = await chatflowsService.deleteChatflow(req, req.params.id)
@@ -92,7 +92,7 @@ const getAllChatflows = async (req: AuthenticatedRequest, res: Response, next: N
         }
 
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.BAD_REQUEST,
                 'Organization ID (orgId) is required. Provide orgId in query parameter, X-Org-Id header, or ensure you are authenticated.'
             )
@@ -120,7 +120,7 @@ const getAllChatflows = async (req: AuthenticatedRequest, res: Response, next: N
 const getChatflowByApiKey = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params === 'undefined' || !req.params.apikey) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: chatflowsController.getChatflowByApiKey - apikey not provided!`
             )
@@ -128,7 +128,7 @@ const getChatflowByApiKey = async (req: Request, res: Response, next: NextFuncti
         // Extract orgId from query parameter or header (GET request)
         const orgId = (req.query?.orgId as string) || (req.headers['x-org-id'] as string)
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.BAD_REQUEST,
                 'Organization ID (orgId) is required. Provide orgId in query parameter or X-Org-Id header.'
             )
@@ -147,14 +147,14 @@ const getChatflowByApiKey = async (req: Request, res: Response, next: NextFuncti
 const getChatflowById = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: chatflowsController.getChatflowById - id not provided!`
             )
         }
         const orgId = req.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
         // Extract userId for user-based isolation (optional - allows access to public flows)
         const userId = req.userId ? parseInt(req.userId) : undefined
@@ -168,14 +168,14 @@ const getChatflowById = async (req: AuthenticatedRequest, res: Response, next: N
 const saveChatflow = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         if (!req.body) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: chatflowsController.saveChatflow - body not provided!`
             )
         }
         const orgId = req.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
         const body = req.body
 
@@ -201,21 +201,21 @@ const saveChatflow = async (req: AuthenticatedRequest, res: Response, next: Next
 const updateChatflow = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: chatflowsController.updateChatflow - id not provided!`
             )
         }
         const orgId = req.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
 
         // Check if user has permission to update (creator-only)
         const { canModify } = await canModifyResource('chatflow', req.params.id, req.userId!, req.orgId!)
 
         if (!canModify) {
-            throw new InternalAutonomousError(StatusCodes.FORBIDDEN, 'Only the creator can modify this chatflow')
+            throw new InternalKodivianError(StatusCodes.FORBIDDEN, 'Only the creator can modify this chatflow')
         }
 
         const chatflow = await chatflowsService.getChatflowById(req.params.id, orgId)
@@ -244,7 +244,7 @@ const updateChatflow = async (req: AuthenticatedRequest, res: Response, next: Ne
 const getSinglePublicChatflow = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: chatflowsController.getSinglePublicChatflow - id not provided!`
             )
@@ -253,7 +253,7 @@ const getSinglePublicChatflow = async (req: Request, res: Response, next: NextFu
         const authReq = req as AuthenticatedRequest
         const orgId = authReq.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
 
         const appServer = getRunningExpressApp()
@@ -284,7 +284,7 @@ const getSinglePublicChatflow = async (req: Request, res: Response, next: NextFu
 const getSinglePublicChatbotConfig = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: chatflowsController.getSinglePublicChatbotConfig - id not provided!`
             )
@@ -306,7 +306,7 @@ const getSinglePublicChatbotConfig = async (req: Request, res: Response, next: N
 const checkIfChatflowHasChanged = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: chatflowsController.checkIfChatflowHasChanged - id not provided!`
             )
@@ -314,7 +314,7 @@ const checkIfChatflowHasChanged = async (req: Request, res: Response, next: Next
         const authReq = req as AuthenticatedRequest
         const orgId = authReq.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
         // lastUpdatedDateTime is optional - if not provided, just check if chatflow exists and has been modified
         const lastUpdatedDateTime = req.params.lastUpdatedDateTime || undefined
@@ -328,7 +328,7 @@ const checkIfChatflowHasChanged = async (req: Request, res: Response, next: Next
 const getEmbedTheme = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: chatflowsController.getEmbedTheme - id not provided!`
             )

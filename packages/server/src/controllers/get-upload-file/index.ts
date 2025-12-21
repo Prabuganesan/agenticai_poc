@@ -3,7 +3,7 @@ import fs from 'fs'
 import contentDisposition from 'content-disposition'
 import { streamStorageFile } from 'kodivian-components'
 import { StatusCodes } from 'http-status-codes'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
 import { ChatFlow } from '../../database/entities/ChatFlow'
 import { getDataSource } from '../../DataSource'
@@ -23,7 +23,7 @@ const streamUploadedFile = async (req: Request, res: Response, next: NextFunctio
         // Require orgId upfront - no cross-org search
         let orgId: string | undefined = (req as any).orgId || (req as any).user?.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
 
         const dataSource = getDataSource(parseInt(orgId))
@@ -32,7 +32,7 @@ const streamUploadedFile = async (req: Request, res: Response, next: NextFunctio
         })
 
         if (!chatflow) {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowId} not found`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowId} not found`)
         }
 
         // Set Content-Disposition header - force attachment for download
@@ -43,7 +43,7 @@ const streamUploadedFile = async (req: Request, res: Response, next: NextFunctio
         }
         const fileStream = await streamStorageFile(chatflowId, chatId, fileName, orgId)
 
-        if (!fileStream) throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: streamStorageFile`)
+        if (!fileStream) throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: streamStorageFile`)
 
         if (fileStream instanceof fs.ReadStream && fileStream?.pipe) {
             fileStream.pipe(res)

@@ -3,7 +3,7 @@ import { ChatMessageRatingType, ChatType } from '../../Interface'
 import { ChatMessage } from '../../database/entities/ChatMessage'
 import { utilGetChatMessage } from '../../utils/getChatMessage'
 import { ChatMessageFeedback } from '../../database/entities/ChatMessageFeedback'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { getErrorMessage } from '../../errors/utils'
 
 // get stats for showing in chatflow
@@ -43,7 +43,7 @@ const getChatflowStats = async (
 
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: statsService.getChatflowStats - ${getErrorMessage(error)}`
         )

@@ -145,9 +145,8 @@ const TextToSpeech = ({ dialogProps }) => {
             }
         } catch (error) {
             enqueueSnackbar({
-                message: `Failed to save Text To Speech Configuration: ${
-                    typeof error.response.data === 'object' ? error.response.data.message : error.response.data
-                }`,
+                message: `Failed to save Text To Speech Configuration: ${typeof error.response.data === 'object' ? error.response.data.message : error.response.data
+                    }`,
                 options: {
                     key: Date.now() + Math.random(),
                     variant: 'error',
@@ -245,7 +244,7 @@ const TextToSpeech = ({ dialogProps }) => {
         try {
             const providerConfig = textToSpeech?.[selectedProvider] || {}
             const body = {
-                text: 'Today is a wonderful day to build something with Autonomous!',
+                text: 'Today is a wonderful day to build something with Kodivian!',
                 provider: selectedProvider,
                 credentialId: providerConfig.credentialId,
                 voice: providerConfig.voice,
@@ -611,7 +610,7 @@ const TextToSpeech = ({ dialogProps }) => {
                         </Typography>
 
                         <Typography variant='body2' color='textSecondary' sx={{ mb: 2 }}>
-                            Test text: &quot;Today is a wonderful day to build something with Autonomous!&quot;
+                            Test text: &quot;Today is a wonderful day to build something with Kodivian!&quot;
                         </Typography>
 
                         <AudioWaveform

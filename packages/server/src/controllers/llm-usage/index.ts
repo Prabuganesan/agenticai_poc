@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import { StatusCodes } from 'http-status-codes'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import llmUsageService from '../../services/llm-usage'
 import { QueryUsageFilters } from '../../services/llm-usage'
 
@@ -12,7 +12,7 @@ const getStats = async (req: Request, res: Response, next: NextFunction) => {
         const userId = authReq.userId
 
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
 
         const filters: Omit<QueryUsageFilters, 'page' | 'limit'> = {
@@ -43,7 +43,7 @@ const queryUsage = async (req: Request, res: Response, next: NextFunction) => {
         const userId = authReq.userId
 
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
 
         const filters: QueryUsageFilters = {
@@ -75,7 +75,7 @@ const getFilters = async (req: Request, res: Response, next: NextFunction) => {
         const orgId = authReq.orgId
 
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
 
         const filters = await llmUsageService.getFilters(orgId)
@@ -92,7 +92,7 @@ const getTimeSeries = async (req: Request, res: Response, next: NextFunction) =>
         const userId = authReq.userId
 
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
 
         const filters: Omit<import('../../services/llm-usage').QueryUsageFilters, 'page' | 'limit'> = {

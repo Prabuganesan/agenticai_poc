@@ -1,6 +1,6 @@
 import express from 'express'
 import exportImportController from '../../controllers/export-import'
-// Permission checks removed for autonomous server - handled externally
+// Permission checks removed for kodivian server - handled externally
 const router = express.Router()
 
 router.post('/export', exportImportController.exportData as express.RequestHandler)

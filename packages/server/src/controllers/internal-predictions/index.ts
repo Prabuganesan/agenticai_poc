@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
 import { StatusCodes } from 'http-status-codes'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { getErrorMessage } from '../../errors/utils'
 import { MODE } from '../../Interface'
 import chatflowService from '../../services/chatflows'
@@ -15,12 +15,12 @@ const createInternalPrediction = async (req: AuthenticatedRequest, res: Response
     try {
         const orgId = req.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
 
         const chatflow = await chatflowService.getChatflowById(req.params.id, orgId)
         if (!chatflow) {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Chatflow ${req.params.id} not found`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Chatflow ${req.params.id} not found`)
         }
 
         if (req.body.streaming || req.body.streaming === 'true') {

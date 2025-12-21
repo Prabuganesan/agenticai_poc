@@ -119,7 +119,7 @@ const updateStateAndLocalStorage = (state, payload) => {
     state.permissions = payload.permissions || []
     state.features = payload.features || {}
     state.isAuthenticated = true
-    state.isGlobal = true // Always true for autonomous server
+    state.isGlobal = true // Always true for kodivian server
     
     // Store only non-sensitive user info in localStorage
     const userForStorage = {

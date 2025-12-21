@@ -1,12 +1,12 @@
 import { UsageCacheManager } from '../UsageCacheManager'
 
 type UsageType = 'flows' | 'users'
-// Quota checking simplified - all quotas are unlimited in autonomous server
+// Quota checking simplified - all quotas are unlimited in kodivian server
 
 // For usage that doesn't renew per month, we just get the count from database and check
-// No limits enforced in autonomous server - quotas are always unlimited
+// No limits enforced in kodivian server - quotas are always unlimited
 export const checkUsageLimit = async (type: UsageType, usageCacheManager: UsageCacheManager, currentUsage: number) => {
-    // No-op: quotas are always unlimited in autonomous server
+    // No-op: quotas are always unlimited in kodivian server
     return
 }
 
@@ -28,7 +28,7 @@ export const updatePredictionsUsage = async (orgId: string, _: string = '', usag
         const timeLeft = currentTTL - currentTimestamp
         usageCacheManager.set(`predictions:${orgId}`, currentPredictions, timeLeft)
     } else {
-        // Fallback to default 30 days TTL (no subscription concept in autonomous server)
+        // Fallback to default 30 days TTL (no subscription concept in kodivian server)
         const MS_PER_DAY = 24 * 60 * 60 * 1000
         const DAYS = 30
         const approximateMonthMs = DAYS * MS_PER_DAY
@@ -37,7 +37,7 @@ export const updatePredictionsUsage = async (orgId: string, _: string = '', usag
 }
 
 export const checkPredictions = async (orgId: string, usageCacheManager: UsageCacheManager) => {
-    // No-op: quotas are always unlimited in autonomous server
+    // No-op: quotas are always unlimited in kodivian server
     return
 }
 
@@ -48,6 +48,6 @@ export const updateStorageUsage = (orgId: string, totalSize: number, usageCacheM
 }
 
 export const checkStorage = async (orgId: string, usageCacheManager: UsageCacheManager) => {
-    // No-op: quotas are always unlimited in autonomous server
+    // No-op: quotas are always unlimited in kodivian server
     return
 }

@@ -28,7 +28,7 @@ import useNotifier from '@/utils/useNotifier'
 import { initializeDefaultNodeData } from '@/utils/genericHelper'
 
 // const
-import { baseURL, REDACTED_CREDENTIAL_VALUE, getAutonomousDocsPath } from '@/store/constant'
+import { baseURL, REDACTED_CREDENTIAL_VALUE, getKodivianDocsPath } from '@/store/constant'
 import { HIDE_CANVAS_DIALOG, SHOW_CANVAS_DIALOG } from '@/store/actions'
 import keySVG from '@/assets/images/key.svg'
 
@@ -466,7 +466,7 @@ const AddEditCredentialDialog = ({ show, dialogProps, onCancel, onConfirm, setEr
                             <span style={{ color: 'rgb(116,66,16)' }}>
                                 {parser(
                                     componentCredential.description
-                                        .replace('[AUTONOMOUS_DOCS]', getAutonomousDocsPath())
+                                        .replace('[KODIVIAN_DOCS]', getKodivianDocsPath())
                                 )}
                             </span>
                         </div>

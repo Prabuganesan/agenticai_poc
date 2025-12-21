@@ -42,7 +42,7 @@ const CHATFLOW_CONFIGURATION_TABS = [
         label: 'Analyse Agent',
         id: 'analyseChatflow'
     },
-    // Leads feature removed for autonomous server deployment
+    // Leads feature removed for kodivian server deployment
     // {
     //     label: 'Leads',
     //     id: 'leads'
@@ -145,7 +145,7 @@ const ChatflowConfigurationDialog = ({ show, isAgentCanvas, dialogProps, onCance
                         {item.id === 'textToSpeech' ? <TextToSpeech dialogProps={dialogProps} /> : null}
                         {item.id === 'chatFeedback' ? <ChatFeedback dialogProps={dialogProps} /> : null}
                         {item.id === 'analyseChatflow' ? <AnalyseFlow dialogProps={dialogProps} /> : null}
-                        {/* Leads feature removed for autonomous server deployment */}
+                        {/* Leads feature removed for kodivian server deployment */}
                         {/* {item.id === 'leads' ? <Leads dialogProps={dialogProps} /> : null} */}
                         {item.id === 'fileUpload' ? <FileUpload dialogProps={dialogProps} /> : null}
                         {item.id === 'postProcessing' ? <PostProcessing dialogProps={dialogProps} /> : null}

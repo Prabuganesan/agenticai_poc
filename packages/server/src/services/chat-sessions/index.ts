@@ -2,7 +2,7 @@ import { StatusCodes } from 'http-status-codes'
 import { v4 as uuidv4 } from 'uuid'
 import { ChatSession } from '../../database/entities/ChatSession'
 import { ChatMessage } from '../../database/entities/ChatMessage'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { getErrorMessage } from '../../errors/utils'
 import { IChatSession } from '../../Interface'
 import { getDataSource } from '../../DataSource'
@@ -47,7 +47,7 @@ const createChatSession = async (chatflowId: string, orgId: string, userId: stri
 
         return savedSession
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: chatSessionsService.createChatSession - ${getErrorMessage(error)}`
         )
@@ -280,7 +280,7 @@ const getAllChatSessions = async (
 
         return { sessions, total }
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: chatSessionsService.getAllChatSessions - ${getErrorMessage(error)}`
         )
@@ -303,7 +303,7 @@ const getChatSessionById = async (chatId: string, orgId: string, userId: string)
 
         return session
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: chatSessionsService.getChatSessionById - ${getErrorMessage(error)}`
         )
@@ -330,7 +330,7 @@ const updateChatSession = async (
         })
 
         if (!session) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.NOT_FOUND,
                 `Error: chatSessionsService.updateChatSession - Chat session not found`
             )
@@ -341,10 +341,10 @@ const updateChatSession = async (
 
         return updatedSession
     } catch (error) {
-        if (error instanceof InternalAutonomousError) {
+        if (error instanceof InternalKodivianError) {
             throw error
         }
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: chatSessionsService.updateChatSession - ${getErrorMessage(error)}`
         )
@@ -366,7 +366,7 @@ const deleteChatSession = async (chatId: string, orgId: string, userId: string):
         })
 
         if (!session) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.NOT_FOUND,
                 `Error: chatSessionsService.deleteChatSession - Chat session not found`
             )
@@ -390,10 +390,10 @@ const deleteChatSession = async (chatId: string, orgId: string, userId: string):
         // Then delete the session itself
         await repository.remove(session)
     } catch (error) {
-        if (error instanceof InternalAutonomousError) {
+        if (error instanceof InternalKodivianError) {
             throw error
         }
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: chatSessionsService.deleteChatSession - ${getErrorMessage(error)}`
         )
@@ -491,7 +491,7 @@ const ensureChatSessionExists = async (chatId: string, chatflowId: string, orgId
             throw saveError
         }
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: chatSessionsService.ensureChatSessionExists - ${getErrorMessage(error)}`
         )
@@ -584,7 +584,7 @@ const updateChatSessionOnMessage = async (
                             })
                             session = await repository.save(session)
                         } else {
-                            throw new InternalAutonomousError(
+                            throw new InternalKodivianError(
                                 StatusCodes.INTERNAL_SERVER_ERROR,
                                 `Error: chatSessionsService.updateChatSessionOnMessage - Session with chatId ${finalChatId} should exist but was not found after duplicate key error`
                             )
@@ -632,7 +632,7 @@ const updateChatSessionOnMessage = async (
             // Silently fail - logging should not break session update
         }
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: chatSessionsService.updateChatSessionOnMessage - ${getErrorMessage(error)}`
         )

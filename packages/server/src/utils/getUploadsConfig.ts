@@ -2,7 +2,7 @@ import { StatusCodes } from 'http-status-codes'
 import { INodeParams } from 'kodivian-components'
 import { ChatFlow } from '../database/entities/ChatFlow'
 import { IUploadFileSizeAndTypes, IReactFlowNode, IReactFlowEdge } from '../Interface'
-import { InternalAutonomousError } from '../errors/internalAutonomousError'
+import { InternalKodivianError } from '../errors/internalKodivianError'
 import { getDataSource } from '../DataSource'
 
 type IUploadConfig = {
@@ -24,7 +24,7 @@ export const utilGetUploadsConfig = async (chatflowid: string, orgId: string): P
         guid: chatflowid
     })
     if (!chatflow) {
-        throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowid} not found`)
+        throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowid} not found`)
     }
 
     const flowObj = JSON.parse(chatflow.flowData)

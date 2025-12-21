@@ -1,7 +1,7 @@
 import path from 'path'
 import * as fs from 'fs'
 import { StatusCodes } from 'http-status-codes'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { getErrorMessage } from '../../errors/utils'
 import readline from 'readline'
 import config from '../../utils/config'
@@ -380,7 +380,7 @@ const queryLogs = async (filters: LogFilters): Promise<LogQueryResponse> => {
         }
     } catch (error) {
         console.error(`[LogService] Error in queryLogs:`, error)
-        throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error querying logs: ${getErrorMessage(error)}`)
+        throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error querying logs: ${getErrorMessage(error)}`)
     }
 }
 
@@ -492,7 +492,7 @@ const getLogStats = async (orgId?: string): Promise<LogStats> => {
             }
         }
     } catch (error) {
-        throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error getting log stats: ${getErrorMessage(error)}`)
+        throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error getting log stats: ${getErrorMessage(error)}`)
     }
 }
 
@@ -585,7 +585,7 @@ const getAllFilters = async (orgId?: string) => {
             groups
         }
     } catch (error) {
-        throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error getting filters: ${getErrorMessage(error)}`)
+        throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error getting filters: ${getErrorMessage(error)}`)
     }
 }
 
@@ -628,7 +628,7 @@ const getLogGroups = async (orgId?: string) => {
             groups
         }
     } catch (error) {
-        throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error getting log groups: ${getErrorMessage(error)}`)
+        throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error getting log groups: ${getErrorMessage(error)}`)
     }
 }
 
@@ -676,7 +676,7 @@ const getLogLevels = async (orgId?: string) => {
             }))
         }
     } catch (error) {
-        throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error getting log levels: ${getErrorMessage(error)}`)
+        throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error getting log levels: ${getErrorMessage(error)}`)
     }
 }
 
@@ -713,7 +713,7 @@ const getServices = async (orgId?: string) => {
             services: Object.entries(serviceCounts).map(([service, count]) => ({ service, count }))
         }
     } catch (error) {
-        throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error getting services: ${getErrorMessage(error)}`)
+        throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error getting services: ${getErrorMessage(error)}`)
     }
 }
 
@@ -758,21 +758,21 @@ const getModules = async (orgId?: string) => {
             })
         }
     } catch (error) {
-        throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error getting modules: ${getErrorMessage(error)}`)
+        throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error getting modules: ${getErrorMessage(error)}`)
     }
 }
 
 // Legacy method (keep for backward compatibility)
 const getLogs = async (startDate?: string, endDate?: string) => {
     if (!startDate || !endDate) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: logService.getLogs - No start date or end date provided`
         )
     }
 
     if (startDate > endDate) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: logService.getLogs - Start date is greater than end date`
         )
@@ -782,7 +782,7 @@ const getLogs = async (startDate?: string, endDate?: string) => {
         const promises: Promise<string>[] = []
         const files = generateDateRange(startDate, endDate)
 
-        // Use AUTONOMOUS_DATA_PATH/.autonomous/logs for log files
+        // Use KODIVIAN_DATA_PATH/.kodivian/logs for log files
         const dataPath = getAutonomousDataPath()
         const logsPath = path.join(dataPath, 'logs')
 
@@ -809,7 +809,7 @@ const getLogs = async (startDate?: string, endDate?: string) => {
             return []
         }
     } catch (error) {
-        throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: logService.getLogs - ${getErrorMessage(error)}`)
+        throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: logService.getLogs - ${getErrorMessage(error)}`)
     }
 }
 

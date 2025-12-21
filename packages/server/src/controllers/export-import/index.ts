@@ -1,14 +1,14 @@
 import { NextFunction, Response } from 'express'
 import { AuthenticatedRequest } from '../../middlewares/session-validation.middleware'
 import { StatusCodes } from 'http-status-codes'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import exportImportService from '../../services/export-import'
 
 const exportData = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         const orgId = req.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.NOT_FOUND,
                 `Error: exportImportController.exportData - organization ${orgId} not found!`
             )
@@ -24,14 +24,14 @@ const importData = async (req: AuthenticatedRequest, res: Response, next: NextFu
     try {
         const orgId = req.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.NOT_FOUND,
                 `Error: exportImportController.importData - organization ${orgId} not found!`
             )
         }
         const importData = req.body
         if (!importData) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Error: exportImportController.importData - importData is required!')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Error: exportImportController.importData - importData is required!')
         }
 
         const userId = req.userId || (req as any).user?.userId

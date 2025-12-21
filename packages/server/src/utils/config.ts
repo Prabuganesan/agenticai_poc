@@ -8,8 +8,8 @@ dotenv.config({ path: path.join(__dirname, '..', '..', '.env'), override: true }
 // Inline getAutonomousDataPath to avoid circular dependency with index.ts
 // (index.ts imports logger, logger imports config, so config can't import from index)
 const getAutonomousDataPath = (): string => {
-    if (process.env.AUTONOMOUS_DATA_PATH) {
-        return path.join(process.env.AUTONOMOUS_DATA_PATH, '.autonomous')
+    if (process.env.KODIVIAN_DATA_PATH) {
+        return path.join(process.env.KODIVIAN_DATA_PATH, '.kodivian')
     }
     // Default to .autonomous inside the server package directory
     // __dirname in compiled code will be dist/utils, so we go up to server root

@@ -47,7 +47,7 @@ import useNotifier from '@/utils/useNotifier'
 // Store
 import { flowContext } from '@/store/context/ReactFlowContext'
 import { HIDE_CANVAS_DIALOG, SHOW_CANVAS_DIALOG } from '@/store/actions'
-import { baseURL, getAutonomousDocsPath } from '@/store/constant'
+import { baseURL, getKodivianDocsPath } from '@/store/constant'
 import { enqueueSnackbar as enqueueSnackbarAction, closeSnackbar as closeSnackbarAction } from '@/store/actions'
 
 function TabPanel(props) {
@@ -577,7 +577,7 @@ formData.append("openAIApiKey[openAIEmbeddings_0]", "sk-my-openai-2nd-key")`
                                                                             <a
                                                                                 rel='noreferrer'
                                                                                 target='_blank'
-                                                                                href={`${getAutonomousDocsPath()}/using-autonomous/api#override-config`}
+                                                                                href={`${getKodivianDocsPath()}/using-kodivian/api#override-config`}
                                                                             >
                                                                                 here
                                                                             </a>{' '}

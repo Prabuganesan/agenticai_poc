@@ -3,7 +3,7 @@ import logService from '../../services/log'
 import { getFlagStatus } from '../../utils/logger/env-flag-loader'
 import { refreshFlags } from '../../utils/logger/flag-checker'
 import { StatusCodes } from 'http-status-codes'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { getErrorMessage } from '../../errors/utils'
 
 // Get logs
@@ -25,7 +25,7 @@ const getFlags = async (req: Request, res: Response, next: NextFunction) => {
             flags: status
         })
     } catch (error) {
-        return next(new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error getting flag status: ${getErrorMessage(error)}`))
+        return next(new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error getting flag status: ${getErrorMessage(error)}`))
     }
 }
 
@@ -40,7 +40,7 @@ const refreshFlagStatus = async (req: Request, res: Response, next: NextFunction
             flags: status
         })
     } catch (error) {
-        return next(new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error refreshing flags: ${getErrorMessage(error)}`))
+        return next(new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error refreshing flags: ${getErrorMessage(error)}`))
     }
 }
 
@@ -51,7 +51,7 @@ const queryLogs = async (req: Request, res: Response, next: NextFunction) => {
         const result = await logService.queryLogs(filters)
         return res.json(result)
     } catch (error) {
-        return next(new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error querying logs: ${getErrorMessage(error)}`))
+        return next(new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error querying logs: ${getErrorMessage(error)}`))
     }
 }
 
@@ -65,7 +65,7 @@ const getLogStats = async (req: Request, res: Response, next: NextFunction) => {
             stats
         })
     } catch (error) {
-        return next(new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error getting log stats: ${getErrorMessage(error)}`))
+        return next(new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error getting log stats: ${getErrorMessage(error)}`))
     }
 }
 
@@ -76,7 +76,7 @@ const getAllFilters = async (req: Request, res: Response, next: NextFunction) =>
         const result = await logService.getAllFilters(orgId)
         return res.json(result)
     } catch (error) {
-        return next(new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error getting filters: ${getErrorMessage(error)}`))
+        return next(new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error getting filters: ${getErrorMessage(error)}`))
     }
 }
 
@@ -87,7 +87,7 @@ const getLogGroups = async (req: Request, res: Response, next: NextFunction) => 
         const result = await logService.getLogGroups(orgId)
         return res.json(result)
     } catch (error) {
-        return next(new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error getting log groups: ${getErrorMessage(error)}`))
+        return next(new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error getting log groups: ${getErrorMessage(error)}`))
     }
 }
 
@@ -98,7 +98,7 @@ const getLogLevels = async (req: Request, res: Response, next: NextFunction) => 
         const result = await logService.getLogLevels(orgId)
         return res.json(result)
     } catch (error) {
-        return next(new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error getting log levels: ${getErrorMessage(error)}`))
+        return next(new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error getting log levels: ${getErrorMessage(error)}`))
     }
 }
 
@@ -109,7 +109,7 @@ const getServices = async (req: Request, res: Response, next: NextFunction) => {
         const result = await logService.getServices(orgId)
         return res.json(result)
     } catch (error) {
-        return next(new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error getting services: ${getErrorMessage(error)}`))
+        return next(new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error getting services: ${getErrorMessage(error)}`))
     }
 }
 
@@ -120,7 +120,7 @@ const getModules = async (req: Request, res: Response, next: NextFunction) => {
         const result = await logService.getModules(orgId)
         return res.json(result)
     } catch (error) {
-        return next(new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error getting modules: ${getErrorMessage(error)}`))
+        return next(new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error getting modules: ${getErrorMessage(error)}`))
     }
 }
 

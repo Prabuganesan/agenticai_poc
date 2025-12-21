@@ -6,7 +6,7 @@ import { ChatMessageFeedback } from '../../database/entities/ChatMessageFeedback
 import { ChatFlow } from '../../database/entities/ChatFlow'
 import { ChatSession } from '../../database/entities/ChatSession'
 import { Execution } from '../../database/entities/Execution'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { getErrorMessage } from '../../errors/utils'
 import { ChatMessageRatingType, ChatType, IChatMessage, MODE } from '../../Interface'
 import { UsageCacheManager } from '../../UsageCacheManager'
@@ -25,7 +25,7 @@ const createChatMessage = async (chatMessage: Partial<IChatMessage>, orgId: stri
         const dbResponse = await utilAddChatMessage(chatMessage, undefined, orgId)
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: chatMessagesService.createChatMessage - ${getErrorMessage(error)}`
         )
@@ -68,7 +68,7 @@ const getAllChatMessages = async (
         })
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: chatMessagesService.getAllChatMessages - ${getErrorMessage(error)}`
         )
@@ -107,7 +107,7 @@ const getAllInternalChatMessages = async (
         })
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: chatMessagesService.getAllInternalChatMessages - ${getErrorMessage(error)}`
         )
@@ -190,7 +190,7 @@ const removeAllChatMessages = async (
 
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: chatMessagesService.removeAllChatMessages - ${getErrorMessage(error)}`
         )
@@ -276,7 +276,7 @@ const removeChatMessagesByMessageIds = async (
 
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: chatMessagesService.removeChatMessagesByMessageIds - ${getErrorMessage(error)}`
         )
@@ -295,11 +295,11 @@ const abortChatMessage = async (chatId: string, chatflowid: string, orgId: strin
                 guid: chatflowid
             })
             if (!chatflow) {
-                throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowid} not found`)
+                throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowid} not found`)
             }
             const orgIdNum = parseInt(orgId)
             if (!orgIdNum) {
-                throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, `Invalid organization ID for chatflow ${chatflowid}`)
+                throw new InternalKodivianError(StatusCodes.BAD_REQUEST, `Invalid organization ID for chatflow ${chatflowid}`)
             }
             await appServer.queueManager.getPredictionQueueEventsProducer(orgIdNum).publishEvent({
                 eventName: 'abort',
@@ -309,7 +309,7 @@ const abortChatMessage = async (chatId: string, chatflowid: string, orgId: strin
             appServer.abortControllerPool.abort(id)
         }
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: chatMessagesService.abortChatMessage - ${getErrorMessage(error)}`
         )

@@ -14,7 +14,7 @@ import { getRunningExpressApp } from './getRunningExpressApp'
 import { getErrorMessage } from '../errors/utils'
 import { checkStorage, updateStorageUsage } from './quotaUsage'
 import { ChatFlow } from '../database/entities/ChatFlow'
-import { InternalAutonomousError } from '../errors/internalAutonomousError'
+import { InternalKodivianError } from '../errors/internalKodivianError'
 import { StatusCodes } from 'http-status-codes'
 import { validateFileContent, validateFileSize } from './fileValidation'
 
@@ -30,10 +30,10 @@ export const createFileAttachment = async (req: Request) => {
 
     // Validate GUID format (15 characters) instead of UUID
     if (!chatflowid || typeof chatflowid !== 'string' || chatflowid.length !== 15) {
-        throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Invalid chatflowId format - must be a valid 15-character GUID')
+        throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Invalid chatflowId format - must be a valid 15-character GUID')
     }
     if (isPathTraversal(chatflowid) || (chatId && isPathTraversal(chatId))) {
-        throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Invalid path characters detected')
+        throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Invalid path characters detected')
     }
 
     // Require orgId upfront - no cross-org search
@@ -42,7 +42,7 @@ export const createFileAttachment = async (req: Request) => {
     const authReq = req as any
     const orgId: string | undefined = authReq.orgId
     if (!orgId) {
-        throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+        throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
     }
 
     // Get org-specific DataSource from pool for subsequent operations
@@ -54,7 +54,7 @@ export const createFileAttachment = async (req: Request) => {
     })
 
     if (!chatflow) {
-        throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowid} not found`)
+        throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowid} not found`)
     }
 
     // Parse chatbot configuration to get file upload settings
@@ -93,7 +93,7 @@ export const createFileAttachment = async (req: Request) => {
 
     // Check if file upload is enabled
     if (!fileUploadEnabled) {
-        throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'File upload is not enabled for this chatflow')
+        throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'File upload is not enabled for this chatflow')
     }
 
     // Find FileLoader node
@@ -113,7 +113,7 @@ export const createFileAttachment = async (req: Request) => {
         const isBase64 = req.body.base64
         for (const file of files) {
             if (!allowedFileTypes.length) {
-                throw new InternalAutonomousError(
+                throw new InternalKodivianError(
                     StatusCodes.BAD_REQUEST,
                     `File type '${file.mimetype}' is not allowed. Allowed types: ${allowedFileTypes.join(', ')}`
                 )
@@ -121,7 +121,7 @@ export const createFileAttachment = async (req: Request) => {
 
             // Validate file type against allowed types
             if (allowedFileTypes.length > 0 && !allowedFileTypes.includes(file.mimetype)) {
-                throw new InternalAutonomousError(
+                throw new InternalKodivianError(
                     StatusCodes.BAD_REQUEST,
                     `File type '${file.mimetype}' is not allowed. Allowed types: ${allowedFileTypes.join(', ')}`
                 )

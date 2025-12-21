@@ -27,20 +27,20 @@ const getCookie = (name) => {
     return null
 }
 
-const initializeFromAutonomousStore = () => {
+const initializeFromKodivianStore = () => {
     try {
-        const autonomousStoreStr = localStorage.getItem('autonomousStore')
+        const kodivianStoreStr = localStorage.getItem('kodivianStore')
 
-        if (!autonomousStoreStr) {
+        if (!kodivianStoreStr) {
             return false
         }
 
-        let encryptedString = autonomousStoreStr
+        let encryptedString = kodivianStoreStr
         try {
-            const parsed = JSON.parse(autonomousStoreStr)
-            encryptedString = typeof parsed === 'string' ? parsed : autonomousStoreStr
+            const parsed = JSON.parse(kodivianStoreStr)
+            encryptedString = typeof parsed === 'string' ? parsed : kodivianStoreStr
         } catch (parseError) {
-            encryptedString = autonomousStoreStr
+            encryptedString = kodivianStoreStr
         }
 
         const cryptoKey = process.env.REACT_APP_SIMPLE_CRYPTO_KEY || '$mrT@pP-6!dr'
@@ -51,7 +51,7 @@ const initializeFromAutonomousStore = () => {
 
         if (decryptedStore && decryptedStore.userId) {
             // Only store non-sensitive user info in localStorage
-            // orgId and userId are NOT stored here - they come from autonomousStore (encrypted)
+            // orgId and userId are NOT stored here - they come from kodivianStore (encrypted)
             const user = {
                 id: decryptedStore.userId,
                 email: decryptedStore.email || '',
@@ -68,17 +68,17 @@ const initializeFromAutonomousStore = () => {
             return true
         }
     } catch (error) {
-        console.error('Error initializing from autonomousStore:', error)
+        console.error('Error initializing from kodivianStore:', error)
     }
     return false
 }
 
 const checkAuthentication = () => {
-    initializeFromAutonomousStore()
+    initializeFromKodivianStore()
 
     const autoId = getCookie('AUTOID')
     const user = localStorage.getItem('user')
-    const autonomousStore = localStorage.getItem('autonomousStore')
+    const kodivianStore = localStorage.getItem('kodivianStore')
 
     const urlParams = new URLSearchParams(window.location.search)
     const params = urlParams.get('params')
@@ -89,7 +89,7 @@ const checkAuthentication = () => {
         return false
     }
 
-    if (!autoId && !user && !autonomousStore) {
+    if (!autoId && !user && !kodivianStore) {
         const currentPath = window.location.pathname
         if (!currentPath.includes('/unauthorized') && !currentPath.includes('/license-expired')) {
             return true
@@ -107,17 +107,17 @@ if (container) {
     if (userStr) {
         try {
             const user = JSON.parse(userStr)
-            // Get orgId and userId from autonomousStore (encrypted), not from localStorage
-            const autonomousStoreStr = localStorage.getItem('autonomousStore')
+            // Get orgId and userId from kodivianStore (encrypted), not from localStorage
+            const kodivianStoreStr = localStorage.getItem('kodivianStore')
             let orgId, userId
-            if (autonomousStoreStr) {
+            if (kodivianStoreStr) {
                 try {
-                    let encryptedString = autonomousStoreStr
+                    let encryptedString = kodivianStoreStr
                     try {
-                        const parsed = JSON.parse(autonomousStoreStr)
-                        encryptedString = typeof parsed === 'string' ? parsed : autonomousStoreStr
+                        const parsed = JSON.parse(kodivianStoreStr)
+                        encryptedString = typeof parsed === 'string' ? parsed : kodivianStoreStr
                     } catch (parseError) {
-                        encryptedString = autonomousStoreStr
+                        encryptedString = kodivianStoreStr
                     }
                     const cryptoKey = process.env.REACT_APP_SIMPLE_CRYPTO_KEY || '$mrT@pP-6!dr'
                     const simpleCrypto = new SimpleCrypto(cryptoKey)
@@ -125,7 +125,7 @@ if (container) {
                     orgId = decryptedStore?.orgId
                     userId = decryptedStore?.userId
                 } catch (e) {
-                    console.error('Error decrypting autonomousStore:', e)
+                    console.error('Error decrypting kodivianStore:', e)
                 }
             }
 

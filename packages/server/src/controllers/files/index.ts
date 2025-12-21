@@ -2,7 +2,7 @@ import path from 'path'
 import { NextFunction, Request, Response } from 'express'
 import { getFilesListFromStorage, getStoragePath, removeSpecificFileFromStorage } from 'kodivian-components'
 import { updateStorageUsage } from '../../utils/quotaUsage'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { StatusCodes } from 'http-status-codes'
 import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
 
@@ -10,7 +10,7 @@ const getAllFiles = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const orgId = (req as any).orgId || req.user?.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.NOT_FOUND,
                 `Error: filesController.getAllFiles - organization ${orgId} not found!`
             )
@@ -31,7 +31,7 @@ const deleteFile = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const orgId = (req as any).orgId || req.user?.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Error: filesController.deleteFile - organization ${orgId} not found!`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Error: filesController.deleteFile - organization ${orgId} not found!`)
         }
         const filePath = req.query.path as string
         const paths = filePath.split(path.sep).filter((path) => path !== '')

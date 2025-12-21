@@ -26,11 +26,11 @@ export const maxScroll = 100000
 export const baseURL = import.meta.env.VITE_API_BASE_URL || (window.location.origin + (config.basename || ''))
 export const uiBaseURL = import.meta.env.VITE_UI_BASE_URL || window.location.origin
 
-export const getAutonomousDocsPath = () => {
+export const getKodivianDocsPath = () => {
     return `${baseURL}/docs`
 }
-export const AUTONOMOUS_CREDENTIAL_ID = 'AUTONOMOUS_CREDENTIAL_ID'
-export const REDACTED_CREDENTIAL_VALUE = '_AUTONOMOUS_BLANK_07167752-1a71-43b1-bf8f-4f32252165db'
+export const KODIVIAN_CREDENTIAL_ID = 'KODIVIAN_CREDENTIAL_ID'
+export const REDACTED_CREDENTIAL_VALUE = '_KODIVIAN_BLANK_07167752-1a71-43b1-bf8f-4f32252165db'
 export const ErrorMessage = {
     INVALID_MISSING_TOKEN: 'Invalid or Missing token',
     TOKEN_EXPIRED: 'Token Expired',

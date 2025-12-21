@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express'
 import * as fs from 'fs'
 import openaiAssistantsService from '../../services/openai-assistants'
 import contentDisposition from 'content-disposition'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { StatusCodes } from 'http-status-codes'
 import { streamStorageFile } from 'kodivian-components'
 import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
@@ -13,7 +13,7 @@ import { AuthenticatedRequest } from '../../middlewares/session-validation.middl
 const getAllOpenaiAssistants = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (typeof req.query === 'undefined' || !req.query.credential) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: openaiAssistantsController.getAllOpenaiAssistants - credential not provided!`
             )
@@ -21,7 +21,7 @@ const getAllOpenaiAssistants = async (req: Request, res: Response, next: NextFun
         const authReq = req as AuthenticatedRequest
         const orgId = authReq.orgId || (req as any).orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
         const apiResponse = await openaiAssistantsService.getAllOpenaiAssistants(req.query.credential as string, orgId)
         return res.json(apiResponse)
@@ -34,13 +34,13 @@ const getAllOpenaiAssistants = async (req: Request, res: Response, next: NextFun
 const getSingleOpenaiAssistant = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (typeof req.params === 'undefined' || !req.params.id) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: openaiAssistantsController.getSingleOpenaiAssistant - id not provided!`
             )
         }
         if (typeof req.query === 'undefined' || !req.query.credential) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: openaiAssistantsController.getSingleOpenaiAssistant - credential not provided!`
             )
@@ -48,7 +48,7 @@ const getSingleOpenaiAssistant = async (req: Request, res: Response, next: NextF
         const authReq = req as AuthenticatedRequest
         const orgId = authReq.orgId || (req as any).orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
         const apiResponse = await openaiAssistantsService.getSingleOpenaiAssistant(req.query.credential as string, req.params.id, orgId)
         return res.json(apiResponse)
@@ -71,7 +71,7 @@ const getFileFromAssistant = async (req: Request, res: Response, next: NextFunct
         // Require orgId upfront - no cross-org search
         let orgId: string | undefined = (req as any).orgId || (req as any).user?.orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
 
         const { getDataSource } = await import('../../DataSource')
@@ -81,13 +81,13 @@ const getFileFromAssistant = async (req: Request, res: Response, next: NextFunct
         })
 
         if (!chatflow) {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowId} not found`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowId} not found`)
         }
 
         res.setHeader('Content-Disposition', contentDisposition(fileName))
         const fileStream = await streamStorageFile(chatflowId, chatId, fileName, orgId || '')
 
-        if (!fileStream) throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: getFileFromAssistant`)
+        if (!fileStream) throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: getFileFromAssistant`)
 
         if (fileStream instanceof fs.ReadStream && fileStream?.pipe) {
             fileStream.pipe(res)
@@ -102,7 +102,7 @@ const getFileFromAssistant = async (req: Request, res: Response, next: NextFunct
 const uploadAssistantFiles = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (typeof req.query === 'undefined' || !req.query.credential) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 `Error: openaiAssistantsVectorStoreController.uploadFilesToAssistantVectorStore - credential not provided!`
             )
@@ -110,7 +110,7 @@ const uploadAssistantFiles = async (req: Request, res: Response, next: NextFunct
         const authReq = req as AuthenticatedRequest
         const orgId = authReq.orgId || (req as any).orgId
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
         const files = req.files ?? []
         const uploadFiles: { filePath: string; fileName: string }[] = []

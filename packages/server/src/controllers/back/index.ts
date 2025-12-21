@@ -5,10 +5,10 @@ const simpleCrypto = new SimpleCryptoConfig(process.env.SIMPLE_CRYPTO_KEY || '$m
 
 const previous = async (req: any, res: Response, next: NextFunction) => {
     const orgConfigService = req.orgConfigService
-    const autonomousSessionService = req.autonomousSessionService
+    const kodivianSessionService = req.kodivianSessionService
     const sessionService = req.sessionService
     
-    if (!orgConfigService || !autonomousSessionService || !sessionService) {
+    if (!orgConfigService || !kodivianSessionService || !sessionService) {
         return res.status(500).json({ error: 'Server configuration error' })
     }
 
@@ -22,14 +22,14 @@ const previous = async (req: any, res: Response, next: NextFunction) => {
         }
 
         // Validate the session
-        const existingSession = await autonomousSessionService.validateAutonomousSession(
+        const existingSession = await kodivianSessionService.validateKodivianSession(
             existingToken,
             orgId
         )
 
         if (existingSession) {
             // Extend session
-            await autonomousSessionService.extendAutonomousSessionWithData(existingToken, orgId, existingSession)
+            await kodivianSessionService.extendKodivianSessionWithData(existingToken, orgId, existingSession)
             
             // Parse session_id cookie (it might be a string or object)
             let sessionIdData: any = req.cookies?.session_id

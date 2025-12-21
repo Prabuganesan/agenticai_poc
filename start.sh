@@ -105,30 +105,32 @@ start_docker() {
     if [[ -f "docker-compose.yml" ]]; then
         print_status "Starting docker-compose..."
         docker-compose up -d
-        print_success "Docker containers started! Autonomous server will start automatically."
+        print_success "Docker containers started! Kodivian server will start automatically."
     elif [[ -f "docker/docker-compose.yml" ]]; then
         print_status "Starting docker-compose from docker directory..."
         cd docker
         docker-compose up -d
         cd ..
-        print_success "Docker containers started! Autonomous server will start automatically."
+        print_success "Docker containers started! Kodivian server will start automatically."
     else
-        print_error "docker-compose.yml not found in current directory or docker/ directory"
-        exit 1
+        print_error "Docker start failed."
     fi
 }
 
-# Backup .autonomous directory
-AUTONOMOUS_DIR="$EXECUTION_DIR/packages/server/.autonomous"
-BACKUP_DIR="$EXECUTION_DIR/packages/server/.backup"
+start_others() {
+    print_info "Starting Kodivian..."
+    
+    # Backup .kodivian directory
+    KODIVIAN_DIR="$EXECUTION_DIR/packages/server/.kodivian"
+    timestamp=$(date +"%Y-%m-%d_%H-%M-%S")
+    BACKUP_DIR="$EXECUTION_DIR/backups"
 
-if [[ -d "$AUTONOMOUS_DIR" ]]; then
-    mkdir -p "$BACKUP_DIR"
-    timestamp=$(date +"%Y%m%d-%H%M%S")
-    cp -r "$AUTONOMOUS_DIR" "$BACKUP_DIR/$timestamp.autonomous"
-    print_info "✓ Backed up .autonomous directory → $BACKUP_DIR/$timestamp.autonomous"
-else
-    print_warning "No .autonomous directory to back up"    
+    if [[ -d "$KODIVIAN_DIR" ]]; then
+        mkdir -p "$BACKUP_DIR"
+        cp -r "$KODIVIAN_DIR" "$BACKUP_DIR/$timestamp.kodivian"
+        print_info "✓ Backed up .kodivian directory → $BACKUP_DIR/$timestamp.kodivian"
+    else
+        print_warning "No .kodivian directory to back up"    
 fi
 
 # Function to show final status

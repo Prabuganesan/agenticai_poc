@@ -566,7 +566,7 @@ const _removeCredentialId = (obj) => {
 
     const newObj = {}
     for (const [key, value] of Object.entries(obj)) {
-        if (key === 'AUTONOMOUS_CREDENTIAL_ID') continue
+        if (key === 'KODIVIAN_CREDENTIAL_ID') continue
         newObj[key] = _removeCredentialId(value)
     }
     return newObj
@@ -941,8 +941,8 @@ export const getConfigExamplesForJS = (configData, bodyType, isMultiple, stopNod
             finalStr += !isMultiple
                 ? ``
                 : stopNodeId
-                ? `formData.append("stopNodeId", "${stopNodeId}")\n`
-                : `formData.append("question", "Hey, how are you?")\n`
+                    ? `formData.append("stopNodeId", "${stopNodeId}")\n`
+                    : `formData.append("question", "Hey, how are you?")\n`
     }
     return finalStr
 }
@@ -964,8 +964,8 @@ export const getConfigExamplesForPython = (configData, bodyType, isMultiple, sto
             finalStr += !isMultiple
                 ? `\n`
                 : stopNodeId
-                ? `\n    "stopNodeId": "${stopNodeId}"\n`
-                : `\n    "question": "Hey, how are you?"\n`
+                    ? `\n    "stopNodeId": "${stopNodeId}"\n`
+                    : `\n    "question": "Hey, how are you?"\n`
     }
     return finalStr
 }
@@ -989,10 +989,10 @@ export const getConfigExamplesForCurl = (configData, bodyType, isMultiple, stopN
                 bodyType === 'json'
                     ? ` }`
                     : !isMultiple
-                    ? ``
-                    : stopNodeId
-                    ? ` \\\n     -F "stopNodeId=${stopNodeId}"`
-                    : ` \\\n     -F "question=Hey, how are you?"`
+                        ? ``
+                        : stopNodeId
+                            ? ` \\\n     -F "stopNodeId=${stopNodeId}"`
+                            : ` \\\n     -F "question=Hey, how are you?"`
         else finalStr += bodyType === 'json' ? `, ` : ` \\`
     }
     return finalStr

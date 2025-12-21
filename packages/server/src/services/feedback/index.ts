@@ -3,7 +3,7 @@ import { utilGetChatMessageFeedback } from '../../utils/getChatMessageFeedback'
 import { utilAddChatMessageFeedback } from '../../utils/addChatMessageFeedback'
 import { utilUpdateChatMessageFeedback } from '../../utils/updateChatMessageFeedback'
 import { IChatMessageFeedback } from '../../Interface'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { getErrorMessage } from '../../errors/utils'
 
 // Get all chatmessage feedback from chatflowid
@@ -19,7 +19,7 @@ const getAllChatMessageFeedback = async (
         const dbResponse = await utilGetChatMessageFeedback(chatflowid, orgId, chatId, sortOrder, startDate, endDate)
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: feedbackService.getAllChatMessageFeedback - ${getErrorMessage(error)}`
         )
@@ -32,7 +32,7 @@ const createChatMessageFeedbackForChatflow = async (requestBody: Partial<IChatMe
         const dbResponse = await utilAddChatMessageFeedback(requestBody, orgId, userId)
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: feedbackService.createChatMessageFeedbackForChatflow - ${getErrorMessage(error)}`
         )
@@ -49,7 +49,7 @@ const updateChatMessageFeedbackForChatflow = async (
         const dbResponse = await utilUpdateChatMessageFeedback(feedbackId, orgId, requestBody)
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: feedbackService.updateChatMessageFeedbackForChatflow - ${getErrorMessage(error)}`
         )

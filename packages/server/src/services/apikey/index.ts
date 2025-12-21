@@ -1,7 +1,7 @@
 import { StatusCodes } from 'http-status-codes'
 import { generateAPIKey, generateSecretHash } from '../../utils/apiKey'
 import { addChatflowsCount } from '../../utils/addChatflowsCount'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { getErrorMessage } from '../../errors/utils'
 import { ApiKey } from '../../database/entities/ApiKey'
 import { getDataSource } from '../../DataSource'
@@ -78,7 +78,7 @@ const getAllApiKeys = async (
         }
         return keys
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: apikeyService.getAllApiKeys - ${getErrorMessage(error)}`
         )
@@ -96,7 +96,7 @@ const getApiKey = async (apiKey: string, orgId: string) => {
         }
         return currentKey
     } catch (error) {
-        throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: apikeyService.getApiKey - ${getErrorMessage(error)}`)
+        throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: apikeyService.getApiKey - ${getErrorMessage(error)}`)
     }
 }
 
@@ -116,7 +116,7 @@ const getApiKeyById = async (apiKeyId: string, orgId: string, userId?: number) =
         }
         return currentKey
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: apikeyService.getApiKeyById - ${getErrorMessage(error)}`
         )
@@ -135,7 +135,7 @@ const createApiKey = async (keyName: string, orgId: string, userId?: string) => 
         newKey.keyName = keyName
         const userIdNum = userId ? parseInt(userId) : undefined
         if (userIdNum === undefined) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'User ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'User ID is required')
         }
         newKey.created_by = userIdNum
         newKey.created_on = Date.now()
@@ -143,7 +143,7 @@ const createApiKey = async (keyName: string, orgId: string, userId?: string) => 
         await dataSource.getRepository(ApiKey).save(key)
         return await getAllApiKeysFromDB(orgId, userIdNum)
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: apikeyService.createApiKey - ${getErrorMessage(error)}`
         )
@@ -164,7 +164,7 @@ const updateApiKey = async (id: string, keyName: string, orgId: string, userId?:
         }
         const currentKey = await dataSource.getRepository(ApiKey).findOneBy(whereClause)
         if (!currentKey) {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `ApiKey ${id} not found`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `ApiKey ${id} not found`)
         }
         currentKey.keyName = keyName
         if (userIdNum !== undefined) {
@@ -174,7 +174,7 @@ const updateApiKey = async (id: string, keyName: string, orgId: string, userId?:
         await dataSource.getRepository(ApiKey).save(currentKey)
         return await getAllApiKeysFromDB(orgId, userIdNum)
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: apikeyService.updateApiKey - ${getErrorMessage(error)}`
         )
@@ -193,11 +193,11 @@ const deleteApiKey = async (id: string, orgId: string, userId?: number) => {
         }
         const dbResponse = await dataSource.getRepository(ApiKey).delete(whereClause)
         if (!dbResponse || dbResponse.affected === 0) {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `ApiKey ${id} not found`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `ApiKey ${id} not found`)
         }
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: apikeyService.deleteApiKey - ${getErrorMessage(error)}`
         )
@@ -208,11 +208,11 @@ const importKeys = async (body: any, orgId: string) => {
     try {
         const jsonFile = body.jsonFile
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
         const splitDataURI = jsonFile.split(',')
         if (splitDataURI[0] !== 'data:application/json;base64') {
-            throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Invalid dataURI`)
+            throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Invalid dataURI`)
         }
         const bf = Buffer.from(splitDataURI[1] || '', 'base64')
         const plain = bf.toString('utf8')
@@ -220,31 +220,31 @@ const importKeys = async (body: any, orgId: string) => {
 
         // Validate schema of imported keys
         if (!Array.isArray(keys)) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, `Invalid format: Expected an array of API keys`)
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, `Invalid format: Expected an array of API keys`)
         }
 
         const requiredFields = ['keyName', 'apiKey', 'apiSecret']
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i]
             if (typeof key !== 'object' || key === null) {
-                throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, `Invalid format: Key at index ${i} is not an object`)
+                throw new InternalKodivianError(StatusCodes.BAD_REQUEST, `Invalid format: Key at index ${i} is not an object`)
             }
 
             for (const field of requiredFields) {
                 if (!(field in key)) {
-                    throw new InternalAutonomousError(
+                    throw new InternalKodivianError(
                         StatusCodes.BAD_REQUEST,
                         `Invalid format: Key at index ${i} is missing required field '${field}'`
                     )
                 }
                 if (typeof key[field] !== 'string') {
-                    throw new InternalAutonomousError(
+                    throw new InternalKodivianError(
                         StatusCodes.BAD_REQUEST,
                         `Invalid format: Key at index ${i} field '${field}' must be a string`
                     )
                 }
                 if (key[field].trim() === '') {
-                    throw new InternalAutonomousError(
+                    throw new InternalKodivianError(
                         StatusCodes.BAD_REQUEST,
                         `Invalid format: Key at index ${i} field '${field}' cannot be empty`
                     )
@@ -255,7 +255,7 @@ const importKeys = async (body: any, orgId: string) => {
         const dataSource = getDataSource(parseInt(orgId))
         const userId = body.userId ? parseInt(body.userId) : undefined
         if (userId === undefined) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'User ID is required for import')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'User ID is required for import')
         }
 
         // User-based isolation: only fetch and manage the current user's API keys
@@ -275,7 +275,7 @@ const importKeys = async (body: any, orgId: string) => {
             for (const key of keys) {
                 const keyNameExists = allApiKeys.find((k) => k.keyName === key.keyName)
                 if (keyNameExists) {
-                    throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Key with name ${key.keyName} already exists`)
+                    throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Key with name ${key.keyName} already exists`)
                 }
             }
         }
@@ -335,7 +335,7 @@ const importKeys = async (body: any, orgId: string) => {
         const userIdNum = body.userId ? parseInt(body.userId) : undefined
         return await getAllApiKeysFromDB(orgId, userIdNum)
     } catch (error) {
-        throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: apikeyService.importKeys - ${getErrorMessage(error)}`)
+        throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, `Error: apikeyService.importKeys - ${getErrorMessage(error)}`)
     }
 }
 
@@ -344,7 +344,7 @@ const verifyApiKey = async (paramApiKey: string, orgId?: string): Promise<string
         // If orgId is provided, use specific org's database
         // Require orgId upfront - no cross-org search
         if (!orgId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
         }
 
         const dataSource = getDataSource(parseInt(orgId))
@@ -352,14 +352,14 @@ const verifyApiKey = async (paramApiKey: string, orgId?: string): Promise<string
             apiKey: paramApiKey
         })
         if (!apiKey) {
-            throw new InternalAutonomousError(StatusCodes.UNAUTHORIZED, `Unauthorized`)
+            throw new InternalKodivianError(StatusCodes.UNAUTHORIZED, `Unauthorized`)
         }
         return 'OK'
     } catch (error) {
-        if (error instanceof InternalAutonomousError && error.statusCode === StatusCodes.UNAUTHORIZED) {
+        if (error instanceof InternalKodivianError && error.statusCode === StatusCodes.UNAUTHORIZED) {
             throw error
         } else {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.INTERNAL_SERVER_ERROR,
                 `Error: apikeyService.verifyApiKey - ${getErrorMessage(error)}`
             )

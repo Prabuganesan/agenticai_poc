@@ -1,5 +1,5 @@
 import { StatusCodes } from 'http-status-codes'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { getErrorMessage } from '../../errors/utils'
 import {
     buildFlow,
@@ -20,14 +20,14 @@ import { v4 as uuidv4 } from 'uuid'
 import { Variable } from '../../database/entities/Variable'
 // Removed workspace-related imports - using orgId directly from chatflow
 
-const SOURCE_DOCUMENTS_PREFIX = '\n\n----AUTONOMOUS_SOURCE_DOCUMENTS----\n\n'
-const ARTIFACTS_PREFIX = '\n\n----AUTONOMOUS_ARTIFACTS----\n\n'
-const TOOL_ARGS_PREFIX = '\n\n----AUTONOMOUS_TOOL_ARGS----\n\n'
+const SOURCE_DOCUMENTS_PREFIX = '\n\n----KODIVIAN_SOURCE_DOCUMENTS----\n\n'
+const ARTIFACTS_PREFIX = '\n\n----KODIVIAN_ARTIFACTS----\n\n'
+const TOOL_ARGS_PREFIX = '\n\n----KODIVIAN_TOOL_ARGS----\n\n'
 
 const buildAndInitTool = async (chatflowid: string, orgId: string, _chatId?: string, _apiMessageId?: string) => {
     // Require orgId upfront - no cross-org search
     if (!orgId) {
-        throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
+        throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Organization ID is required')
     }
 
     const appServer = getRunningExpressApp()
@@ -40,7 +40,7 @@ const buildAndInitTool = async (chatflowid: string, orgId: string, _chatId?: str
     })
 
     if (!chatflow) {
-        throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowid} not found`)
+        throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowid} not found`)
     }
 
     const chatId = _chatId || uuidv4()
@@ -53,7 +53,7 @@ const buildAndInitTool = async (chatflowid: string, orgId: string, _chatId?: str
         (node: IReactFlowNode) => node.data.inputAnchors.find((acr) => acr.type === 'Tool') && node.data.category === 'Agents'
     )
     if (!toolAgentNode) {
-        throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Agent with tools not found in chatflow ${chatflowid}`)
+        throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Agent with tools not found in chatflow ${chatflowid}`)
     }
 
     const { graph, nodeDependencies } = constructGraphs(nodes, edges)
@@ -111,7 +111,7 @@ const buildAndInitTool = async (chatflowid: string, orgId: string, _chatId?: str
             : reactFlowNodes[reactFlowNodes.length - 1]
 
     if (!nodeToExecute) {
-        throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Node not found`)
+        throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Node not found`)
     }
 
     const flowDataObj: ICommonObject = { chatflowid, chatId }
@@ -150,7 +150,7 @@ const getAgentTools = async (chatflowid: string, orgId: string): Promise<any> =>
         const tools = agent.tools
         return tools.map(convertToOpenAIFunction)
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: openaiRealTimeService.getAgentTools - ${getErrorMessage(error)}`
         )
@@ -171,7 +171,7 @@ const executeAgentTool = async (
         const tool = tools.find((tool: any) => tool.name === toolName)
 
         if (!tool) {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, `Tool ${toolName} not found`)
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Tool ${toolName} not found`)
         }
 
         const inputArgsObj = typeof inputArgs === 'string' ? JSON.parse(inputArgs) : inputArgs
@@ -217,7 +217,7 @@ const executeAgentTool = async (
             artifacts
         }
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: openaiRealTimeService.executeAgentTool - ${getErrorMessage(error)}`
         )

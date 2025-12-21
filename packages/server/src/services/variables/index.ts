@@ -1,13 +1,13 @@
 import { StatusCodes } from 'http-status-codes'
 import { Variable } from '../../database/entities/Variable'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { getErrorMessage } from '../../errors/utils'
 import { QueryRunner } from 'typeorm'
 import { getDataSource } from '../../DataSource'
 import { generateGuid } from '../../utils/guidGenerator'
 
 const createVariable = async (newVariable: Variable, orgId: string, userId?: string | number) => {
-    // Runtime variables are allowed in autonomous server (no platform restrictions)
+    // Runtime variables are allowed in kodivian server (no platform restrictions)
     try {
         const dataSource = getDataSource(parseInt(orgId))
         // Generate GUID if not provided
@@ -17,7 +17,7 @@ const createVariable = async (newVariable: Variable, orgId: string, userId?: str
         // Set created_by and created_on
         const userIdNum = userId ? (typeof userId === 'number' ? userId : parseInt(userId)) : undefined
         if (userIdNum === undefined) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'User ID is required')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'User ID is required')
         }
         newVariable.created_by = userIdNum
         newVariable.created_on = Date.now()
@@ -26,7 +26,7 @@ const createVariable = async (newVariable: Variable, orgId: string, userId?: str
         // Telemetry removed
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: variablesServices.createVariable - ${getErrorMessage(error)}`
         )
@@ -46,7 +46,7 @@ const deleteVariable = async (variableId: string, orgId: string, userId?: number
         const dbResponse = await dataSource.getRepository(Variable).delete(whereClause)
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: variablesServices.deleteVariable - ${getErrorMessage(error)}`
         )
@@ -81,7 +81,7 @@ const getAllVariables = async (orgId: string, userId?: number, page: number = -1
             return dataWithCreatorFlag
         }
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: variablesServices.getAllVariables - ${getErrorMessage(error)}`
         )
@@ -108,7 +108,7 @@ const getVariableById = async (variableId: string, orgId: string, userId?: numbe
             creatorId: dbResponse.created_by
         }
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: variablesServices.getVariableById - ${getErrorMessage(error)}`
         )
@@ -116,7 +116,7 @@ const getVariableById = async (variableId: string, orgId: string, userId?: numbe
 }
 
 const updateVariable = async (variable: Variable, updatedVariable: Variable, orgId: string, userId?: string | number) => {
-    // Runtime variables are allowed in autonomous server (no platform restrictions)
+    // Runtime variables are allowed in kodivian server (no platform restrictions)
     try {
         const dataSource = getDataSource(parseInt(orgId))
         // Set last_modified_by and last_modified_on
@@ -129,7 +129,7 @@ const updateVariable = async (variable: Variable, updatedVariable: Variable, org
         const dbResponse = await dataSource.getRepository(Variable).save(tmpUpdatedVariable)
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: variablesServices.updateVariable - ${getErrorMessage(error)}`
         )
@@ -179,14 +179,14 @@ const importVariables = async (
             return newVariable
         })
 
-        // Runtime variables are allowed in autonomous server (no platform restrictions)
+        // Runtime variables are allowed in kodivian server (no platform restrictions)
 
         // step 4 - transactional insert array of entities
         const insertResponse = await repository.insert(prepVariables)
 
         return insertResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: variableService.importVariables - ${getErrorMessage(error)}`
         )

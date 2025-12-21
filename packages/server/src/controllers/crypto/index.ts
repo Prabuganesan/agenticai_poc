@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import { getPublicKey, isEncryptionEnabled, decryptSessionKey } from '../../utils/crypto'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { StatusCodes } from 'http-status-codes'
 import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
 
@@ -10,12 +10,12 @@ import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
 const getPublicKeyHandler = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (!isEncryptionEnabled()) {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, 'Encryption is not enabled')
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, 'Encryption is not enabled')
         }
 
         const publicKey = getPublicKey()
         if (!publicKey) {
-            throw new InternalAutonomousError(StatusCodes.INTERNAL_SERVER_ERROR, 'Public key not available')
+            throw new InternalKodivianError(StatusCodes.INTERNAL_SERVER_ERROR, 'Public key not available')
         }
 
         return res.json({ publicKey })
@@ -45,13 +45,13 @@ const getEncryptionStatus = async (req: Request, res: Response, next: NextFuncti
 const handshake = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (!isEncryptionEnabled()) {
-            throw new InternalAutonomousError(StatusCodes.NOT_FOUND, 'Encryption is not enabled')
+            throw new InternalKodivianError(StatusCodes.NOT_FOUND, 'Encryption is not enabled')
         }
 
         const { encryptedSessionKey, sessionId } = req.body
 
         if (!encryptedSessionKey || !sessionId) {
-            throw new InternalAutonomousError(StatusCodes.BAD_REQUEST, 'Missing encryptedSessionKey or sessionId')
+            throw new InternalKodivianError(StatusCodes.BAD_REQUEST, 'Missing encryptedSessionKey or sessionId')
         }
 
         // Decrypt session key

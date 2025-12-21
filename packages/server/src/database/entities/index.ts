@@ -13,7 +13,7 @@ import { ApiKey } from './ApiKey'
 import { CustomTemplate } from './CustomTemplate'
 import { Execution } from './Execution'
 import { LlmUsage } from './LlmUsage'
-// Enterprise entities removed for autonomous server
+// Enterprise entities removed for kodivian server
 
 export const entities = {
     ChatFlow,

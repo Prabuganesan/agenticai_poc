@@ -11,7 +11,7 @@ import { useTheme } from '@mui/material/styles'
 
 // Store
 import { HIDE_CANVAS_DIALOG, SHOW_CANVAS_DIALOG } from '@/store/actions'
-import { baseURL, AGENTFLOW_ICONS, getAutonomousDocsPath } from '@/store/constant'
+import { baseURL, AGENTFLOW_ICONS, getKodivianDocsPath } from '@/store/constant'
 
 // API
 import configApi from '@/api/config'
@@ -204,7 +204,7 @@ const NodeInfoDialog = ({ show, dialogProps, onCancel }) => {
                                 title='Open Documentation'
                                 onClick={() => {
                                     const docUrl = dialogProps.data.documentation
-                                        .replace('[AUTONOMOUS_DOCS]', getAutonomousDocsPath())
+                                        .replace('[KODIVIAN_DOCS]', getKodivianDocsPath())
                                     window.open(docUrl, '_blank', 'noopener,noreferrer')
                                 }}
                                 startIcon={<IconBook2 />}

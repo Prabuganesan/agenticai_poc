@@ -1,7 +1,7 @@
 import { Response, NextFunction } from 'express'
 import { AuthenticatedRequest } from '../../middlewares/session-validation.middleware'
 import chatSessionsService from '../../services/chat-sessions'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { StatusCodes } from 'http-status-codes'
 import { getPageAndLimitParams } from '../../utils/pagination'
 import { transformEntityForResponse, transformEntitiesForResponse } from '../../utils/responseTransform'
@@ -13,7 +13,7 @@ const createChatSession = async (req: AuthenticatedRequest, res: Response, next:
         const userId = req.userId!
 
         if (!orgId || !userId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.UNAUTHORIZED,
                 'Error: chatSessionsController.createChatSession - orgId or userId not found in request!'
             )
@@ -22,7 +22,7 @@ const createChatSession = async (req: AuthenticatedRequest, res: Response, next:
         const { chatflowId, title } = req.body || {}
 
         if (!chatflowId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 'Error: chatSessionsController.createChatSession - chatflowId not provided!'
             )
@@ -42,7 +42,7 @@ const getAllChatSessions = async (req: AuthenticatedRequest, res: Response, next
         const userId = req.userId!
 
         if (!orgId || !userId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.UNAUTHORIZED,
                 'Error: chatSessionsController.getAllChatSessions - orgId or userId not found in request!'
             )
@@ -51,7 +51,7 @@ const getAllChatSessions = async (req: AuthenticatedRequest, res: Response, next
         const { chatflowId } = req.body
 
         if (!chatflowId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 'Error: chatSessionsController.getAllChatSessions - chatflowId not provided!'
             )
@@ -82,7 +82,7 @@ const getChatSessionById = async (req: AuthenticatedRequest, res: Response, next
         const userId = req.userId!
 
         if (!orgId || !userId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.UNAUTHORIZED,
                 'Error: chatSessionsController.getChatSessionById - orgId or userId not found in request!'
             )
@@ -91,7 +91,7 @@ const getChatSessionById = async (req: AuthenticatedRequest, res: Response, next
         const { chatId } = req.body
 
         if (!chatId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 'Error: chatSessionsController.getChatSessionById - chatId not provided!'
             )
@@ -100,7 +100,7 @@ const getChatSessionById = async (req: AuthenticatedRequest, res: Response, next
         const session = await chatSessionsService.getChatSessionById(chatId, orgId, userId)
 
         if (!session) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.NOT_FOUND,
                 'Error: chatSessionsController.getChatSessionById - Chat session not found!'
             )
@@ -119,7 +119,7 @@ const updateChatSession = async (req: AuthenticatedRequest, res: Response, next:
         const userId = req.userId!
 
         if (!orgId || !userId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.UNAUTHORIZED,
                 'Error: chatSessionsController.updateChatSession - orgId or userId not found in request!'
             )
@@ -128,7 +128,7 @@ const updateChatSession = async (req: AuthenticatedRequest, res: Response, next:
         const { chatId, title, preview, messageCount } = req.body
 
         if (!chatId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 'Error: chatSessionsController.updateChatSession - chatId not provided!'
             )
@@ -153,7 +153,7 @@ const deleteChatSession = async (req: AuthenticatedRequest, res: Response, next:
         const userId = req.userId!
 
         if (!orgId || !userId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.UNAUTHORIZED,
                 'Error: chatSessionsController.deleteChatSession - orgId or userId not found in request!'
             )
@@ -162,7 +162,7 @@ const deleteChatSession = async (req: AuthenticatedRequest, res: Response, next:
         const { chatId } = req.body
 
         if (!chatId) {
-            throw new InternalAutonomousError(
+            throw new InternalKodivianError(
                 StatusCodes.PRECONDITION_FAILED,
                 'Error: chatSessionsController.deleteChatSession - chatId not provided!'
             )

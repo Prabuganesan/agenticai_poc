@@ -36,7 +36,7 @@ const settings = {
             url: '',
             icon: icons.IconMessage
         },
-        // Leads feature removed for autonomous server deployment
+        // Leads feature removed for kodivian server deployment
         // {
         //     id: 'viewLeads',
         //     title: 'View Leads',

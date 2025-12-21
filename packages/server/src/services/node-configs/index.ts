@@ -2,7 +2,7 @@ import { StatusCodes } from 'http-status-codes'
 import { findAvailableConfigs } from '../../utils'
 import { IReactFlowNode } from '../../Interface'
 import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { getErrorMessage } from '../../errors/utils'
 
 const getAllNodeConfigs = async (requestBody: any) => {
@@ -12,7 +12,7 @@ const getAllNodeConfigs = async (requestBody: any) => {
         const dbResponse = findAvailableConfigs(nodes, appServer.nodesPool.componentCredentials)
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: nodeConfigsService.getAllNodeConfigs - ${getErrorMessage(error)}`
         )

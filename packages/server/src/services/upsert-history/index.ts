@@ -1,7 +1,7 @@
 import { MoreThanOrEqual, LessThanOrEqual, Between, In } from 'typeorm'
 import { StatusCodes } from 'http-status-codes'
 import { UpsertHistory } from '../../database/entities/UpsertHistory'
-import { InternalAutonomousError } from '../../errors/internalAutonomousError'
+import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { getErrorMessage } from '../../errors/utils'
 import { getDataSource } from '../../DataSource'
 
@@ -44,7 +44,7 @@ const getAllUpsertHistory = async (
 
         return upsertHistory
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: upsertHistoryServices.getAllUpsertHistory - ${getErrorMessage(error)}`
         )
@@ -57,7 +57,7 @@ const patchDeleteUpsertHistory = async (ids: string[] = [], orgId: string): Prom
         const dbResponse = await dataSource.getRepository(UpsertHistory).delete({ guid: In(ids) })
         return dbResponse
     } catch (error) {
-        throw new InternalAutonomousError(
+        throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: upsertHistoryServices.patchDeleteUpsertHistory - ${getErrorMessage(error)}`
         )

@@ -1,5 +1,5 @@
 import express from 'express'
-// Permission checks removed for autonomous server - handled externally
+// Permission checks removed for kodivian server - handled externally
 import documentStoreController from '../../controllers/documentstore'
 import { getMulterStorage } from '../../utils'
 

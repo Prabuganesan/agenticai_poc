@@ -53,17 +53,7 @@ export class SessionHandlerController {
             }
 
             // Check existing KODIID cookie
-            const existingToken = req.cookies?.KODIID
-            if (existingToken) {
-                const existingSession = await this.autonomousSessionService.validateAutonomousSession(existingToken, orgId)
-                if (existingSession) {
-                    await this.autonomousSessionService.extendAutonomousSessionWithData(existingToken, orgId, existingSession)
-                    const proxyUrl = process.env.PROXY_URL || ''
-                    const contextPath = this.orgConfigService.getContextPath(parseInt(orgId)) || '/kodivian'
-                    const cleanContextPath = contextPath.startsWith('/') ? contextPath.substring(1) : contextPath
-                    return res.redirect(`${proxyUrl}/${cleanContextPath}`)
-                }
-            }
+
 
             // Get default user data (single-org mode)
             const userData = await this.sessionService.validateChainsysSession(orgId, SessionId)

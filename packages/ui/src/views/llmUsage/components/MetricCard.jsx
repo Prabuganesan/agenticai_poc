@@ -1,6 +1,10 @@
 import { Box, Card, CardContent, Typography } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 
 const MetricCard = ({ title, value, subtitle, icon, color = 'primary' }) => {
+    const theme = useTheme()
+    const isDarkMode = theme.palette.mode === 'dark'
+
     return (
         <Card
             sx={{
@@ -8,24 +12,54 @@ const MetricCard = ({ title, value, subtitle, icon, color = 'primary' }) => {
                 display: 'flex',
                 flexDirection: 'column',
                 position: 'relative',
-                overflow: 'hidden',
-                borderRadius: 4,
-                border: '1px solid',
-                borderColor: 'divider',
-                background: 'linear-gradient(145deg, #ffffff, #f0f0f0)',
-                boxShadow: '5px 5px 10px #d1d1d1, -5px -5px 10px #ffffff',
+                overflow: 'visible',
+                borderRadius: '24px',
+                border: 'none',
+                background: isDarkMode
+                    ? 'rgba(15, 23, 42, 0.6)'
+                    : theme.palette.background.paper,
+                backdropFilter: isDarkMode ? 'blur(20px)' : 'none',
                 transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: '8px 8px 16px #d1d1d1, -8px -8px 16px #ffffff',
+
+                // Gradient Border
+                '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    borderRadius: '24px',
+                    padding: '1.5px',
+                    background: isDarkMode
+                        ? 'linear-gradient(135deg, #06b6d4, #8b5cf6, #ec4899)'
+                        : 'linear-gradient(135deg, rgba(37, 99, 235, 0.3), rgba(124, 58, 237, 0.3))',
+                    WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                    WebkitMaskComposite: 'xor',
+                    maskComposite: 'exclude',
+                    pointerEvents: 'none'
                 },
-                // Dark mode support (if applicable in the theme, this is a safe fallback)
-                '.MuiPalette-mode-dark &': {
-                    background: 'linear-gradient(145deg, #1e1e1e, #252525)',
-                    boxShadow: '5px 5px 10px #0b0b0b, -5px -5px 10px #393939',
-                    '&:hover': {
-                        boxShadow: '8px 8px 16px #0b0b0b, -8px -8px 16px #393939',
+
+                // Neon Glow Shadow
+                boxShadow: isDarkMode
+                    ? '0 0 0 1px rgba(255, 255, 255, 0.05), 0 10px 30px -10px rgba(6, 182, 212, 0.15)'
+                    : '0 4px 20px rgba(0, 0, 0, 0.05)',
+
+                '&:hover': {
+                    transform: 'translateY(-6px)',
+                    boxShadow: isDarkMode
+                        ? '0 0 0 1px rgba(255, 255, 255, 0.1), 0 20px 40px -10px rgba(139, 92, 246, 0.3), 0 0 20px rgba(6, 182, 212, 0.2)'
+                        : '0 12px 30px rgba(0, 0, 0, 0.1)',
+                    '&::before': {
+                        background: isDarkMode
+                            ? 'linear-gradient(135deg, #22d3ee, #a78bfa, #f472b6)'
+                            : 'linear-gradient(135deg, #2563eb, #7c3aed)'
                     }
+                },
+
+                // Original Dark mode support (fallback override)
+                '.MuiPalette-mode-dark &': {
+                    background: 'rgba(15, 23, 42, 0.6)',
                 }
             }}
         >

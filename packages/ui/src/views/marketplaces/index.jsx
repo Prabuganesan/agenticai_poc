@@ -243,9 +243,8 @@ const Marketplace = () => {
                 }
             } catch (error) {
                 enqueueSnackbar({
-                    message: `Failed to delete custom template: ${
-                        typeof error.response.data === 'object' ? error.response.data.message : error.response.data
-                    }`,
+                    message: `Failed to delete custom template: ${typeof error.response.data === 'object' ? error.response.data.message : error.response.data
+                        }`,
                     options: {
                         key: new Date().getTime() + Math.random(),
                         variant: 'error',
@@ -736,15 +735,16 @@ const Marketplace = () => {
                                                                     {(data.type === 'Chatflow' ||
                                                                         data.type === 'Agentflow' ||
                                                                         data.type === 'AgentflowV2') && (
-                                                                        <ItemCard
-                                                                            onClick={() => goToCanvas(data)}
-                                                                            data={data}
-                                                                            images={images[data.id]}
-                                                                            icons={icons[data.id]}
-                                                                        />
-                                                                    )}
+                                                                            <ItemCard
+                                                                                onClick={() => goToCanvas(data)}
+                                                                                data={data}
+                                                                                images={images[data.id]}
+                                                                                icons={icons[data.id]}
+                                                                                hideStats={true}
+                                                                            />
+                                                                        )}
                                                                     {data.type === 'Tool' && (
-                                                                        <ItemCard data={data} onClick={() => goToTool(data)} />
+                                                                        <ItemCard data={data} onClick={() => goToTool(data)} hideStats={true} />
                                                                     )}
                                                                 </Badge>
                                                             )}
@@ -757,10 +757,11 @@ const Marketplace = () => {
                                                                         data={data}
                                                                         images={images[data.id]}
                                                                         icons={icons[data.id]}
+                                                                        hideStats={true}
                                                                     />
                                                                 )}
                                                             {!data.badge && data.type === 'Tool' && (
-                                                                <ItemCard data={data} onClick={() => goToTool(data)} />
+                                                                <ItemCard data={data} onClick={() => goToTool(data)} hideStats={true} />
                                                             )}
                                                         </Box>
                                                     ))}
@@ -869,15 +870,16 @@ const Marketplace = () => {
                                                                     {(data.type === 'Chatflow' ||
                                                                         data.type === 'Agentflow' ||
                                                                         data.type === 'AgentflowV2') && (
-                                                                        <ItemCard
-                                                                            onClick={() => goToCanvas(data)}
-                                                                            data={data}
-                                                                            images={templateImages[data.id]}
-                                                                            icons={templateIcons[data.id]}
-                                                                        />
-                                                                    )}
+                                                                            <ItemCard
+                                                                                onClick={() => goToCanvas(data)}
+                                                                                data={data}
+                                                                                images={templateImages[data.id]}
+                                                                                icons={templateIcons[data.id]}
+                                                                                hideStats={true}
+                                                                            />
+                                                                        )}
                                                                     {data.type === 'Tool' && (
-                                                                        <ItemCard data={data} onClick={() => goToTool(data)} />
+                                                                        <ItemCard data={data} onClick={() => goToTool(data)} hideStats={true} />
                                                                     )}
                                                                 </Badge>
                                                             )}
@@ -890,10 +892,11 @@ const Marketplace = () => {
                                                                         data={data}
                                                                         images={templateImages[data.id]}
                                                                         icons={templateIcons[data.id]}
+                                                                        hideStats={true}
                                                                     />
                                                                 )}
                                                             {!data.badge && data.type === 'Tool' && (
-                                                                <ItemCard data={data} onClick={() => goToTool(data)} />
+                                                                <ItemCard data={data} onClick={() => goToTool(data)} hideStats={true} />
                                                             )}
                                                         </Box>
                                                     ))}

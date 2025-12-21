@@ -241,7 +241,7 @@ const Tools = () => {
                                 {!view || view === 'card' ? (
                                     <Box display='grid' gridTemplateColumns='repeat(3, 1fr)' gap={gridSpacing}>
                                         {getAllToolsApi.data?.data?.filter(filterTools).map((data, index) => (
-                                            <ItemCard data={data} key={index} onClick={() => edit(data)} />
+                                            <ItemCard data={data} key={index} onClick={() => edit(data)} hideStats={true} />
                                         ))}
                                     </Box>
                                 ) : (

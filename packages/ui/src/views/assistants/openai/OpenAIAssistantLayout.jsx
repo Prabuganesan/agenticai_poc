@@ -9,6 +9,7 @@ import { useTheme } from '@mui/material/styles'
 // project imports
 import MainCard from '@/ui-component/cards/MainCard'
 import ItemCard from '@/ui-component/cards/ItemCard'
+
 import AssistantDialog from './AssistantDialog'
 import LoadAssistantDialog from './LoadAssistantDialog'
 import ViewHeader from '@/layout/MainLayout/ViewHeader'
@@ -151,10 +152,10 @@ const OpenAIAssistantLayout = () => {
                 }
             }}
         >
-            <IconButton 
-                size="small" 
-                sx={{ 
-                    mr: 1.5, 
+            <IconButton
+                size="small"
+                sx={{
+                    mr: 1.5,
                     p: 0.5,
                     color: theme.palette.text.secondary,
                     '&:hover': {
@@ -164,10 +165,10 @@ const OpenAIAssistantLayout = () => {
             >
                 {isOpen ? <IconChevronDown size={18} /> : <IconChevronRight size={18} />}
             </IconButton>
-            <Typography 
-                variant="h5" 
-                sx={{ 
-                    fontWeight: 600, 
+            <Typography
+                variant="h5"
+                sx={{
+                    fontWeight: 600,
                     flex: 1,
                     color: theme.palette.text.primary
                 }}
@@ -252,24 +253,24 @@ const OpenAIAssistantLayout = () => {
                                         />
                                         <Collapse in={myAssistantsOpen}>
                                             {myAssistants.length > 0 ? (
-                            <Box display='grid' gridTemplateColumns='repeat(3, 1fr)' gap={gridSpacing}>
+                                                <Box display='grid' gridTemplateColumns='repeat(3, 1fr)' gap={gridSpacing}>
                                                     {myAssistants.map((data, index) => (
-                                        <ItemCard
+                                                        <ItemCard
                                                             key={data.id || index}
-                                            data={{
-                                                name: JSON.parse(data.details)?.name,
-                                                description: JSON.parse(data.details)?.instructions,
-                                                iconSrc: data.iconSrc
-                                            }}
-                                            onClick={() => edit(data)}
-                                        />
-                                    ))}
-                            </Box>
+                                                            data={{
+                                                                name: JSON.parse(data.details)?.name,
+                                                                description: JSON.parse(data.details)?.instructions,
+                                                                iconSrc: data.iconSrc
+                                                            }}
+                                                            onClick={() => edit(data)}
+                                                        />
+                                                    ))}
+                                                </Box>
                                             ) : (
-                                                <Typography 
-                                                    sx={{ 
-                                                        color: theme.palette.text.secondary, 
-                                                        pl: 2, 
+                                                <Typography
+                                                    sx={{
+                                                        color: theme.palette.text.secondary,
+                                                        pl: 2,
                                                         pb: 2,
                                                         fontStyle: 'italic'
                                                     }}
@@ -306,10 +307,10 @@ const OpenAIAssistantLayout = () => {
                                                     ))}
                                                 </Box>
                                             ) : (
-                                                <Typography 
-                                                    sx={{ 
-                                                        color: theme.palette.text.secondary, 
-                                                        pl: 2, 
+                                                <Typography
+                                                    sx={{
+                                                        color: theme.palette.text.secondary,
+                                                        pl: 2,
                                                         pb: 2,
                                                         fontStyle: 'italic'
                                                     }}

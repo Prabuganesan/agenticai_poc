@@ -23,7 +23,7 @@ const DistributionChart = ({ title, data, type = 'bar', valueKey = 'value', labe
 
     const chartData = useMemo(() => {
         if (!data || typeof data !== 'object') return []
-        
+
         return Object.entries(data)
             .map(([key, value]) => {
                 let extractedValue = 0
@@ -39,7 +39,7 @@ const DistributionChart = ({ title, data, type = 'bar', valueKey = 'value', labe
                 } else {
                     extractedValue = typeof value === 'number' ? value : (parseFloat(value) || 0)
                 }
-                
+
                 return {
                     [labelKey]: key,
                     [valueKey]: extractedValue
@@ -58,7 +58,7 @@ const DistributionChart = ({ title, data, type = 'bar', valueKey = 'value', labe
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        label={({ [labelKey]: name, [valueKey]: value, percent }) => 
+                        label={({ [labelKey]: name, [valueKey]: value, percent }) =>
                             `${name}: ${formatValue(value)} (${(percent * 100).toFixed(0)}%)`
                         }
                         outerRadius={80}
@@ -86,13 +86,13 @@ const DistributionChart = ({ title, data, type = 'bar', valueKey = 'value', labe
         return (
             <BarChart data={chartData} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#424242' : '#e0e0e0'} />
-                <XAxis 
+                <XAxis
                     type="number"
                     stroke={isDarkMode ? '#bdbdbd' : '#757575'}
                     style={{ fontSize: '0.75rem' }}
                     tickFormatter={(value) => formatValue(value)}
                 />
-                <YAxis 
+                <YAxis
                     type="category"
                     dataKey={labelKey}
                     stroke={isDarkMode ? '#bdbdbd' : '#757575'}
@@ -107,9 +107,9 @@ const DistributionChart = ({ title, data, type = 'bar', valueKey = 'value', labe
                     }}
                     formatter={(value) => formatValue(value)}
                 />
-                <Bar 
-                    dataKey={valueKey} 
-                    fill={theme.palette.primary.main} 
+                <Bar
+                    dataKey={valueKey}
+                    fill={theme.palette.primary.main}
                     radius={[0, 8, 8, 0]}
                 />
             </BarChart>
@@ -121,12 +121,53 @@ const DistributionChart = ({ title, data, type = 'bar', valueKey = 'value', labe
             <Card
                 sx={{
                     height: '100%',
-                    borderRadius: 3,
-                    border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
-                    background: isDarkMode 
-                        ? 'linear-gradient(145deg, #1e1e1e, #252525)' 
-                        : 'linear-gradient(145deg, #ffffff, #f8f9fa)',
                     display: 'flex',
+                    flexDirection: 'column',
+                    position: 'relative',
+                    overflow: 'visible',
+                    borderRadius: '24px',
+                    border: 'none',
+                    background: isDarkMode
+                        ? 'rgba(15, 23, 42, 0.6)'
+                        : theme.palette.background.paper,
+                    backdropFilter: isDarkMode ? 'blur(20px)' : 'none',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+
+                    // Gradient Border
+                    '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        borderRadius: '24px',
+                        padding: '1.5px',
+                        background: isDarkMode
+                            ? 'linear-gradient(135deg, #06b6d4, #8b5cf6, #ec4899)'
+                            : 'linear-gradient(135deg, rgba(37, 99, 235, 0.3), rgba(124, 58, 237, 0.3))',
+                        WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                        WebkitMaskComposite: 'xor',
+                        maskComposite: 'exclude',
+                        pointerEvents: 'none'
+                    },
+
+                    // Neon Glow Shadow
+                    boxShadow: isDarkMode
+                        ? '0 0 0 1px rgba(255, 255, 255, 0.05), 0 10px 30px -10px rgba(6, 182, 212, 0.15)'
+                        : '0 4px 20px rgba(0, 0, 0, 0.05)',
+
+                    '&:hover': {
+                        transform: 'translateY(-6px)',
+                        boxShadow: isDarkMode
+                            ? '0 0 0 1px rgba(255, 255, 255, 0.1), 0 20px 40px -10px rgba(139, 92, 246, 0.3), 0 0 20px rgba(6, 182, 212, 0.2)'
+                            : '0 12px 30px rgba(0, 0, 0, 0.1)',
+                        '&::before': {
+                            background: isDarkMode
+                                ? 'linear-gradient(135deg, #22d3ee, #a78bfa, #f472b6)'
+                                : 'linear-gradient(135deg, #2563eb, #7c3aed)'
+                        }
+                    },
                     alignItems: 'center',
                     justifyContent: 'center',
                     minHeight: height
@@ -148,20 +189,52 @@ const DistributionChart = ({ title, data, type = 'bar', valueKey = 'value', labe
         <Card
             sx={{
                 height: '100%',
-                borderRadius: 3,
-                border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
-                background: isDarkMode 
-                    ? 'linear-gradient(145deg, #1e1e1e, #252525)' 
-                    : 'linear-gradient(145deg, #ffffff, #f8f9fa)',
+                display: 'flex',
+                flexDirection: 'column',
+                position: 'relative',
+                overflow: 'visible',
+                borderRadius: '24px',
+                border: 'none',
+                background: isDarkMode
+                    ? 'rgba(15, 23, 42, 0.6)'
+                    : theme.palette.background.paper,
+                backdropFilter: isDarkMode ? 'blur(20px)' : 'none',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+
+                // Gradient Border
+                '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    borderRadius: '24px',
+                    padding: '1.5px',
+                    background: isDarkMode
+                        ? 'linear-gradient(135deg, #06b6d4, #8b5cf6, #ec4899)'
+                        : 'linear-gradient(135deg, rgba(37, 99, 235, 0.3), rgba(124, 58, 237, 0.3))',
+                    WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                    WebkitMaskComposite: 'xor',
+                    maskComposite: 'exclude',
+                    pointerEvents: 'none'
+                },
+
+                // Neon Glow Shadow
                 boxShadow: isDarkMode
-                    ? '0 4px 20px rgba(0, 0, 0, 0.3)'
-                    : '0 4px 20px rgba(0, 0, 0, 0.08)',
-                transition: 'all 0.3s ease',
+                    ? '0 0 0 1px rgba(255, 255, 255, 0.05), 0 10px 30px -10px rgba(6, 182, 212, 0.15)'
+                    : '0 4px 20px rgba(0, 0, 0, 0.05)',
+
                 '&:hover': {
-                    transform: 'translateY(-2px)',
+                    transform: 'translateY(-6px)',
                     boxShadow: isDarkMode
-                        ? '0 8px 30px rgba(0, 0, 0, 0.4)'
-                        : '0 8px 30px rgba(0, 0, 0, 0.12)'
+                        ? '0 0 0 1px rgba(255, 255, 255, 0.1), 0 20px 40px -10px rgba(139, 92, 246, 0.3), 0 0 20px rgba(6, 182, 212, 0.2)'
+                        : '0 12px 30px rgba(0, 0, 0, 0.1)',
+                    '&::before': {
+                        background: isDarkMode
+                            ? 'linear-gradient(135deg, #22d3ee, #a78bfa, #f472b6)'
+                            : 'linear-gradient(135deg, #2563eb, #7c3aed)'
+                    }
                 }
             }}
         >

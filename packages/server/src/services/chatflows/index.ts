@@ -210,11 +210,35 @@ const getAllChatflows = async (req: AuthenticatedRequest, type?: ChatflowType, p
         }
         const [data, total] = await queryBuilder.getManyAndCount()
 
-        // Add isCreator flag to each chatflow for frontend permission checks
+        // Fetch session counts for each chatflow
+        const sessionCounts = await dataSource
+            .getRepository('ChatSession')
+            .createQueryBuilder('session')
+            .select('session.chatflowId', 'chatflowId')
+            .addSelect('COUNT(session.id)', 'count')
+            .groupBy('session.chatflowId')
+            .getRawMany()
+
+        // Fetch message counts for each chatflow
+        const messageCounts = await dataSource
+            .getRepository('ChatMessage')
+            .createQueryBuilder('message')
+            .select('message.chatflowid', 'chatflowId')
+            .addSelect('COUNT(message.id)', 'count')
+            .groupBy('message.chatflowid')
+            .getRawMany()
+
+        // Create maps for quick lookup
+        const sessionCountMap = new Map(sessionCounts.map(item => [item.chatflowId, parseInt(item.count)]))
+        const messageCountMap = new Map(messageCounts.map(item => [item.chatflowId, parseInt(item.count)]))
+
+        // Add isCreator flag and stats to each chatflow
         const dataWithCreatorFlag = data.map((chatflow) => ({
             ...chatflow,
             isCreator: userId && chatflow.created_by === userId,
-            creatorId: chatflow.created_by
+            creatorId: chatflow.created_by,
+            sessions: sessionCountMap.get(chatflow.id.toString()) || sessionCountMap.get(chatflow.guid) || 0,
+            messages: messageCountMap.get(chatflow.id.toString()) || messageCountMap.get(chatflow.guid) || 0
         }))
 
         if (page > 0 && limit > 0) {

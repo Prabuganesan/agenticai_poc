@@ -39,12 +39,12 @@ const UsageChart = ({ title, data, type = 'line', dataKey, xAxisKey = 'date', he
                 return (
                     <AreaChart data={chartData}>
                         <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#424242' : '#e0e0e0'} />
-                        <XAxis 
-                            dataKey={xAxisKey} 
+                        <XAxis
+                            dataKey={xAxisKey}
                             stroke={isDarkMode ? '#bdbdbd' : '#757575'}
                             style={{ fontSize: '0.75rem' }}
                         />
-                        <YAxis 
+                        <YAxis
                             stroke={isDarkMode ? '#bdbdbd' : '#757575'}
                             style={{ fontSize: '0.75rem' }}
                             tickFormatter={(value) => formatValue ? formatValue(value) : formatNumber(value)}
@@ -71,12 +71,12 @@ const UsageChart = ({ title, data, type = 'line', dataKey, xAxisKey = 'date', he
                 return (
                     <BarChart data={chartData}>
                         <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#424242' : '#e0e0e0'} />
-                        <XAxis 
-                            dataKey={xAxisKey} 
+                        <XAxis
+                            dataKey={xAxisKey}
                             stroke={isDarkMode ? '#bdbdbd' : '#757575'}
                             style={{ fontSize: '0.75rem' }}
                         />
-                        <YAxis 
+                        <YAxis
                             stroke={isDarkMode ? '#bdbdbd' : '#757575'}
                             style={{ fontSize: '0.75rem' }}
                             tickFormatter={(value) => formatValue ? formatValue(value) : formatNumber(value)}
@@ -124,12 +124,12 @@ const UsageChart = ({ title, data, type = 'line', dataKey, xAxisKey = 'date', he
                 return (
                     <LineChart data={chartData}>
                         <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#424242' : '#e0e0e0'} />
-                        <XAxis 
-                            dataKey={xAxisKey} 
+                        <XAxis
+                            dataKey={xAxisKey}
                             stroke={isDarkMode ? '#bdbdbd' : '#757575'}
                             style={{ fontSize: '0.75rem' }}
                         />
-                        <YAxis 
+                        <YAxis
                             stroke={isDarkMode ? '#bdbdbd' : '#757575'}
                             style={{ fontSize: '0.75rem' }}
                             tickFormatter={(value) => formatValue ? formatValue(value) : formatNumber(value)}
@@ -160,20 +160,52 @@ const UsageChart = ({ title, data, type = 'line', dataKey, xAxisKey = 'date', he
         <Card
             sx={{
                 height: '100%',
-                borderRadius: 3,
-                border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
-                background: isDarkMode 
-                    ? 'linear-gradient(145deg, #1e1e1e, #252525)' 
-                    : 'linear-gradient(145deg, #ffffff, #f8f9fa)',
+                display: 'flex',
+                flexDirection: 'column',
+                position: 'relative',
+                overflow: 'visible',
+                borderRadius: '24px',
+                border: 'none',
+                background: isDarkMode
+                    ? 'rgba(15, 23, 42, 0.6)'
+                    : theme.palette.background.paper,
+                backdropFilter: isDarkMode ? 'blur(20px)' : 'none',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+
+                // Gradient Border
+                '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    borderRadius: '24px',
+                    padding: '1.5px',
+                    background: isDarkMode
+                        ? 'linear-gradient(135deg, #06b6d4, #8b5cf6, #ec4899)'
+                        : 'linear-gradient(135deg, rgba(37, 99, 235, 0.3), rgba(124, 58, 237, 0.3))',
+                    WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                    WebkitMaskComposite: 'xor',
+                    maskComposite: 'exclude',
+                    pointerEvents: 'none'
+                },
+
+                // Neon Glow Shadow
                 boxShadow: isDarkMode
-                    ? '0 4px 20px rgba(0, 0, 0, 0.3)'
-                    : '0 4px 20px rgba(0, 0, 0, 0.08)',
-                transition: 'all 0.3s ease',
+                    ? '0 0 0 1px rgba(255, 255, 255, 0.05), 0 10px 30px -10px rgba(6, 182, 212, 0.15)'
+                    : '0 4px 20px rgba(0, 0, 0, 0.05)',
+
                 '&:hover': {
-                    transform: 'translateY(-2px)',
+                    transform: 'translateY(-6px)',
                     boxShadow: isDarkMode
-                        ? '0 8px 30px rgba(0, 0, 0, 0.4)'
-                        : '0 8px 30px rgba(0, 0, 0, 0.12)'
+                        ? '0 0 0 1px rgba(255, 255, 255, 0.1), 0 20px 40px -10px rgba(139, 92, 246, 0.3), 0 0 20px rgba(6, 182, 212, 0.2)'
+                        : '0 12px 30px rgba(0, 0, 0, 0.1)',
+                    '&::before': {
+                        background: isDarkMode
+                            ? 'linear-gradient(135deg, #22d3ee, #a78bfa, #f472b6)'
+                            : 'linear-gradient(135deg, #2563eb, #7c3aed)'
+                    }
                 }
             }}
         >

@@ -76,18 +76,27 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
                     sx={{
                         '& .MuiDrawer-paper': {
                             width: drawerWidth,
-                            background: theme.palette.background.default,
+                            background: theme.palette.mode === 'dark'
+                                ? 'rgba(15, 23, 42, 0.85)'
+                                : theme.palette.background.default,
+                            backdropFilter: theme.palette.mode === 'dark' ? 'blur(20px)' : 'none',
                             color: theme.palette.text.primary,
                             [theme.breakpoints.up('md')]: {
                                 top: `${headerHeight}px`
                             },
-                            borderRight: drawerOpen ? '1px solid' : 'none',
+                            // Gradient border on the right side
+                            borderRight: theme.palette.mode === 'dark'
+                                ? '1px solid transparent'
+                                : '1px solid',
+                            borderImage: theme.palette.mode === 'dark'
+                                ? 'linear-gradient(180deg, rgba(6, 182, 212, 0.6), rgba(168, 85, 247, 0.4), rgba(236, 72, 153, 0.3)) 1'
+                                : 'none',
                             borderColor: theme.palette.mode === 'dark'
-                                ? 'rgba(255, 255, 255, 0.08)'
+                                ? 'transparent'
                                 : theme.palette.grey[200],
                             boxShadow: drawerOpen
                                 ? theme.palette.mode === 'dark'
-                                    ? '4px 0 24px rgba(0, 0, 0, 0.4)'
+                                    ? '4px 0 40px rgba(6, 182, 212, 0.15), 4px 0 80px rgba(168, 85, 247, 0.1)'
                                     : '4px 0 24px rgba(0, 0, 0, 0.08)'
                                 : 'none',
                             transition: theme.transitions.create(['box-shadow', 'border-color'], {

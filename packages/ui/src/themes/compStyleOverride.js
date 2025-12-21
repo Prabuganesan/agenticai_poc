@@ -49,8 +49,17 @@ export default function componentStyleOverrides(theme) {
                     }
                 },
                 containedPrimary: {
+                    // Gradient button in dark mode
+                    background: theme?.customization?.isDarkMode
+                        ? 'linear-gradient(135deg, #06b6d4, #8b5cf6, #ec4899)'
+                        : theme.colors?.primaryMain,
                     '&:hover': {
-                        boxShadow: `0 4px 12px ${theme.colors?.primaryMain}40`
+                        background: theme?.customization?.isDarkMode
+                            ? 'linear-gradient(135deg, #22d3ee, #a78bfa, #f472b6)'
+                            : theme.colors?.primaryDark,
+                        boxShadow: theme?.customization?.isDarkMode
+                            ? '0 4px 20px rgba(6, 182, 212, 0.4), 0 0 30px rgba(139, 92, 246, 0.3)'
+                            : `0 4px 12px ${theme.colors?.primaryMain}40`
                     }
                 },
                 containedSecondary: {

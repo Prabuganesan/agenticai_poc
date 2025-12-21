@@ -31,6 +31,7 @@ const MaterialUISwitch = styled(Switch)(({ theme }) => ({
         margin: 1,
         padding: 0,
         transform: 'translateX(6px)',
+        transition: 'transform 0.3s ease-in-out',
         '&.Mui-checked': {
             color: '#fff',
             transform: 'translateX(22px)',
@@ -41,14 +42,15 @@ const MaterialUISwitch = styled(Switch)(({ theme }) => ({
             },
             '& + .MuiSwitch-track': {
                 opacity: 1,
-                backgroundColor: theme.palette.mode === 'dark' ? '#8796A5' : '#aab4be'
+                backgroundColor: theme.palette.primary.main
             }
         }
     },
     '& .MuiSwitch-thumb': {
-        backgroundColor: theme.palette.mode === 'dark' ? '#003892' : '#001e3c',
+        backgroundColor: theme.palette.mode === 'dark' ? theme.palette.primary.main : theme.palette.secondary.main,
         width: 32,
         height: 32,
+        transition: 'background-color 0.3s ease-in-out',
         '&:before': {
             content: "''",
             position: 'absolute',
@@ -65,8 +67,9 @@ const MaterialUISwitch = styled(Switch)(({ theme }) => ({
     },
     '& .MuiSwitch-track': {
         opacity: 1,
-        backgroundColor: theme.palette.mode === 'dark' ? '#8796A5' : '#aab4be',
-        borderRadius: 20 / 2
+        backgroundColor: theme.palette.grey[400],
+        borderRadius: 20 / 2,
+        transition: 'background-color 0.3s ease-in-out'
     }
 }))
 
@@ -128,7 +131,7 @@ const Header = ({ handleLeftDrawerToggle }) => {
             <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center' }} />
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', flex: 1 }}>
                 <MaterialUISwitch sx={{ mr: 2 }} checked={isDark} onChange={changeDarkMode} />
-                 <ProfileSection />
+                <ProfileSection />
             </Box>
         </>
     )

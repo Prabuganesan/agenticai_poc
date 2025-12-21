@@ -4,6 +4,40 @@
 // third-party
 @import 'react-perfect-scrollbar/dist/css/styles.css';
 
+// ==============================|| CSS CUSTOM PROPERTIES (GRADIENTS & ACCENTS) ||============================== //
+
+:root {
+    // Primary gradients
+    --gradient-primary: linear-gradient(135deg, #{$primaryMain} 0%, #{$secondaryMain} 100%);
+    --gradient-primary-subtle: linear-gradient(135deg, #{$primaryLight} 0%, #{$secondaryLight} 100%);
+
+    // Accent gradients for cards and highlights
+    --gradient-accent: linear-gradient(135deg, #{$primaryMain} 0%, #{$tealMain} 100%);
+    --gradient-warm: linear-gradient(135deg, #{$orangeMain} 0%, #{$errorMain} 100%);
+    --gradient-success: linear-gradient(135deg, #{$tealMain} 0%, #{$successMain} 100%);
+
+    // Card & surface effects
+    --card-shadow-light: 0 4px 20px rgba(0, 0, 0, 0.08);
+    --card-shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.12);
+    --card-border-light: 1px solid #{$grey200};
+
+    // Glow effects for dark mode accents
+    --glow-primary: 0 0 20px rgba(37, 99, 235, 0.3);
+    --glow-secondary: 0 0 20px rgba(124, 58, 237, 0.3);
+    --glow-success: 0 0 20px rgba(16, 185, 129, 0.3);
+
+    // Transition timing
+    --transition-fast: 0.15s ease-in-out;
+    --transition-normal: 0.25s ease-in-out;
+    --transition-slow: 0.4s ease-in-out;
+
+    // Border radius tokens
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+}
+
 // ==============================|| LIGHT BOX ||============================== //
 .fullscreen .react-images__blanket {
     z-index: 1200;
@@ -13,13 +47,15 @@
 
 .scrollbar-container {
     .ps__rail-y {
-        &:hover > .ps__thumb-y,
-        &:focus > .ps__thumb-y,
+
+        &:hover>.ps__thumb-y,
+        &:focus>.ps__thumb-y,
         &.ps--clicking .ps__thumb-y {
             background-color: $grey500;
             width: 5px;
         }
     }
+
     .ps__thumb-y {
         background-color: $grey500;
         border-radius: 6px;
@@ -29,19 +65,21 @@
 }
 
 .scrollbar-container.ps,
-.scrollbar-container > .ps {
-    &.ps--active-y > .ps__rail-y {
+.scrollbar-container>.ps {
+    &.ps--active-y>.ps__rail-y {
         width: 5px;
         background-color: transparent !important;
         z-index: 999;
+
         &:hover,
         &.ps--clicking {
             width: 5px;
             background-color: transparent;
         }
     }
-    &.ps--scrolling-y > .ps__rail-y,
-    &.ps--scrolling-x > .ps__rail-x {
+
+    &.ps--scrolling-y>.ps__rail-y,
+    &.ps--scrolling-x>.ps__rail-x {
         opacity: 0.4;
         background-color: transparent;
     }
@@ -53,6 +91,7 @@
     50% {
         transform: translateY(-40px);
     }
+
     100% {
         transform: translateY(0px);
     }
@@ -62,12 +101,14 @@
     50% {
         opacity: 0;
     }
+
     100% {
         opacity: 1;
     }
 }
 
 @keyframes bounce {
+
     0%,
     20%,
     53%,
@@ -75,47 +116,57 @@
         animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
         transform: translateZ(0);
     }
+
     40%,
     43% {
         animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06);
         transform: translate3d(0, -5px, 0);
     }
+
     70% {
         animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06);
         transform: translate3d(0, -7px, 0);
     }
+
     80% {
         transition-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
         transform: translateZ(0);
     }
+
     90% {
         transform: translate3d(0, -2px, 0);
     }
 }
 
 @keyframes slideY {
+
     0%,
     50%,
     100% {
         transform: translateY(0px);
     }
+
     25% {
         transform: translateY(-10px);
     }
+
     75% {
         transform: translateY(10px);
     }
 }
 
 @keyframes slideX {
+
     0%,
     50%,
     100% {
         transform: translateX(0px);
     }
+
     25% {
         transform: translateX(-10px);
     }
+
     75% {
         transform: translateX(10px);
     }
@@ -128,6 +179,7 @@
         box-decoration-break: clone;
         color: #0d7115;
         padding: 0.1rem 0.3rem;
+
         &::after {
             content: '\200B';
         }
@@ -156,27 +208,32 @@
 
         .hljs-variable,
         .hljs-name {
-            color: var(--hljs-variable, #9cdcfe) !important; /* Light blue for variables */
+            color: var(--hljs-variable, #9cdcfe) !important;
+            /* Light blue for variables */
         }
 
         .hljs-number,
         .hljs-literal {
-            color: var(--hljs-number, #b5cea8) !important; /* Light green for numbers */
+            color: var(--hljs-number, #b5cea8) !important;
+            /* Light green for numbers */
         }
 
         .hljs-string {
-            color: var(--hljs-string, #ce9178) !important; /* Orange/peach for strings */
+            color: var(--hljs-string, #ce9178) !important;
+            /* Orange/peach for strings */
         }
 
         .hljs-title,
         .hljs-built_in,
         .hljs-builtin-name {
-            color: var(--hljs-title, #dcdcaa) !important; /* Yellow for function names */
+            color: var(--hljs-title, #dcdcaa) !important;
+            /* Yellow for function names */
         }
 
         .hljs-keyword,
         .hljs-selector-tag {
-            color: var(--hljs-keyword, #569cd6) !important; /* Blue for keywords */
+            color: var(--hljs-keyword, #569cd6) !important;
+            /* Blue for keywords */
         }
 
         /* Additional elements that should match the base text color */
@@ -195,7 +252,8 @@
         .hljs-symbol,
         .hljs-bullet,
         .hljs-section {
-            color: var(--code-color, #d4d4d4) !important; /* Default text color */
+            color: var(--code-color, #d4d4d4) !important;
+            /* Default text color */
         }
 
         .hljs-emphasis {
@@ -216,6 +274,7 @@
     from {
         transform: rotate(0deg);
     }
+
     to {
         transform: rotate(360deg);
     }

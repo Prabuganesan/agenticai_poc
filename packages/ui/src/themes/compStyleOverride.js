@@ -37,8 +37,26 @@ export default function componentStyleOverrides(theme) {
         MuiButton: {
             styleOverrides: {
                 root: {
-                    fontWeight: 500,
-                    borderRadius: '4px'
+                    fontWeight: 600,
+                    borderRadius: '8px',
+                    textTransform: 'none',
+                    transition: 'all 0.2s ease-in-out',
+                    '&:hover': {
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+                    },
+                    '&:active': {
+                        transform: 'scale(0.98)'
+                    }
+                },
+                containedPrimary: {
+                    '&:hover': {
+                        boxShadow: `0 4px 12px ${theme.colors?.primaryMain}40`
+                    }
+                },
+                containedSecondary: {
+                    '&:hover': {
+                        boxShadow: `0 4px 12px ${theme.colors?.secondaryMain}40`
+                    }
                 }
             }
         },
@@ -94,6 +112,9 @@ export default function componentStyleOverrides(theme) {
                     color: theme.darkTextPrimary,
                     paddingTop: '10px',
                     paddingBottom: '10px',
+                    borderRadius: '8px',
+                    marginBottom: '4px',
+                    transition: 'all 0.2s ease-in-out',
                     '&.Mui-selected': {
                         color: theme.menuSelected,
                         backgroundColor: theme.menuSelectedBack,
@@ -148,11 +169,22 @@ export default function componentStyleOverrides(theme) {
                 root: {
                     background: theme?.customization?.isDarkMode ? theme.colors?.darkPrimary800 : bgColor,
                     borderRadius: `${theme?.customization?.borderRadius}px`,
+                    transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
                     '& .MuiOutlinedInput-notchedOutline': {
-                        borderColor: theme.colors?.grey400
+                        borderColor: theme?.customization?.isDarkMode
+                            ? 'rgba(255, 255, 255, 0.1)'
+                            : theme.colors?.grey400,
+                        transition: 'border-color 0.2s ease'
                     },
-                    '&:hover $notchedOutline': {
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
                         borderColor: theme.colors?.primaryLight
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: theme.colors?.primaryMain,
+                        borderWidth: '2px'
+                    },
+                    '&.Mui-focused': {
+                        boxShadow: `0 0 0 3px ${theme.colors?.primaryMain}20`
                     },
                     '&.MuiInputBase-multiline': {
                         padding: 1
@@ -231,7 +263,57 @@ export default function componentStyleOverrides(theme) {
             styleOverrides: {
                 option: {
                     '&:hover': {
-                        background: theme?.customization?.isDarkMode ? '#233345 !important' : ''
+                        background: theme?.customization?.isDarkMode
+                            ? `${theme.colors?.darkPrimary800} !important`
+                            : `${theme.colors?.grey100} !important`
+                    }
+                }
+            }
+        },
+        MuiDialog: {
+            styleOverrides: {
+                paper: {
+                    borderRadius: '16px',
+                    boxShadow: theme?.customization?.isDarkMode
+                        ? '0 24px 48px rgba(0, 0, 0, 0.4)'
+                        : '0 24px 48px rgba(0, 0, 0, 0.12)',
+                    border: theme?.customization?.isDarkMode
+                        ? '1px solid rgba(255, 255, 255, 0.08)'
+                        : '1px solid rgba(0, 0, 0, 0.06)'
+                }
+            }
+        },
+        MuiDialogTitle: {
+            styleOverrides: {
+                root: {
+                    fontSize: '1.25rem',
+                    fontWeight: 600
+                }
+            }
+        },
+        MuiTabs: {
+            styleOverrides: {
+                root: {
+                    minHeight: '44px'
+                },
+                indicator: {
+                    backgroundColor: theme.colors?.primaryMain,
+                    height: '3px',
+                    borderRadius: '3px 3px 0 0'
+                }
+            }
+        },
+        MuiTab: {
+            styleOverrides: {
+                root: {
+                    minHeight: '44px',
+                    textTransform: 'none',
+                    fontWeight: 500,
+                    fontSize: '0.9375rem',
+                    transition: 'color 0.2s ease',
+                    '&.Mui-selected': {
+                        color: theme.colors?.primaryMain,
+                        fontWeight: 600
                     }
                 }
             }

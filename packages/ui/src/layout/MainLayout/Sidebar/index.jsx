@@ -31,7 +31,7 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
                     height: '80px'
                 }}
             >
-                
+
             </Box>
             <BrowserView>
                 <PerfectScrollbar
@@ -82,7 +82,17 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
                                 top: `${headerHeight}px`
                             },
                             borderRight: drawerOpen ? '1px solid' : 'none',
-                            borderColor: drawerOpen ? theme.palette.grey[900] + 25 : 'transparent'
+                            borderColor: theme.palette.mode === 'dark'
+                                ? 'rgba(255, 255, 255, 0.08)'
+                                : theme.palette.grey[200],
+                            boxShadow: drawerOpen
+                                ? theme.palette.mode === 'dark'
+                                    ? '4px 0 24px rgba(0, 0, 0, 0.4)'
+                                    : '4px 0 24px rgba(0, 0, 0, 0.08)'
+                                : 'none',
+                            transition: theme.transitions.create(['box-shadow', 'border-color'], {
+                                duration: theme.transitions.duration.standard
+                            })
                         }
                     }}
                     ModalProps={{ keepMounted: true }}

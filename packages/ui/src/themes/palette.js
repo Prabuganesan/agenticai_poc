@@ -83,9 +83,9 @@ export default function themePalette(theme) {
             border: theme.customization.isDarkMode ? theme.colors?.transparent : theme.colors?.grey400
         },
         card: {
-            main: theme.customization.isDarkMode ? theme.colors?.darkPrimaryMain : theme.colors?.paper,
+            main: theme.customization.isDarkMode ? theme.colors?.darkLevel2 : theme.colors?.paper,
             light: theme.customization.isDarkMode ? theme.colors?.darkPrimary200 : theme.colors?.paper,
-            hover: theme.customization.isDarkMode ? theme.colors?.darkPrimary800 : theme.colors?.paper
+            hover: theme.customization.isDarkMode ? theme.colors?.grey600 : theme.colors?.grey50
         },
         asyncSelect: {
             main: theme.customization.isDarkMode ? theme.colors?.darkPrimary800 : theme.colors?.grey50

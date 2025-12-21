@@ -13,7 +13,11 @@ import {
     IconFiles,
     IconListCheck,
     IconChartBar,
-    IconArrowBack
+    IconArrowBack,
+    IconStack2,
+    IconSettings,
+    IconActivity,
+    IconPackage
 } from '@tabler/icons-react'
 
 // constant
@@ -31,18 +35,21 @@ const icons = {
     IconFiles,
     IconListCheck,
     IconChartBar,
-    IconArrowBack
+    IconArrowBack,
+    IconStack2,
+    IconSettings,
+    IconActivity,
+    IconPackage
 }
 
-// ==============================|| DASHBOARD MENU ITEMS ||============================== //
-
-// Check if SKIP_DESIGNER_SERVICE is enabled (true or 'true')
+// ==============================|| DASHBOARD MENU ITEMS - GROUPED ||============================== //
 
 const dashboard = {
     id: 'dashboard',
     title: '',
     type: 'group',
     children: [
+        // Home - Always visible at top
         {
             id: 'primary',
             title: '',
@@ -55,7 +62,15 @@ const dashboard = {
                     url: '/home',
                     icon: icons.IconHome,
                     breadcrumbs: true
-                },
+                }
+            ]
+        },
+        // BUILD GROUP - Agent creation tools
+        {
+            id: 'build',
+            title: 'Build',
+            type: 'group',
+            children: [
                 {
                     id: 'chatflows',
                     title: 'Agent',
@@ -75,15 +90,6 @@ const dashboard = {
                     permission: 'agentflows:view'
                 },
                 {
-                    id: 'executions',
-                    title: 'Executions',
-                    type: 'item',
-                    url: '/executions',
-                    icon: icons.IconListCheck,
-                    breadcrumbs: true,
-                    permission: 'executions:view'
-                },
-                {
                     id: 'assistants',
                     title: 'Assistants',
                     type: 'item',
@@ -91,16 +97,15 @@ const dashboard = {
                     icon: icons.IconRobot,
                     breadcrumbs: true,
                     permission: 'assistants:view'
-                },
-                {
-                    id: 'marketplaces',
-                    title: 'Marketplaces',
-                    type: 'item',
-                    url: '/marketplaces',
-                    icon: icons.IconBuildingStore,
-                    breadcrumbs: true,
-                    permission: 'templates:marketplace,templates:custom'
-                },
+                }
+            ]
+        },
+        // CONFIGURE GROUP - Settings and configuration
+        {
+            id: 'configure',
+            title: 'Configure',
+            type: 'group',
+            children: [
                 {
                     id: 'tools',
                     title: 'Tools',
@@ -136,15 +141,23 @@ const dashboard = {
                     icon: icons.IconKey,
                     breadcrumbs: true,
                     permission: 'apikeys:view'
-                },
+                }
+            ]
+        },
+        // MONITOR GROUP - Observability and tracking
+        {
+            id: 'monitor',
+            title: 'Monitor',
+            type: 'group',
+            children: [
                 {
-                    id: 'document-stores',
-                    title: 'Document Stores',
+                    id: 'executions',
+                    title: 'Executions',
                     type: 'item',
-                    url: '/document-stores',
-                    icon: icons.IconFiles,
+                    url: '/executions',
+                    icon: icons.IconListCheck,
                     breadcrumbs: true,
-                    permission: 'documentStores:view'
+                    permission: 'executions:view'
                 },
                 {
                     id: 'llm-usage',
@@ -153,14 +166,7 @@ const dashboard = {
                     url: '/llm-usage',
                     icon: icons.IconChartBar,
                     breadcrumbs: true
-                }
-            ]
-        },
-        {
-            id: 'others',
-            title: 'Others',
-            type: 'group',
-            children: [
+                },
                 {
                     id: 'logs',
                     title: 'Logs',
@@ -179,30 +185,45 @@ const dashboard = {
                     icon: icons.IconListCheck,
                     breadcrumbs: true
                 }
-                // {
-                //     id: 'files',
-                //     title: 'Files',
-                //     type: 'item',
-                //     url: '/files',
-                //     icon: icons.IconFileDatabase,
-                //     breadcrumbs: true,
-                //     display: 'feat:files',
-                // }
             ]
         },
-        // Only include 'back' menu item when SKIP_DESIGNER_SERVICE is true
-
-                  {
-                      id: 'back',
-                      title: 'Back',
-                      type: 'item',
-                      url: '/back',
-                      icon: icons.IconArrowBack,
-                      breadcrumbs: false
-                  }
-              
-           
+        // RESOURCES GROUP - Templates and storage
+        {
+            id: 'resources',
+            title: 'Resources',
+            type: 'group',
+            children: [
+                {
+                    id: 'marketplaces',
+                    title: 'Marketplaces',
+                    type: 'item',
+                    url: '/marketplaces',
+                    icon: icons.IconBuildingStore,
+                    breadcrumbs: true,
+                    permission: 'templates:marketplace,templates:custom'
+                },
+                {
+                    id: 'document-stores',
+                    title: 'Document Stores',
+                    type: 'item',
+                    url: '/document-stores',
+                    icon: icons.IconFiles,
+                    breadcrumbs: true,
+                    permission: 'documentStores:view'
+                }
+            ]
+        },
+        // Back button - standalone
+        {
+            id: 'back',
+            title: 'Back',
+            type: 'item',
+            url: '/back',
+            icon: icons.IconArrowBack,
+            breadcrumbs: false
+        }
     ]
 }
 
 export default dashboard
+

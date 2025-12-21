@@ -14,32 +14,26 @@ const CardWrapper = styled(MainCard)(({ theme }) => ({
     color: theme.darkTextPrimary,
     overflow: 'auto',
     position: 'relative',
-    // 3D Embossed effect with layered shadows for depth
-    boxShadow: `
-        0 1px 2px rgba(0,0,0,0.07),
-        0 2px 4px rgba(0,0,0,0.07),
-        0 4px 8px rgba(0,0,0,0.07),
-        0 8px 16px rgba(0,0,0,0.07),
-        0 16px 32px rgba(0,0,0,0.05),
-        inset 0 1px 0 rgba(255,255,255,0.4)
-    `,
-    // 3D perspective for board-standing look
-    transform: 'perspective(1000px) rotateX(2deg)',
-    transformStyle: 'preserve-3d',
+    // Modern clean shadow
+    boxShadow: theme.palette.mode === 'dark'
+        ? '0 4px 20px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05)'
+        : '0 4px 20px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02)',
     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
     cursor: 'pointer',
+    borderRadius: '16px',
+    border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'}`,
     '&:hover': {
         background: theme.palette.card.hover,
-        // Enhanced shadow on hover for lifting effect
-        boxShadow: `
-            0 2px 4px rgba(0,0,0,0.1),
-            0 4px 8px rgba(0,0,0,0.1),
-            0 8px 16px rgba(0,0,0,0.1),
-            0 16px 32px rgba(0,0,0,0.08),
-            0 32px 64px rgba(0,0,0,0.05),
-            inset 0 1px 0 rgba(255,255,255,0.6)
-        `,
-        transform: 'perspective(1000px) rotateX(0deg) translateY(-6px) scale(1.02)'
+        // Elevated shadow on hover
+        boxShadow: theme.palette.mode === 'dark'
+            ? '0 12px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1)'
+            : '0 12px 40px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04)',
+        transform: 'translateY(-4px)',
+        borderColor: theme.palette.primary.main + '40'
+    },
+    '&:active': {
+        transform: 'translateY(-2px)',
+        transition: 'transform 0.1s ease'
     },
     height: '100%',
     minHeight: '160px',
@@ -56,7 +50,7 @@ const ItemCard = ({ data, images, icons, onClick }) => {
     const customization = useSelector((state) => state.customization)
 
     return (
-        <CardWrapper content={false} onClick={onClick} sx={{ border: 1, borderColor: theme.palette.grey[900] + 25, borderRadius: 2 }}>
+        <CardWrapper content={false} onClick={onClick}>
             <Box sx={{ height: '100%', p: 2.25 }}>
                 <Grid container justifyContent='space-between' direction='column' sx={{ height: '100%', gap: 3 }}>
                     <Box display='flex' flexDirection='column' sx={{ width: '100%' }}>

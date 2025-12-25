@@ -1,8 +1,8 @@
-**📄 ChainSys Platform – Session Architecture & Kodivian Integration**
+**📄 Kodivian Platform – Session Architecture & Kodivian Integration**
 
-## **1\. ChainSys Platform – High-Level Overview**
+## **1\. Kodivian Platform – High-Level Overview**
 
-**ChainSys Platform consists of multiple enterprise products.**  
+**Kodivian Platform consists of multiple enterprise products.**  
 **Most products are built using Java, except SmartAppBuilder (SAB) which uses Node.js.**
 
 **A central Java-based platform manages:**
@@ -19,7 +19,7 @@
 
 ### **2.1 Platform Login (Java)**
 
-* **User logs in via ChainSys Platform (Java).**  
+* **User logs in via Kodivian Platform (Java).**  
 * **A Tomcat session is created.**  
 * **Session ID is stored in:**  
   * **PostgreSQL `login_session` table**  
@@ -67,7 +67,7 @@
 
   ### **Flow:**
 
-1. **User is logged in to ChainSys Platform (Java).**  
+1. **User is logged in to Kodivian Platform (Java).**  
 2. **User clicks SmartAppBuilder.**  
 3. **Platform passes:**  
    * **`javaSessionId`**  
@@ -141,7 +141,7 @@
 
   ### **Access Flow:**
 
-1. **User logs in to ChainSys Platform**  
+1. **User logs in to Kodivian Platform**  
 2. **User enters AppBuilder**  
 3. **User clicks Kodivian**  
 4. **AppBuilder redirects to Kodivian with:**  
@@ -182,7 +182,7 @@
 
 | Source | Available Identity |
 | ----- | ----- |
-| **Other ChainSys Products** | **userId, orgId, javaSessionId, API key** |
+| **Other Kodivian Products** | **userId, orgId, javaSessionId, API key** |
 | **Dynamic Angular Apps (Deployment Server)** | **userId, orgId, Redis session, API key** |
 | **Third-party tools (n8n)** | **API key, UPN** |
 

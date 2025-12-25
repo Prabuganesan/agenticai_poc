@@ -1,5 +1,5 @@
 ---
-description: Learn how to use external API integrations with Autonomous
+description: Learn how to use external API integrations with Kodivian
 ---
 
 # Interacting with API

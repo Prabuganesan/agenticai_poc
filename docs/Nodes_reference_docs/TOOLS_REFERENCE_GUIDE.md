@@ -1,6 +1,6 @@
-# Autonomous Tools Reference Guide
+# Kodivian Tools Reference Guide
 
-A comprehensive guide to all available tools in the Autonomous platform. Tools enable agents to take actions and interact with external systems.
+A comprehensive guide to all available tools in the Kodivian platform. Tools enable agents to take actions and interact with external systems.
 
 ---
 
@@ -524,7 +524,7 @@ Send notifications via AWS SNS.
 
 1. Create OAuth credentials in provider console
 2. Add redirect URI: `{YOUR_APP_URL}/api/v1/oauth/callback`
-3. Add credential in Autonomous
+3. Add credential in Kodivian
 4. Connect and authorize
 
 ## 3. Custom Tool Best Practices

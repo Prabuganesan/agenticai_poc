@@ -1,5 +1,5 @@
 ---
-description: Learn how Autonomous integrates with the LangChain framework
+description: Learn how Kodivian integrates with the LangChain framework
 ---
 
 # LangChain
@@ -8,7 +8,7 @@ description: Learn how Autonomous integrates with the LangChain framework
 
 [**LangChain**](https://www.langchain.com/) is a framework for developing applications powered by language models. It simplifies the process of creating generative AI application, connecting data sources, vectors, memories with LLMs.
 
-Autonomous complements LangChain by offering a visual interface. Here, nodes are organized into distinct sections, making it easier to build workflows.
+Kodivian complements LangChain by offering a visual interface. Here, nodes are organized into distinct sections, making it easier to build workflows.
 
 ### LangChain Sections:
 

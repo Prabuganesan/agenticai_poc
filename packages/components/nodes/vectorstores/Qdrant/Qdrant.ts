@@ -6,7 +6,7 @@ import { Document } from '@langchain/core/documents'
 import { QdrantVectorStore, QdrantLibArgs } from '@langchain/qdrant'
 import { Embeddings } from '@langchain/core/embeddings'
 import { ICommonObject, INode, INodeData, INodeOutputsValue, INodeParams, IndexingResult } from '../../../src/Interface'
-import { AUTONOMOUS_CHATID, getBaseClasses, getCredentialData, getCredentialParam, parseJsonBody } from '../../../src/utils'
+import { KODIVIAN_CHATID, getBaseClasses, getCredentialData, getCredentialParam, parseJsonBody } from '../../../src/utils'
 import { index } from '../../../src/indexing'
 import { howToUseFileUpload } from '../VectorStoreUtils'
 
@@ -221,7 +221,7 @@ class Qdrant_VectorStores implements INode {
             for (let i = 0; i < flattenDocs.length; i += 1) {
                 if (flattenDocs[i] && flattenDocs[i].pageContent) {
                     if (isFileUploadEnabled && options.chatId) {
-                        flattenDocs[i].metadata = { ...flattenDocs[i].metadata, [AUTONOMOUS_CHATID]: options.chatId }
+                        flattenDocs[i].metadata = { ...flattenDocs[i].metadata, [KODIVIAN_CHATID]: options.chatId }
                     }
                     finalDocs.push(new Document(flattenDocs[i]))
                 }
@@ -461,14 +461,14 @@ class Qdrant_VectorStores implements INode {
 
             retrieverConfig.filter.should.push(
                 {
-                    key: `metadata.${AUTONOMOUS_CHATID}`,
+                    key: `metadata.${KODIVIAN_CHATID}`,
                     match: {
                         value: options.chatId
                     }
                 },
                 {
                     is_empty: {
-                        key: `metadata.${AUTONOMOUS_CHATID}`
+                        key: `metadata.${KODIVIAN_CHATID}`
                     }
                 }
             )

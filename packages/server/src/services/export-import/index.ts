@@ -736,7 +736,7 @@ const importData = async (importData: ExportData, orgId: string, userId?: string
     // Ensure all other entities with guid have required fields
     importData.CustomTemplate = importData.CustomTemplate.map(ensureEntityFields)
     importData.DocumentStore = importData.DocumentStore.map(ensureEntityFields)
-    // Fix missing flowData for CustomTemplate Tool during import (from Autonomous)
+    // Fix missing flowData for CustomTemplate Tool during import (from Kodivian)
     importData.Tool = importData.Tool.map((item: any) => {
         if (item.type === 'Tool' && item.toolType === 'CustomTemplate' && !item.flowData) {
             // TODO: This is a temporary fix where export data for CustomTemplate type Tool need to be changed in the future.

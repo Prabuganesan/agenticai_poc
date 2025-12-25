@@ -20,7 +20,7 @@ import { RateLimiterManager } from './utils/rateLimit'
 import { getAllowedIframeOrigins, getCorsOptions, sanitizeMiddleware } from './utils/XSS'
 import { securityHeadersMiddleware } from './utils/securityHeaders'
 import { apiKeyRateLimitMiddleware, initializeApiKeyRateLimiter } from './utils/apiKeyRateLimit'
-import autonomousApiV1Router from './routes'
+import kodivianApiV1Router from './routes'
 import { docsStaticRouter, docsApiRouter } from './routes/docs'
 import errorHandlerMiddleware from './middlewares/errors'
 import { WHITELIST_URLS, getServerPort } from './utils/constants'
@@ -195,12 +195,18 @@ export class App {
                         if (req.cookies?.KODIID) {
                             return sessionValidationMiddleware(req as any, res, next)
                         }
+
+                        // For whitelisted internal requests, populate orgId from header if provided
+                        if (req.headers['x-request-from'] === 'internal' && req.headers['x-org-id']) {
+                            ; (req as any).orgId = req.headers['x-org-id']
+                        }
+
                         // No session cookie - allow public access
                         next()
                         return
                     }
                     // Step 4: Skip session validation for session handler endpoints
-                    // Check for sessionhandler in path (handles both /api/v1/sessionhandler and /autonomous/api/v1/sessionhandler)
+                    // Check for sessionhandler in path (handles both /api/v1/sessionhandler and /kodivian/api/v1/sessionhandler)
                     else if (req.path.includes('/sessionhandler') || req.originalUrl.includes('/sessionhandler')) {
                         logInfo('Session handler endpoint - skipping validation', {
                             path: req.path,
@@ -215,7 +221,7 @@ export class App {
                     else if (req.path.includes('/docs') || req.originalUrl.includes('/docs')) {
                         return next()
                     }
-                    // Step 5: Apply autonomous session validation middleware
+                    // Step 5: Apply kodivian session validation middleware
                     else if (req.cookies?.KODIID) {
                         return sessionValidationMiddleware(req as any, res, next)
                     }
@@ -394,12 +400,12 @@ export class App {
         this.app.use(encryptResponseMiddleware)
         this.app.use(decryptRequestMiddleware)
 
-        // Mount API routes at both /api/v1 and /autonomous/api/v1 to handle context path
+        // Mount API routes at both /api/v1 and /kodivian/api/v1 to handle context path
         const apiContextPath = process.env.CONTEXT_PATH || '/kodivian'
-        this.app.use('/api/v1', autonomousApiV1Router)
+        this.app.use('/api/v1', kodivianApiV1Router)
         if (apiContextPath && apiContextPath !== '/') {
-            // Also mount at context path for requests coming from /autonomous/api/v1
-            this.app.use(`${apiContextPath}/api/v1`, autonomousApiV1Router)
+            // Also mount at context path for requests coming from /kodivian/api/v1
+            this.app.use(`${apiContextPath}/api/v1`, kodivianApiV1Router)
             logInfo(`📡 [server]: API routes also mounted at: ${apiContextPath}/api/v1`).catch(() => { })
         }
 
@@ -416,7 +422,7 @@ export class App {
         this.app.get('/api/v1/ip', (request, response) => {
             response.send({
                 ip: request.ip,
-                msg: 'Check returned IP address in the response. If it matches your current IP address ( which you can get by going to http://ip.nfriedly.com/ or https://api.ipify.org/ ), then the number of proxies is correct and the rate limiter should now work correctly. If not, increase the number of proxies by 1 and restart Cloud-Hosted Autonomous until the IP address matches your own. Visit the local documentation at /autonomous/docs for more information.'
+                msg: 'Check returned IP address in the response. If it matches your current IP address ( which you can get by going to http://ip.nfriedly.com/ or https://api.ipify.org/ ), then the number of proxies is correct and the rate limiter should now work correctly. If not, increase the number of proxies by 1 and restart Cloud-Hosted Kodivian until the IP address matches your own. Visit the local documentation at /kodivian/docs for more information.'
             })
         })
 
@@ -534,8 +540,8 @@ export class App {
             logInfo(`📁 [server]: Serving marketplace icons from: ${marketplaceIconsPath}`).catch(() => { })
         }
 
-        // Serve static files from context path (e.g., /autonomous/assets/...)
-        // express.static automatically strips the mount path, so /autonomous/assets/file.js
+        // Serve static files from context path (e.g., /kodivian/assets/...)
+        // express.static automatically strips the mount path, so /kodivian/assets/file.js
         // will look for /assets/file.js in the uiBuildPath directory
         if (contextPath && contextPath !== '/') {
             // Serve static assets (JS, CSS, images, fonts, etc.) from context path
@@ -556,17 +562,17 @@ export class App {
             )
 
             // Serve other static files (favicon, manifest, etc.) from context path root
-            // Skip /docs and /using-autonomous paths - they are handled by docs routes
+            // Skip /docs and /using-kodivian paths - they are handled by docs routes
             this.app.use(contextPath, (req: Request, res: Response, next: NextFunction) => {
                 // Skip static file serving for /docs routes
                 if (req.path.startsWith('/docs') || req.originalUrl.includes('/docs') || req.url.includes('/docs')) {
                     return next()
                 }
-                // Skip static file serving for /using-autonomous routes (will be redirected to docs)
+                // Skip static file serving for /using-kodivian routes (will be redirected to docs)
                 if (
-                    req.path.startsWith('/using-autonomous') ||
-                    req.originalUrl.includes('/using-autonomous') ||
-                    req.url.includes('/using-autonomous')
+                    req.path.startsWith('/using-kodivian') ||
+                    req.originalUrl.includes('/using-kodivian') ||
+                    req.url.includes('/using-kodivian')
                 ) {
                     return next()
                 }
@@ -617,13 +623,13 @@ export class App {
                     // Skip docs routes - they are handled by docs router
                     return res.status(404).send('Not found')
                 }
-                // Don't serve index.html for using-autonomous routes (redirected to docs)
+                // Don't serve index.html for using-kodivian routes (redirected to docs)
                 if (
-                    req.path.startsWith('/using-autonomous') ||
-                    req.originalUrl.includes('/using-autonomous') ||
-                    req.url.includes('/using-autonomous')
+                    req.path.startsWith('/using-kodivian') ||
+                    req.originalUrl.includes('/using-kodivian') ||
+                    req.url.includes('/using-kodivian')
                 ) {
-                    // Skip using-autonomous routes - they are redirected to docs
+                    // Skip using-kodivian routes - they are redirected to docs
                     return res.status(404).send('Not found')
                 }
                 // Don't serve index.html for static file requests (already handled above)
@@ -800,7 +806,7 @@ export async function start(): Promise<void> {
         await serverApp.dataSourceManager.initializeAllOrgDataSources(serverApp.orgConfigService)
         logInfo('✅ [server]: Per-org PostgreSQL DataSources initialized successfully').catch(() => { })
 
-        // Step 4: Initialize autonomous session service
+        // Step 4: Initialize kodivian session service
         // Note: UserDataService and SessionService are created per-request in session-handler.route.ts
         serverApp.kodivianSessionService = new KodivianSessionService(serverApp.orgConfigService)
         logInfo('✅ [server]: Kodivian session service created').catch(() => { })

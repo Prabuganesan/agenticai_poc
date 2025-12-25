@@ -13,7 +13,7 @@ export class UserDataService {
      * Fetch user data - for single-org, returns default user
      * No designer service HTTP call
      */
-    async fetchUserDataFromExternalAPI(chainsysSessionId: string, orgId: string): Promise<any> {
+    async fetchUserDataFromExternalAPI(kodivianSessionId: string, orgId: string): Promise<any> {
         logInfo(`User data fetched (single-org mode) - orgId: ${orgId}`).catch(() => { })
 
         // Return default user data for single-org mode

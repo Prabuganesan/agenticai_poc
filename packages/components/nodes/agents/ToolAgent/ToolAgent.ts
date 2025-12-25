@@ -19,7 +19,7 @@ import {
 } from '../../../src/utils'
 import { getErrorMessage } from '../../../src/error'
 import {
-    AutonomousMemory,
+    KodivianMemory,
     ICommonObject,
     INode,
     INodeData,
@@ -36,7 +36,7 @@ import { formatResponse } from '../../outputparsers/OutputParserHelpers'
 import { addImagesToMessages, llmSupportsVision } from '../../../src/multiModalUtils'
 import path from 'path'
 
-const SOURCE_DOCUMENTS_PREFIX = '\n\n----AUTONOMOUS_SOURCE_DOCUMENTS----\n\n'
+const SOURCE_DOCUMENTS_PREFIX = '\n\n----KODIVIAN_SOURCE_DOCUMENTS----\n\n'
 
 /**
  * Retriever Tool Implementation (replaces removed RetrieverTool node)
@@ -279,7 +279,7 @@ class ToolAgent_Agents implements INode {
     }
 
     async run(nodeData: INodeData, input: string, options: ICommonObject): Promise<string | ICommonObject> {
-        const memory = nodeData.inputs?.memory as AutonomousMemory
+        const memory = nodeData.inputs?.memory as KodivianMemory
         const moderations = nodeData.inputs?.inputModeration as Moderation[]
         const enableDetailedStreaming = nodeData.inputs?.enableDetailedStreaming as boolean
 
@@ -487,7 +487,7 @@ class ToolAgent_Agents implements INode {
 async function prepareAgent(nodeData: INodeData, options: ICommonObject, flowObj: { sessionId?: string; chatId?: string; input?: string }) {
     const model = nodeData.inputs?.model as BaseChatModel
     const maxIterations = nodeData.inputs?.maxIterations as string
-    const memory = nodeData.inputs?.memory as AutonomousMemory
+    const memory = nodeData.inputs?.memory as KodivianMemory
     let systemMessage = nodeData.inputs?.systemMessage as string
     let tools = nodeData.inputs?.tools
     tools = flatten(tools)

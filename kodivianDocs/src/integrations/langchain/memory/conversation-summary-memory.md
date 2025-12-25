@@ -1,6 +1,6 @@
 # Conversation Summary Memory
 
-Use Autonomous database table `chat_message` as the storage mechanism for storing/retrieving conversations.
+Use Kodivian database table `chat_message` as the storage mechanism for storing/retrieving conversations.
 
 This memory type creates a brief summary of the conversation over time. This is useful for shortening information from long discussions. It updates and saves a current summary as the conversation goes on. This is especially helpful in longer chats, where saving every past message would take up too much space.
 

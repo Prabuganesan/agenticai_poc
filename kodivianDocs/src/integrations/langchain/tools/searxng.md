@@ -27,7 +27,7 @@ search:
 
 `docker-compose up -d` to start the container. Open web browser and go to **http://localhost:8080/search**, you will be able to see SearXNG page.
 
-### Using in Autonomous
+### Using in Kodivian
 
 Drag and drop SearXNG node onto canvas. Fill in the Base URL as **http://localhost:8080.** You can also specify other search parameters if needed. LLM will automatically figure out what to use for the search query question.
 

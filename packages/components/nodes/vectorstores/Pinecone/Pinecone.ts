@@ -5,7 +5,7 @@ import { Embeddings } from '@langchain/core/embeddings'
 import { Document } from '@langchain/core/documents'
 import { VectorStore } from '@langchain/core/vectorstores'
 import { ICommonObject, INode, INodeData, INodeOutputsValue, INodeParams, IndexingResult } from '../../../src/Interface'
-import { AUTONOMOUS_CHATID, getBaseClasses, getCredentialData, getCredentialParam, parseJsonBody } from '../../../src/utils'
+import { KODIVIAN_CHATID, getBaseClasses, getCredentialData, getCredentialParam, parseJsonBody } from '../../../src/utils'
 import { addMMRInputParams, howToUseFileUpload, resolveVectorStoreOrRetriever } from '../VectorStoreUtils'
 import { index } from '../../../src/indexing'
 
@@ -148,7 +148,7 @@ class Pinecone_VectorStores implements INode {
             for (let i = 0; i < flattenDocs.length; i += 1) {
                 if (flattenDocs[i] && flattenDocs[i].pageContent) {
                     if (isFileUploadEnabled && options.chatId) {
-                        flattenDocs[i].metadata = { ...flattenDocs[i].metadata, [AUTONOMOUS_CHATID]: options.chatId }
+                        flattenDocs[i].metadata = { ...flattenDocs[i].metadata, [KODIVIAN_CHATID]: options.chatId }
                     }
                     finalDocs.push(new Document(flattenDocs[i]))
                 }
@@ -256,8 +256,8 @@ class Pinecone_VectorStores implements INode {
             obj.filter = obj.filter || {}
             obj.filter.$or = [
                 ...(obj.filter.$or || []),
-                { [AUTONOMOUS_CHATID]: { $eq: options.chatId } },
-                { [AUTONOMOUS_CHATID]: { $exists: false } }
+                { [KODIVIAN_CHATID]: { $eq: options.chatId } },
+                { [KODIVIAN_CHATID]: { $exists: false } }
             ]
         }
 

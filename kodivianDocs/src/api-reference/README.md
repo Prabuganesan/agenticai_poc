@@ -1,6 +1,6 @@
 # API Reference
 
-Using Autonomous public API, you can programmatically execute many of the same tasks as you can in the GUI. This section introduces Autonomous REST API.
+Using Kodivian public API, you can programmatically execute many of the same tasks as you can in the GUI. This section introduces Kodivian REST API.
 
 * [Assistants](assistants.md)
 * [Attachments](attachments.md)

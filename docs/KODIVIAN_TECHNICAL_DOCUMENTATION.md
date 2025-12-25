@@ -1,4 +1,4 @@
-# Autonomous Platform - Comprehensive Technical Documentation
+# Kodivian Platform - Comprehensive Technical Documentation
 
 ## Table of Contents
 1. [Platform Overview](#platform-overview)
@@ -16,7 +16,7 @@
 
 ## Platform Overview
 
-**Autonomous** is an enterprise-grade AI orchestration platform designed for SmartAppBuilder clients. It provides a visual interface for building, deploying, and managing AI agents, LLM workflows, and intelligent automation systems.
+**Kodivian** is an enterprise-grade AI orchestration platform designed for SmartAppBuilder clients. It provides a visual interface for building, deploying, and managing AI agents, LLM workflows, and intelligent automation systems.
 
 ### Key Capabilities
 - **Visual AI Agent Builder**: Drag-and-drop interface for creating complex AI workflows
@@ -41,7 +41,7 @@
 
 ### Monorepo Structure
 ```
-autonomous/
+kodivian/
 ├── packages/
 │   ├── server/          # Node.js backend (Express + TypeScript)
 │   ├── ui/              # React frontend (Vite + MUI)
@@ -308,7 +308,7 @@ Advanced multi-step agent execution engine with:
 
 ### Base URL
 ```
-http://<host>:<port>/autonomous/api/v1
+http://<host>:<port>/kodivian/api/v1
 ```
 
 ### Core Endpoints
@@ -459,7 +459,7 @@ POST   /crypto/handshake          // Session key exchange
 
 ### 4. **Credential Encryption**
 - **AES-256 Encryption**: All credentials encrypted at rest
-- **Auto-Generated Key**: Stored in `AUTONOMOUS_DATA_PATH/.autonomous/encryption.key`
+- **Auto-Generated Key**: Stored in `KODIVIAN_DATA_PATH/.kodivian/encryption.key`
 - **Cluster Support**: Shared key for multi-instance deployments
 - **PII Redaction**: Password-type fields masked in logs
 
@@ -495,8 +495,8 @@ CHATBOT_IFRAME_ORIGINS=https://chatbot.example.com
 ```yaml
 version: '3.8'
 services:
-  autonomous:
-    image: autonomous:latest
+  kodivian:
+    image: kodivian:latest
     ports:
       - "3030:3030"
     environment:
@@ -504,13 +504,13 @@ services:
       - ENABLE_E2E_ENCRYPTION=true
       - ENABLE_METRICS=true
     volumes:
-      - autonomous-data:/root/.autonomous
+      - kodivian-data:/root/.kodivian
     depends_on:
       - redis
       - postgres
   
   worker:
-    image: autonomous:latest
+    image: kodivian:latest
     command: ["./bin/run", "worker"]
     environment:
       - MODE=worker
@@ -526,7 +526,7 @@ services:
   postgres:
     image: postgres:15
     environment:
-      - POSTGRES_DB=autonomous
+      - POSTGRES_DB=kodivian
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=secure_password
     volumes:
@@ -540,7 +540,7 @@ services:
 module.exports = {
   apps: [
     {
-      name: 'autonomous-server',
+      name: 'kodivian-server',
       script: './bin/run',
       args: 'start',
       instances: 4,
@@ -551,7 +551,7 @@ module.exports = {
       }
     },
     {
-      name: 'autonomous-worker',
+      name: 'kodivian-worker',
       script: './bin/run',
       args: 'worker',
       instances: 2,
@@ -565,23 +565,23 @@ module.exports = {
 
 ### Kubernetes
 
-**autonomous-deployment.yaml:**
+**kodivian-deployment.yaml:**
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: autonomous-server
+  name: kodivian-server
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: autonomous
+      app: kodivian
       role: server
   template:
     spec:
       containers:
-      - name: autonomous
-        image: autonomous:3.0.10
+      - name: kodivian
+        image: kodivian:3.0.10
         ports:
         - containerPort: 3030
         env:
@@ -590,20 +590,20 @@ spec:
         - name: ENABLE_E2E_ENCRYPTION
           value: "true"
         volumeMounts:
-        - name: autonomous-data
-          mountPath: /root/.autonomous
+        - name: kodivian-data
+          mountPath: /root/.kodivian
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: autonomous-svc
+  name: kodivian-svc
 spec:
   type: LoadBalancer
   ports:
   - port: 80
     targetPort: 3030
   selector:
-    app: autonomous
+    app: kodivian
     role: server
 ```
 
@@ -616,12 +616,12 @@ spec:
 #### **Core Settings**
 ```bash
 # Data storage path
-AUTONOMOUS_DATA_PATH=/shared/autonomous-data
+KODIVIAN_DATA_PATH=/shared/kodivian-data
 
 # Server configuration
 SERVER_HOST=0.0.0.0
 SERVER_PORT=3030
-CONTEXT_PATH=/autonomous
+CONTEXT_PATH=/kodivian
 
 # Mode: queue (main+API) | worker (jobs) | main (standalone)
 MODE=queue
@@ -647,7 +647,7 @@ ENABLE_TABLE_CREATION=true
 ```bash
 # Queue
 REDIS_DB_QUEUE=3
-QUEUE_NAME=autonomous-queue
+QUEUE_NAME=kodivian-queue
 WORKER_CONCURRENCY=20
 
 # Session
@@ -677,7 +677,7 @@ SENDER_EMAIL=noreply@example.com
 ENABLE_METRICS=true
 METRICS_PROVIDER=prometheus  # or open_telemetry
 METRICS_INCLUDE_NODE_METRICS=true
-METRICS_SERVICE_NAME=Autonomous
+METRICS_SERVICE_NAME=Kodivian
 ```
 
 #### **Logging**
@@ -693,7 +693,7 @@ LOG_SERVICES_ENABLED=true
 STORAGE_TYPE=s3  # local | s3 | gcs
 
 # S3
-S3_STORAGE_BUCKET_NAME=autonomous-files
+S3_STORAGE_BUCKET_NAME=kodivian-files
 S3_STORAGE_ACCESS_KEY_ID=AKIA...
 S3_STORAGE_SECRET_ACCESS_KEY=secret
 S3_STORAGE_REGION=us-east-1
@@ -768,7 +768,7 @@ S3_STORAGE_REGION=us-east-1
 ```bash
 # Clone repository
 git clone <repo-url>
-cd autonomous
+cd kodivian
 
 # Install dependencies
 npm i -g pnpm
@@ -908,7 +908,7 @@ pnpm build  # TypeScript compilation
 - LangChain Docs: https://js.langchain.com/docs/
 
 **Support:**
-- Email: smartappbuilder_support@chainsys.com
+- Email: smartappbuilder_support@kodivian.com
 - Issue Tracker: Internal GitLab
 
 **License:**

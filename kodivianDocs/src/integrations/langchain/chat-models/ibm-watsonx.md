@@ -44,6 +44,6 @@
 
 <figure><img src="../../.././assets/image (245).png" alt="" width="419"><figcaption></figcaption></figure>
 
-2. Voila [🎉](https://emojipedia.org/party-popper/), you can now use **ChatIBMWatsonx node** in Autonomous!
+2. Voila [🎉](https://emojipedia.org/party-popper/), you can now use **ChatIBMWatsonx node** in Kodivian!
 
 <figure><img src="../../.././assets/image (246).png" alt=""><figcaption></figcaption></figure>

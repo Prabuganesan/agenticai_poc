@@ -9,7 +9,7 @@ import { v4 as uuidv4 } from 'uuid'
 
 interface SessionData {
     userId: string
-    chainsysSessionId: string
+    kodivianSessionId: string
     orgId: string
     userData: any
     createdAt: number
@@ -32,22 +32,22 @@ export class KodivianSessionService {
 
     /**
      * Create Kodivian session
-     * Token format: {uuid}$${chainsysSessionId}$${userId}$$Kodi{orgId}
+     * Token format: {uuid}$${kodivianSessionId}$${userId}$$Kodi{orgId}
      */
     async createKodivianSession(
-        chainsysSessionId: string,
+        kodivianSessionId: string,
         userId: string,
         orgId: string,
         userData: any
     ): Promise<string> {
         try {
             // Generate token (exact format from kodivian server)
-            const token = `${uuidv4()}$$${chainsysSessionId}$$${userId}$$Kodi${orgId}`
+            const token = `${uuidv4()}$$${kodivianSessionId}$$${userId}$$Kodi${orgId}`
 
             // Store session in memory
             const sessionData: SessionData = {
                 userId,
-                chainsysSessionId,
+                kodivianSessionId,
                 orgId,
                 userData,
                 createdAt: Date.now()
@@ -67,7 +67,7 @@ export class KodivianSessionService {
     }
 
     /**
-     * Validate autonomous session
+     * Validate kodivian session
      */
     async validateKodivianSession(token: string, orgId: string): Promise<any> {
         try {

@@ -51,7 +51,7 @@ gcloud auth application-default login
 
 <figure><img src="../../.././assets/gcp_credential/create_key.png" alt="" width="563"><figcaption></figcaption></figure>
 
-## Autonomous
+## Kodivian
 
 <figure><img src="../../.././assets/image (4) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
 
@@ -61,7 +61,7 @@ If you are using a GCP service like Cloud Run, or if you have installed default 
 
 ### With credential file
 
-1. Go to Credential page on Autonomous and click **"Add credential"**
+1. Go to Credential page on Kodivian and click **"Add credential"**
 2. Click Google Vertex Auth
 
 <figure><img src="../../.././assets/gcp_credential/google_vertex_auth.png" alt="" width="563"><figcaption></figcaption></figure>
@@ -76,10 +76,10 @@ If you are using a GCP service like Cloud Run, or if you have installed default 
   * Or you can copy all text in the credential file and paste it into `Google Credential JSON Object`
 
 4. Finally, click "Add" button.
-5. **🎉**You can now use ChatGoogleVertexAI with the credential in Autonomous now!
+5. **🎉**You can now use ChatGoogleVertexAI with the credential in Kodivian now!
 
 ### Resources
 
 * [LangChain JS GoogleVertexAI](https://js.langchain.com/docs/api/llms_googlevertexai/classes/GoogleVertexAI)
 * [Google Service accounts overview](https://cloud.google.com/iam/docs/service-account-overview?)
-* [Try Google Vertex AI Palm 2 with Autonomous: Without Coding to Leverage Intuition](https://tech.beatrust.com/entry/2023/08/22/Try_Google_Vertex_AI_Palm_2_with_Autonomous%3A_Without_Coding_to_Leverage_Intuition)
+* [Try Google Vertex AI Palm 2 with Kodivian: Without Coding to Leverage Intuition](https://tech.beatrust.com/entry/2023/08/22/Try_Google_Vertex_AI_Palm_2_with_Kodivian%3A_Without_Coding_to_Leverage_Intuition)

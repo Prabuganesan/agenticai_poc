@@ -6,7 +6,7 @@ import type { PromptTemplate } from '@langchain/core/prompts'
 import { BaseChatModel } from '@langchain/core/language_models/chat_models'
 import { pull } from 'langchain/hub'
 import { additionalCallbacks } from '../../../src/handler'
-import { IVisionChatModal, AutonomousMemory, ICommonObject, IMessage, INode, INodeData, INodeParams } from '../../../src/Interface'
+import { IVisionChatModal, KodivianMemory, ICommonObject, IMessage, INode, INodeData, INodeParams } from '../../../src/Interface'
 import { getBaseClasses } from '../../../src/utils'
 import { createReactAgent } from '../../../src/agents'
 import { addImagesToMessages, llmSupportsVision } from '../../../src/multiModalUtils'
@@ -76,7 +76,7 @@ class ReActAgentChat_Agents implements INode {
     }
 
     async run(nodeData: INodeData, input: string, options: ICommonObject): Promise<string | object> {
-        const memory = nodeData.inputs?.memory as AutonomousMemory
+        const memory = nodeData.inputs?.memory as KodivianMemory
         const maxIterations = nodeData.inputs?.maxIterations as string
         const model = nodeData.inputs?.model as BaseChatModel
         let tools = nodeData.inputs?.tools as Tool[]

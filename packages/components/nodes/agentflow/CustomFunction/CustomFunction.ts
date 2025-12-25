@@ -8,7 +8,7 @@ import {
     INodeParams,
     IServerSideEventStreamer
 } from '../../../src/Interface'
-import { getVars, executeJavaScriptCode, createCodeExecutionSandbox, processTemplateVariables } from '../../../src/utils'
+import { getVars, executeJavaScriptCode, createCodeExecutionSandbox, processTemplateVariables, availableDependencies } from '../../../src/utils'
 import { updateFlowState } from '../utils'
 
 interface ICustomFunctionInputVariables {
@@ -17,7 +17,7 @@ interface ICustomFunctionInputVariables {
 }
 
 const exampleFunc = `/*
-* You can use any libraries imported in Autonomous
+* You can use any libraries imported in Kodivian
 * You can use properties specified in Input Variables with the prefix $. For example: $foo
 * You can get default flow config: $flow.sessionId, $flow.chatId, $flow.chatflowId, $flow.input, $flow.state
 * You can get global variables: $vars.<variable-name>
@@ -166,9 +166,9 @@ class CustomFunction_Agentflow implements INode {
         // Setup streaming function if needed
         const streamOutput = isStreamable
             ? (output: string) => {
-                  const sseStreamer: IServerSideEventStreamer = options.sseStreamer
-                  sseStreamer.streamTokenEvent(chatId, output)
-              }
+                const sseStreamer: IServerSideEventStreamer = options.sseStreamer
+                sseStreamer.streamTokenEvent(chatId, output)
+            }
             : undefined
 
         try {
@@ -190,6 +190,15 @@ class CustomFunction_Agentflow implements INode {
             const usesTypeorm = typeormPatterns.some((pattern) => pattern.test(javascriptFunction))
             if (usesTypeorm) {
                 requiredLibraries.push('typeorm')
+            }
+
+            // Detect any other available dependencies
+            for (const dependency of availableDependencies) {
+                if (javascriptFunction.includes(`require('${dependency}')`) || javascriptFunction.includes(`require("${dependency}")`)) {
+                    if (!requiredLibraries.includes(dependency)) {
+                        requiredLibraries.push(dependency)
+                    }
+                }
             }
 
             const response = await executeJavaScriptCode(javascriptFunction, sandbox, {

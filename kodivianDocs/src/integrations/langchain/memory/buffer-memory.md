@@ -1,6 +1,6 @@
 # Buffer Memory
 
-Use Autonomous database table `chat_message` as the storage mechanism for storing/retrieving conversations.
+Use Kodivian database table `chat_message` as the storage mechanism for storing/retrieving conversations.
 
 <figure><img src="../../.././assets/image (1) (1) (3).png" alt="" width="299"><figcaption></figcaption></figure>
 

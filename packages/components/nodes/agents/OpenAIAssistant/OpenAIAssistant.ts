@@ -577,7 +577,7 @@ class OpenAIAssistant_Agents implements INode {
                                     const possiblePaths = [
                                         path.resolve(__dirname, '../../../../server/src/utils/logger/module-methods'),
                                         path.resolve(process.cwd(), 'packages/server/src/utils/logger/module-methods'),
-                                        path.resolve(process.cwd(), 'autonomous/packages/server/src/utils/logger/module-methods')
+                                        path.resolve(process.cwd(), 'kodivian/packages/server/src/utils/logger/module-methods')
                                     ]
                                     let serverPath: string | null = null
                                     for (const p of possiblePaths) {
@@ -621,7 +621,7 @@ class OpenAIAssistant_Agents implements INode {
                                         const possiblePaths = [
                                             path.resolve(__dirname, '../../../../server/src/utils/logger/module-methods'),
                                             path.resolve(process.cwd(), 'packages/server/src/utils/logger/module-methods'),
-                                            path.resolve(process.cwd(), 'autonomous/packages/server/src/utils/logger/module-methods')
+                                            path.resolve(process.cwd(), 'kodivian/packages/server/src/utils/logger/module-methods')
                                         ]
                                         let serverPath: string | null = null
                                         for (const p of possiblePaths) {
@@ -671,7 +671,7 @@ class OpenAIAssistant_Agents implements INode {
                                         const possiblePaths = [
                                             path.resolve(__dirname, '../../../../server/src/utils/logger/module-methods'),
                                             path.resolve(process.cwd(), 'packages/server/src/utils/logger/module-methods'),
-                                            path.resolve(process.cwd(), 'autonomous/packages/server/src/utils/logger/module-methods')
+                                            path.resolve(process.cwd(), 'kodivian/packages/server/src/utils/logger/module-methods')
                                         ]
                                         let serverPath: string | null = null
                                         for (const p of possiblePaths) {

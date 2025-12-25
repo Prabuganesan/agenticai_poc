@@ -59,7 +59,7 @@ export class MongoDBAtlasVectorSearch extends VectorStore {
     }
 
     async getClient() {
-        const driverInfo = { name: 'Autonomous', version: (await getVersion()).version }
+        const driverInfo = { name: 'Kodivian', version: (await getVersion()).version }
         const mongoClient = new MongoClient(this.connectionDetails.mongoDBConnectUrl, { driverInfo })
         return mongoClient
     }

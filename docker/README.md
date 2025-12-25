@@ -1,6 +1,6 @@
-# Autonomous Docker Hub Image
+# Kodivian Docker Hub Image
 
-Starts Autonomous from [DockerHub Image](https://hub.docker.com/r/flowiseai/flowise)
+Starts Kodivian from [DockerHub Image](https://hub.docker.com/r/flowiseai/flowise)
 
 ## Usage
 
@@ -13,12 +13,12 @@ Starts Autonomous from [DockerHub Image](https://hub.docker.com/r/flowiseai/flow
 
 If you like to persist your data (flows, logs, credentials, storage), set these variables in the `.env` file inside `docker` folder:
 
--   DATABASE_PATH=/root/.autonomous
--   LOG_PATH=/root/.autonomous/logs
--   SECRETKEY_PATH=/root/.autonomous
--   BLOB_STORAGE_PATH=/root/.autonomous/storage
+-   DATABASE_PATH=/root/.kodivian
+-   LOG_PATH=/root/.kodivian/logs
+-   SECRETKEY_PATH=/root/.kodivian
+-   BLOB_STORAGE_PATH=/root/.kodivian/storage
 
-Autonomous also support different environment variables to configure your instance. Read [more](https://docs.flowiseai.com/configuration/environment-variables)
+Kodivian also support different environment variables to configure your instance. Read [more](https://docs.flowiseai.com/configuration/environment-variables)
 
 ## Queue Mode:
 

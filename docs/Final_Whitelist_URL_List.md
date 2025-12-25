@@ -1,4 +1,4 @@
-# Autonomous AI Platform - External URL Whitelist
+# Kodivian AI Platform - External URL Whitelist
 
 ## Format Explanation
 
@@ -168,7 +168,7 @@ This document is organized in **grouped format** for IT teams:
 **Specific URLs:**
 - `app.posthog.com`
 
-**Note**: Can be disabled with `DISABLE_AUTONOMOUS_TELEMETRY=true`
+**Note**: Can be disabled with `DISABLE_KODIVIAN_TELEMETRY=true`
 
 ---
 

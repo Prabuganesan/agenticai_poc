@@ -1,16 +1,16 @@
 ---
-description: Learn how Autonomous integrates with LiteLLM Proxy
+description: Learn how Kodivian integrates with LiteLLM Proxy
 ---
 
 # LiteLLM Proxy
 
-Use [LiteLLM Proxy](https://docs.litellm.ai/docs/simple_proxy) with Autonomous to:
+Use [LiteLLM Proxy](https://docs.litellm.ai/docs/simple_proxy) with Kodivian to:
 
 - Load balance Azure OpenAI/LLM endpoints
 - Call 100+ LLMs in the OpenAI Format 
 - Use Virtual Keys to set budgets, rate limits and track usage
 
-## How to use LiteLLM Proxy with Autonomous
+## How to use LiteLLM Proxy with Kodivian
 
 ### Step 1: Define your LLM Models in the LiteLLM config.yaml file
 
@@ -51,9 +51,9 @@ docker run \
 
 On success, the proxy will start running on `http://localhost:4000/`
 
-### Step 3: Use the LiteLLM Proxy in Autonomous
+### Step 3: Use the LiteLLM Proxy in Kodivian
 
-In Autonomous, specify the **standard OpenAI nodes (not the Azure OpenAI nodes)** -- this goes for **chat models, embeddings, llms -- everything**
+In Kodivian, specify the **standard OpenAI nodes (not the Azure OpenAI nodes)** -- this goes for **chat models, embeddings, llms -- everything**
 
 - Set `BasePath` to LiteLLM Proxy URL (`http://localhost:4000` when running locally)
 - Set the following headers `Authorization: Bearer <your-litellm-master-key>`

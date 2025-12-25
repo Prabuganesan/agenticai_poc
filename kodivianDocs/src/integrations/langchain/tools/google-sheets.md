@@ -1,6 +1,6 @@
 # Google Sheets
 
-## Create credential in Autonomous
+## Create credential in Kodivian
 
 1. Add a new Google Sheets OAuth2 credential
 2. Enter a name for the credential.
@@ -40,7 +40,7 @@
 
 11. Return to **Credentials**, click the newly created credential under **OAuth 2.0 Client IDs**, and on the detail page, you’ll find the **Client ID** and **Client Secret**.
 
-## Finish setup in Autonomous
+## Finish setup in Kodivian
 
 1. Fill in all the values copied earlier. Then click "**Authenticate**":
 

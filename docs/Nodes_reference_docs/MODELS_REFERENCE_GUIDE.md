@@ -1,6 +1,6 @@
-# Autonomous Models Reference Guide
+# Kodivian Models Reference Guide
 
-A comprehensive guide to LLMs, Chat Models, and Embeddings in the Autonomous platform.
+A comprehensive guide to LLMs, Chat Models, and Embeddings in the Kodivian platform.
 
 ---
 

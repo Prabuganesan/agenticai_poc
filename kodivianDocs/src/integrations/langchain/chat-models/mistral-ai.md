@@ -19,7 +19,7 @@
 
 <figure><img src="../../.././assets/mistral_ai/3.png" alt="" width="563"><figcaption></figcaption></figure>
 
-4. Voila [🎉](https://emojipedia.org/party-popper/), you can now use **ChatMistralAI node** in Autonomous
+4. Voila [🎉](https://emojipedia.org/party-popper/), you can now use **ChatMistralAI node** in Kodivian
 
 <figure><img src="../../.././assets/mistral_ai/4.png" alt=""><figcaption></figcaption></figure>
 

@@ -4,7 +4,7 @@ In the previous tutorials, we explored how an Agent can dynamically use tools to
 
 There are 2 ways human in the loop can be used:
 
-* Using [Human Input](../using-Autonomous/agentflow.md#id-11.-human-input-node) node to halt the execution
+* Using [Human Input](../using-Kodivian/agentflow.md#id-11.-human-input-node) node to halt the execution
 * Enable **Require Human Input** for Agent's tools
 
 ## Human Input Node
@@ -45,9 +45,9 @@ The goal of this use case is to create an intelligent email reply system that:
 2.  Add system message, for example:
 
     ```
-    You are a customer support agent working in Autonomous Inc. Write a professional email reply to user's query. Use the web search tools to get more details about the prospect.
+    You are a customer support agent working in Kodivian Inc. Write a professional email reply to user's query. Use the web search tools to get more details about the prospect.
 
-    Always reply as Samantha, Customer Support Representative in Autonomous. Don't use placeholders.
+    Always reply as Samantha, Customer Support Representative in Kodivian. Don't use placeholders.
     ```
 3. Add the following tools to enhance the agent's capabilities:
    * **Google Custom Search**: To research customer information and provide relevant context
@@ -144,7 +144,7 @@ When an email inquiry comes in, here's what happens:
 When an Agent decides to use tools, the following happens under the hood:
 
 1. Given a user query, the LLM determines whether tool calls are needed.
-2. If tool calls are identified from LLM output response, Autonomous locates the matching tools and executes the corresponding functions.
+2. If tool calls are identified from LLM output response, Kodivian locates the matching tools and executes the corresponding functions.
 3. The results from the tool executions are returned to the LLM.
 4. The LLM then decides whether additional tool calls are required or if it has enough information to return the final response.
 
@@ -166,9 +166,9 @@ We can use the sample email reply system above, but simplify it to have just a s
 2.  Add a system message to Agent, for example:
 
     ```
-    You are a customer support agent working in Autonomous Inc. Create a draft professional email reply to user's query. Use the web search tools to get more details about the prospect.
+    You are a customer support agent working in Kodivian Inc. Create a draft professional email reply to user's query. Use the web search tools to get more details about the prospect.
 
-    Always reply as Samantha, Customer Support Representative in Autonomous. Don't use placeholders.
+    Always reply as Samantha, Customer Support Representative in Kodivian. Don't use placeholders.
 
     Today's date is {{ current_date_time }}.
     ```
@@ -220,6 +220,6 @@ We can use the sample email reply system above, but simplify it to have just a s
 
 <figure><img src=".././assets/image (14) (1) (1).png" alt="" width="541"><figcaption></figcaption></figure>
 
-4. Users outside of Autonomous can reject or approve:
+4. Users outside of Kodivian can reject or approve:
 
 <figure><img src=".././assets/image (15) (1) (1).png" alt=""><figcaption></figcaption></figure>

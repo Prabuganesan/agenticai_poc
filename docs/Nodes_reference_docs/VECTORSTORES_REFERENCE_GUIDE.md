@@ -1,6 +1,6 @@
-# Autonomous Vector Stores Reference Guide
+# Kodivian Vector Stores Reference Guide
 
-A comprehensive guide to all vector store options in the Autonomous platform. Vector stores enable semantic search by storing and querying document embeddings.
+A comprehensive guide to all vector store options in the Kodivian platform. Vector stores enable semantic search by storing and querying document embeddings.
 
 ---
 

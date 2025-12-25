@@ -50,8 +50,8 @@ import LogsEmptySVG from '@/assets/images/logs_empty.svg'
 const LogsDashboard = () => {
     const theme = useTheme()
     const { error } = useError()
-    
-    // Get orgId from autonomousStore (encrypted, in-memory) - single source of truth
+
+    // Get orgId from kodivianStore (encrypted, in-memory) - single source of truth
     const orgId = useMemo(() => {
         return AuthUtils.getOrgIdFromStore()
     }, [])
@@ -324,8 +324,8 @@ const LogsDashboard = () => {
                         </Typography>
                         <Stack direction="row" spacing={1.5}>
                             <Tooltip title="Refresh">
-                                <IconButton 
-                                    onClick={handleRefresh} 
+                                <IconButton
+                                    onClick={handleRefresh}
                                     disabled={queryLogsApi.loading}
                                     sx={{
                                         '&:hover': {
@@ -352,7 +352,7 @@ const LogsDashboard = () => {
                                 Filters
                             </Button>
                             <Tooltip title={drawerExpanded ? "Hide Navigation" : "Show Navigation"}>
-                                <IconButton 
+                                <IconButton
                                     onClick={handleToggleDrawer}
                                     sx={{
                                         '&:hover': {
@@ -428,11 +428,11 @@ const LogsDashboard = () => {
                                 />
                                 <CardContent>
                                     {queryLogsApi.loading ? (
-                                        <Box 
-                                            display="flex" 
+                                        <Box
+                                            display="flex"
                                             flexDirection="column"
-                                            justifyContent="center" 
-                                            alignItems="center" 
+                                            justifyContent="center"
+                                            alignItems="center"
                                             minHeight={300}
                                             gap={2}
                                         >
@@ -442,11 +442,11 @@ const LogsDashboard = () => {
                                             </Typography>
                                         </Box>
                                     ) : logs.length === 0 ? (
-                                        <Box 
-                                            display="flex" 
-                                            flexDirection="column" 
-                                            alignItems="center" 
-                                            justifyContent="center" 
+                                        <Box
+                                            display="flex"
+                                            flexDirection="column"
+                                            alignItems="center"
+                                            justifyContent="center"
                                             minHeight={300}
                                             gap={2}
                                         >
@@ -472,11 +472,11 @@ const LogsDashboard = () => {
                                                 onFilterByUser={handleFilterByUser}
                                             />
                                             {total > filters.limit && (
-                                                <Box 
-                                                    display="flex" 
+                                                <Box
+                                                    display="flex"
                                                     flexDirection="column"
                                                     alignItems="center"
-                                                    justifyContent="center" 
+                                                    justifyContent="center"
                                                     mt={4}
                                                     gap={2}
                                                 >

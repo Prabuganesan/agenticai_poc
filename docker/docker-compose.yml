@@ -1,15 +1,15 @@
 version: '3.1'
 
 services:
-    autonomous:
-        image: autonomous/server:latest
+    kodivian:
+        image: kodivian/server:latest
         restart: always
         environment:
             # Base Configuration
-            - AUTONOMOUS_DATA_PATH=${AUTONOMOUS_DATA_PATH}
+            - KODIVIAN_DATA_PATH=${KODIVIAN_DATA_PATH}
             - SERVER_PORT=${SERVER_PORT:-3030}
             - SERVER_HOST=${SERVER_HOST}
-            - CONTEXT_PATH=${CONTEXT_PATH:-/autonomous}
+            - CONTEXT_PATH=${CONTEXT_PATH:-/kodivian}
             - PROXY_URL=${PROXY_URL}
 
             # DATABASE
@@ -26,7 +26,7 @@ services:
             # SECRET KEYS
             - SECRETKEY_STORAGE_TYPE=${SECRETKEY_STORAGE_TYPE}
             - SECRETKEY_PATH=${SECRETKEY_PATH}
-            - AUTONOMOUS_SECRETKEY_OVERWRITE=${AUTONOMOUS_SECRETKEY_OVERWRITE}
+            - KODIVIAN_SECRETKEY_OVERWRITE=${KODIVIAN_SECRETKEY_OVERWRITE}
             - SECRETKEY_AWS_ACCESS_KEY=${SECRETKEY_AWS_ACCESS_KEY}
             - SECRETKEY_AWS_SECRET_KEY=${SECRETKEY_AWS_SECRET_KEY}
             - SECRETKEY_AWS_REGION=${SECRETKEY_AWS_REGION}
@@ -69,9 +69,9 @@ services:
             - CORS_ORIGINS=${CORS_ORIGINS}
             - IFRAME_ORIGINS=${IFRAME_ORIGINS}
             - CHATBOT_IFRAME_ORIGINS=${CHATBOT_IFRAME_ORIGINS}
-            - AUTONOMOUS_FILE_SIZE_LIMIT=${AUTONOMOUS_FILE_SIZE_LIMIT}
+            - KODIVIAN_FILE_SIZE_LIMIT=${KODIVIAN_FILE_SIZE_LIMIT}
             - SHOW_COMMUNITY_NODES=${SHOW_COMMUNITY_NODES}
-            - DISABLE_AUTONOMOUS_TELEMETRY=${DISABLE_AUTONOMOUS_TELEMETRY}
+            - DISABLE_KODIVIAN_TELEMETRY=${DISABLE_KODIVIAN_TELEMETRY}
             - DISABLED_NODES=${DISABLED_NODES}
             - MODEL_LIST_CONFIG_JSON=${MODEL_LIST_CONFIG_JSON}
 
@@ -101,7 +101,7 @@ services:
 
             # ENTERPRISE
             - LICENSE_URL=${LICENSE_URL}
-            - AUTONOMOUS_LICENSE_KEY=${AUTONOMOUS_LICENSE_KEY}
+            - KODIVIAN_LICENSE_KEY=${KODIVIAN_LICENSE_KEY}
             - OFFLINE=${OFFLINE}
 
             # METRICS COLLECTION
@@ -159,7 +159,7 @@ services:
             - DB_SSL=${DB_SSL}
             - ENABLE_TABLE_CREATION=${ENABLE_TABLE_CREATION}
 
-            # AUTONOMOUS SERVER MIGRATION
+            # KODIVIAN SERVER MIGRATION
             - APPBUILDER_SHORT_CODE=${APPBUILDER_SHORT_CODE}
             - APPDESIGNER_SHORT_CODE=${APPDESIGNER_SHORT_CODE}
             - APPPUBLISHER_SHORT_CODE=${APPPUBLISHER_SHORT_CODE}
@@ -199,5 +199,5 @@ services:
             retries: 5
             start_period: 30s
         volumes:
-            - ~/.autonomous:/root/.autonomous
-        entrypoint: /bin/sh -c "sleep 3; autonomous start"
+            - ~/.kodivian:/root/.kodivian
+        entrypoint: /bin/sh -c "sleep 3; kodivian start"

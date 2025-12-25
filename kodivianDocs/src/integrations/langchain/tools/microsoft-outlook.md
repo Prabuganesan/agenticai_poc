@@ -4,7 +4,7 @@
 
 A valid Microsoft 365 license assigned to the Azure Active Directory user. Refer: [https://learn.microsoft.com/en-us/answers/questions/761931/microsoft-graph-api-throws-the-mailbox-is-either-i](https://learn.microsoft.com/en-us/answers/questions/761931/microsoft-graph-api-throws-the-mailbox-is-either-i)
 
-## Create credential in Autonomous
+## Create credential in Kodivian
 
 1. Add a new Microsoft Outlook OAuth2 credential
 2. Enter a name for the credential.
@@ -41,7 +41,7 @@ A valid Microsoft 365 license assigned to the Azure Active Directory user. Refer
 
 <figure><img src="../../.././assets/image (203).png" alt="" width="563"><figcaption></figcaption></figure>
 
-## Finish setup in Autonomous
+## Finish setup in Kodivian
 
 1. Fill in all the values copied earlier. Then click "**Authenticate**":
 

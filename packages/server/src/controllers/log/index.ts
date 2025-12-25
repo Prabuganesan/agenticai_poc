@@ -16,7 +16,7 @@ const getLogs = async (req: Request, res: Response, next: NextFunction) => {
     }
 }
 
-// Get flag status (POST to match autonomous_old pattern)
+// Get flag status (POST to match kodivian_old pattern)
 const getFlags = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const status = getFlagStatus()

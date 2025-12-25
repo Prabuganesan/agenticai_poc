@@ -184,14 +184,14 @@ TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
 END OF TERMS AND CONDITIONS
 
 ------------------------------------------------------------
-ChainSys Modifications
+kodivian Modifications
 ------------------------------------------------------------
-This autonomous server contains proprietary modifications by
-ChainSys Corporation.
+This kodivian server contains proprietary modifications by
+kodivian Corporation.
 
-Modifications Copyright © 2025 ChainSys Corporation.
-This version includes enhancements and extensions developed by ChainSys.
+Modifications Copyright © 2025 kodivian Corporation.
+This version includes enhancements and extensions developed by kodivian.
 
-These modifications are owned by ChainSys and are not covered under
+These modifications are owned by kodivian and are not covered under
 the Flowise commercial or Apache 2.0 licenses. Redistribution or
 extraction of these modifications without authorization is prohibited.

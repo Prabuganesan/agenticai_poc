@@ -515,7 +515,7 @@
         "inputs": {
           "document": "",
           "embeddings": "{{openAIEmbeddings_0.data.instance}}",
-          "pineconeIndex": "Autonomousindex",
+          "pineconeIndex": "Kodivianindex",
           "pineconeNamespace": "pinecone-form10k",
           "pineconeMetadataFilter": "{\"source\":\"apple\"}",
           "topK": "",
@@ -879,7 +879,7 @@
         "inputs": {
           "document": "",
           "embeddings": "{{openAIEmbeddings_1.data.instance}}",
-          "pineconeIndex": "Autonomousindex",
+          "pineconeIndex": "Kodivianindex",
           "pineconeNamespace": "pinecone-form10k",
           "pineconeMetadataFilter": "{\"source\":\"tesla\"}",
           "topK": "",

@@ -118,7 +118,7 @@ class Searxng_Tools implements INode {
                 ],
                 default: 'json',
                 description:
-                    'Format of the response. You need to enable search formats in settings.yml. Refer to <a target="_blank" href="[AUTONOMOUS_DOCS]/integrations/langchain/tools/searxng">SearXNG Setup Guide</a> for more details.',
+                    'Format of the response. You need to enable search formats in settings.yml. Refer to <a target="_blank" href="[KODIVIAN_DOCS]/integrations/langchain/tools/searxng">SearXNG Setup Guide</a> for more details.',
                 additionalParams: true
             },
             {

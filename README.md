@@ -1,10 +1,10 @@
 <!-- markdownlint-disable MD030 -->
 
-# Autonomous
+# Kodivian
 
 **Build AI Agents, Visually**
 
-Autonomous is an enterprise-grade AI orchestration platform, customized for SmartAppBuilder clients. It provides a visual interface for building AI agents and LLM orchestration workflows.
+Kodivian is an enterprise-grade AI orchestration platform, customized for SmartAppBuilder clients. It provides a visual interface for building AI agents and LLM orchestration workflows.
 
 **Version**: 3.0.10 | **Node.js**: 22.21.1+ | **Last Updated**: December 2024
 
@@ -51,7 +51,7 @@ Download and Install [NodeJS](https://nodejs.org/en/download) >= 22.21.1
 
 ### Docker Compose
 
-1. Clone the Autonomous project
+1. Clone the Kodivian project
 2. Go to `docker` folder at the root of the project
 3. Copy `.env.example` file, paste it into the same location, and rename to `.env` file
 4. `docker compose up -d`
@@ -63,24 +63,24 @@ Download and Install [NodeJS](https://nodejs.org/en/download) >= 22.21.1
 1. Build the image locally:
 
     ```bash
-    docker build --no-cache -t autonomous .
+    docker build --no-cache -t kodivian .
     ```
 
 2. Run image:
 
     ```bash
-    docker run -d --name autonomous -p 3030:3030 autonomous
+    docker run -d --name kodivian -p 3030:3030 kodivian
     ```
 
 3. Stop image:
 
     ```bash
-    docker stop autonomous
+    docker stop kodivian
     ```
 
 ## 👨‍💻 Developers
 
-Autonomous has 3 different modules in a single mono repository.
+Kodivian has 3 different modules in a single mono repository.
 
 -   `server`: Node backend to serve API logics
 -   `ui`: React frontend
@@ -165,15 +165,15 @@ Autonomous has 3 different modules in a single mono repository.
 
 ## 🌱 Env Variables
 
-Autonomous supports different environment variables to configure your instance. You can specify the following variables in the `.env` file inside `packages/server` folder. See the `.env.example` file for available options.
+Kodivian supports different environment variables to configure your instance. You can specify the following variables in the `.env` file inside `packages/server` folder. See the `.env.example` file for available options.
 
 ## 📖 Documentation
 
 Comprehensive documentation is available in the `docs/` folder:
 
-- **[AUTONOMOUS_TECHNICAL_DOCUMENTATION.md](docs/AUTONOMOUS_TECHNICAL_DOCUMENTATION.md)** - Complete technical reference
+- **[KODIVIAN_TECHNICAL_DOCUMENTATION.md](docs/KODIVIAN_TECHNICAL_DOCUMENTATION.md)** - Complete technical reference
 - **[TECHNICAL_FLOW_DIAGRAMS.md](docs/TECHNICAL_FLOW_DIAGRAMS.md)** - Architecture and flow diagrams
-- **[AUTONOMOUS-TOOLS-ANALYSIS.md](docs/AUTONOMOUS-TOOLS-ANALYSIS.md)** - Available tools and analysis
+- **[KODIVIAN-TOOLS-ANALYSIS.md](docs/KODIVIAN-TOOLS-ANALYSIS.md)** - Available tools and analysis
 - **[CLEANUP_SUMMARY_FROM_FLOWISE.md](docs/CLEANUP_SUMMARY_FROM_FLOWISE.md)** - Migration and cleanup history
 
 **Key Topics:**
@@ -188,7 +188,7 @@ For additional help, see the Support section below.
 
 ## 🌐 Self Host
 
-Autonomous is designed for autonomous server deployment. You can deploy it in your own infrastructure using Docker or by building from source.
+Kodivian is designed for kodivian server deployment. You can deploy it in your own infrastructure using Docker or by building from source.
 
 ### Docker Deployment
 
@@ -201,12 +201,12 @@ See the [Docker](#-docker) section above for Docker Compose and Docker Image dep
 3. Build and start the application
 4. Deploy to your preferred hosting environment (AWS, Azure, GCP, etc.)
 
-For detailed deployment guides, refer to the [documentation](https://docs.autonomous.ai/configuration/deployment).
+For detailed deployment guides, refer to the [documentation](https://docs.kodivian.com/configuration/deployment).
 
 
 ## 🙋 Support
 
-For support, please contact: smartappbuilder_support@chainsys.com
+For support, please contact: smartappbuilder_support@kodivian.com
 
 
 ## 📄 License

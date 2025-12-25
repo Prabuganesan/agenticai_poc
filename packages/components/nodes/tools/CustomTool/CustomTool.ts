@@ -23,7 +23,7 @@ class CustomTool_Tools implements INode {
         this.type = 'CustomTool'
         this.icon = 'customtool.svg'
         this.category = 'Tools'
-        this.description = `Use custom tool you've created in Autonomous within chatflow`
+        this.description = `Use custom tool you've created in Kodivian within chatflow`
         this.inputs = [
             {
                 label: 'Select Tool',

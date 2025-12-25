@@ -30,7 +30,7 @@ class SQLiteRecordManager_RecordManager implements INode {
                 label: 'Database File Path',
                 name: 'databaseFilePath',
                 type: 'string',
-                placeholder: 'C:\\Users\\User\\.autonomous\\database.sqlite'
+                placeholder: 'C:\\Users\\User\\.kodivian\\database.sqlite'
             },*/
             {
                 label: 'Additional Connection Configuration',
@@ -116,7 +116,7 @@ class SQLiteRecordManager_RecordManager implements INode {
             }
         }
 
-        const database = path.join(process.env.DATABASE_PATH ?? path.join(getUserHome(), '.autonomous'), 'database.sqlite')
+        const database = path.join(process.env.DATABASE_PATH ?? path.join(getUserHome(), '.kodivian'), 'database.sqlite')
 
         const sqliteOptions = {
             database,
@@ -131,8 +131,8 @@ class SQLiteRecordManager_RecordManager implements INode {
 
         const recordManager = new SQLiteRecordManager(namespace, args)
 
-        ;(recordManager as any).cleanup = cleanup
-        ;(recordManager as any).sourceIdKey = sourceIdKey
+            ; (recordManager as any).cleanup = cleanup
+            ; (recordManager as any).sourceIdKey = sourceIdKey
 
         return recordManager
     }

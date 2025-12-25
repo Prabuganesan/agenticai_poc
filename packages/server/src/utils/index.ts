@@ -37,7 +37,7 @@ import {
     ICommonObject,
     IDatabaseEntity,
     IMessage,
-    AutonomousMemory,
+    KodivianMemory,
     IFileUpload,
     getS3Config
 } from 'kodivian-components'
@@ -102,21 +102,21 @@ export const getUserHome = (): string => {
  * Uses KODIVIAN_DATA_PATH if set, otherwise uses .kodivian inside the server folder
  * This ensures all kodivian server data (database, encryption key, uploads) is in one place
  */
-export const getAutonomousDataPath = (): string => {
+export const getKodivianDataPath = (): string => {
     if (process.env.KODIVIAN_DATA_PATH) {
         return path.join(process.env.KODIVIAN_DATA_PATH, '.kodivian')
     }
-    // Default to .autonomous inside the server package directory
+    // Default to .kodivian inside the server package directory
     // __dirname in compiled code will be dist/utils, so we go up to server root
     const serverRoot = path.resolve(__dirname, '..', '..')
-    return path.join(serverRoot, '.autonomous')
+    return path.join(serverRoot, '.kodivian')
 }
 
 /**
  * Ensures the kodivian server data directory exists
  */
-export const ensureAutonomousDataPath = (): void => {
-    const dataPath = getAutonomousDataPath()
+export const ensureKodivianDataPath = (): void => {
+    const dataPath = getKodivianDataPath()
     if (!fs.existsSync(dataPath)) {
         fs.mkdirSync(dataPath, { recursive: true })
     }
@@ -132,7 +132,7 @@ export const getNodeModulesPackagePath = (packageName: string): string => {
     const packageDirMap: Record<string, string> = {
         'kodivian-ui': 'ui',
         'kodivian-components': 'components',
-        'autonomous-api': 'api-documentation'
+        'kodivian-api': 'api-documentation'
     }
     const packageDir = packageDirMap[packageName] || packageName
 
@@ -943,7 +943,7 @@ export const clearSessionMemory = async (
                 await newNodeInstance.clearChatMessages(node.data, options, { type: 'threadId', id: sessionId })
             } else {
                 node.data.inputs.sessionId = sessionId
-                const initializedInstance: AutonomousMemory = await newNodeInstance.init(node.data, '', options)
+                const initializedInstance: KodivianMemory = await newNodeInstance.init(node.data, '', options)
                 await initializedInstance.clearChatMessages(sessionId)
             }
         } else if (chatId && node.data.inputs) {
@@ -951,7 +951,7 @@ export const clearSessionMemory = async (
                 await newNodeInstance.clearChatMessages(node.data, options, { type: 'chatId', id: chatId })
             } else {
                 node.data.inputs.sessionId = chatId
-                const initializedInstance: AutonomousMemory = await newNodeInstance.init(node.data, '', options)
+                const initializedInstance: KodivianMemory = await newNodeInstance.init(node.data, '', options)
                 await initializedInstance.clearChatMessages(chatId)
             }
         }
@@ -1696,11 +1696,11 @@ export const isFlowValidForStream = (reactFlowNodes: IReactFlowNode[], endingNod
 }
 
 /**
- * Get encryption key backup path (in .autonomous/backup/ folder)
+ * Get encryption key backup path (in .kodivian/backup/ folder)
  * @returns {string} Path to backup encryption key file
  */
 const getEncryptionKeyBackupPath = (): string => {
-    const dataPath = getAutonomousDataPath()
+    const dataPath = getKodivianDataPath()
     const backupDir = path.join(dataPath, 'backup')
     return path.join(backupDir, 'encryption.key')
 }
@@ -1762,8 +1762,8 @@ export const getEncryptionKey = async (): Promise<string> => {
     // In cluster environments, multiple instances may try to create simultaneously
     // First instance creates it, others will read it on retry
     const encryptKey = generateEncryptKey()
-    const dataPath = getAutonomousDataPath()
-    ensureAutonomousDataPath() // Ensure directory exists before writing
+    const dataPath = getKodivianDataPath()
+    ensureKodivianDataPath() // Ensure directory exists before writing
 
     try {
         // Use 'wx' flag to create file exclusively (fails if file already exists)
@@ -1966,7 +1966,7 @@ export const getSessionChatHistory = async (
         memoryNode.data.inputs.sessionId = sessionId
     }
 
-    const initializedInstance: AutonomousMemory = await newNodeInstance.init(memoryNode.data, '', {
+    const initializedInstance: KodivianMemory = await newNodeInstance.init(memoryNode.data, '', {
         chatflowid,
         appDataSource,
         databaseEntities,
@@ -2089,9 +2089,9 @@ export const getAPIOverrideConfig = (chatflow: IChatFlow) => {
 
 export const getUploadPath = (): string => {
     // Use centralized kodivian server data path
-    const dataPath = getAutonomousDataPath()
+    const dataPath = getKodivianDataPath()
     const uploadPath = path.join(dataPath, 'uploads')
-    ensureAutonomousDataPath() // Ensure base directory exists
+    ensureKodivianDataPath() // Ensure base directory exists
     if (!fs.existsSync(uploadPath)) {
         fs.mkdirSync(uploadPath, { recursive: true })
     }

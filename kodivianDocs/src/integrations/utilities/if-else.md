@@ -1,6 +1,6 @@
 # If Else
 
-Autonomous allows you to split your chatflow into different branches depending on If/Else condition.
+Kodivian allows you to split your chatflow into different branches depending on If/Else condition.
 
 <figure><img src="../.././assets/image (5) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (2) (1).png" alt=""><figcaption></figcaption></figure>
 

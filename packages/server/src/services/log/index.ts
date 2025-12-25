@@ -5,7 +5,7 @@ import { InternalKodivianError } from '../../errors/internalKodivianError'
 import { getErrorMessage } from '../../errors/utils'
 import readline from 'readline'
 import config from '../../utils/config'
-import { getAutonomousDataPath } from '../../utils'
+import { getKodivianDataPath } from '../../utils'
 import { getFlagStatus } from '../../utils/logger/env-flag-loader'
 import { isGroupEnabled } from '../../utils/logger/flag-checker'
 
@@ -783,7 +783,7 @@ const getLogs = async (startDate?: string, endDate?: string) => {
         const files = generateDateRange(startDate, endDate)
 
         // Use KODIVIAN_DATA_PATH/.kodivian/logs for log files
-        const dataPath = getAutonomousDataPath()
+        const dataPath = getKodivianDataPath()
         const logsPath = path.join(dataPath, 'logs')
 
         // Ensure logs directory exists

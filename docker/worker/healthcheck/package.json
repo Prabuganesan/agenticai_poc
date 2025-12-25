@@ -1,7 +1,7 @@
 {
-  "name": "autonomous-worker-healthcheck",
+  "name": "kodivian-worker-healthcheck",
   "version": "1.0.0",
-  "description": "Simple healthcheck server for Autonomous worker",
+  "description": "Simple healthcheck server for Kodivian worker",
   "main": "healthcheck.js",
   "private": true,
   "scripts": {

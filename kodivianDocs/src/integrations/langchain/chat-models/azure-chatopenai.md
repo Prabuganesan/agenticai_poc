@@ -19,13 +19,13 @@
 
 <figure><img src="../../.././assets/image (2) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1).png" alt="" width="563"><figcaption></figcaption></figure>
 
-4. Voila [🎉](https://emojipedia.org/party-popper/), you can now use **ChatOpenAI node** in Autonomous
+4. Voila [🎉](https://emojipedia.org/party-popper/), you can now use **ChatOpenAI node** in Kodivian
 
 <figure><img src="../../.././assets/image (3) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
 
 ## Custom base URL and headers
 
-Autonomous supports using custom base URL and headers for Chat OpenAI. Users can easily use integrations like OpenRouter, TogetherAI and others that support OpenAI API compatibility.
+Kodivian supports using custom base URL and headers for Chat OpenAI. Users can easily use integrations like OpenRouter, TogetherAI and others that support OpenAI API compatibility.
 
 ### TogetherAI
 
@@ -53,7 +53,7 @@ For models that are not supported on ChatOpenAI node, you can use ChatOpenAI Cus
 
 ## Image Upload
 
-You can also allow images to be uploaded and analyzed by LLM. Under the hood, Autonomous will use [OpenAI Vison ](https://platform.openai.com/docs/guides/vision)model to process the image. Only works with LLMChain, Conversation Chain, ReAct Agent, and Conversational Agent.
+You can also allow images to be uploaded and analyzed by LLM. Under the hood, Kodivian will use [OpenAI Vison ](https://platform.openai.com/docs/guides/vision)model to process the image. Only works with LLMChain, Conversation Chain, ReAct Agent, and Conversational Agent.
 
 <figure><img src="../../.././assets/image (3) (1) (1) (1) (1) (1) (1) (2).png" alt="" width="332"><figcaption></figcaption></figure>
 

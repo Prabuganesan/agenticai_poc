@@ -92,7 +92,7 @@ This module provides a sophisticated web crawler that can:
 
 1. _(Optional)_ Connect [**Text Splitter**](../text-splitters/).
 2. Connect Apify API (create a new credential with your [Apify API token](https://my.apify.com/account#/integrations)).
-3. Input one or more URLs (separated by commas) where the crawler will start, e.g `https://docs.Autonomousai.com/`.
+3. Input one or more URLs (separated by commas) where the crawler will start, e.g `https://docs.Kodivianai.com/`.
 4. Select the crawler type. Refer to [Website Content Crawler documentation for more information](https://apify.com/apify/website-content-crawler/input-schema#crawlerType).
 5. _(Optional)_ Specify additional parameters such as maximum crawling depth and the maximum number of pages to crawl.
 
@@ -102,5 +102,5 @@ Loads website content as a Document.
 
 ## Resources
 
-* [Apify-Autonomous integration](https://docs.apify.com/platform/integrations/Autonomous)
+* [Apify-Kodivian integration](https://docs.apify.com/platform/integrations/Kodivian)
 * [Website Content Crawler](https://apify.com/apify/website-content-crawler)

@@ -1,15 +1,15 @@
 <!-- markdownlint-disable MD030 -->
 
-# Autonomous API Docs
+# Kodivian API Docs
 
 
-A list of Autonomous public APIs, allowing users to programmatically execute many of the same tasks as the same in the GUI.
+A list of Kodivian public APIs, allowing users to programmatically execute many of the same tasks as the same in the GUI.
 
 To run this standalone:
 
-1. Spin up Autonomous server:
+1. Spin up Kodivian server:
     ```sh
-    cd autonomous
+    cd kodivian
     pnpm start
     ```
 2. Start API Docs server:
@@ -21,7 +21,7 @@ To run this standalone:
 To run in dev mode:
 
 ```sh
-cd autonomous
+cd kodivian
 pnpm dev
 ```
 

@@ -15,24 +15,24 @@ const swaggerUiOptions = {
     definition: {
         openapi: '3.0.3',
         info: {
-            title: 'Autonomous APIs',
+            title: 'Kodivian APIs',
             summary: 'Interactive swagger-ui auto-generated API docs from express, based on a swagger.yml file',
             version: '1.0.0',
             description:
-                'This module serves auto-generated swagger-ui generated API docs from Autonomous express backend, based on a swagger.yml file. Swagger is available on: http://localhost:6655/api-docs',
+                'This module serves auto-generated swagger-ui generated API docs from Kodivian express backend, based on a swagger.yml file. Swagger is available on: http://localhost:6655/api-docs',
             license: {
                 name: 'Apache 2.0',
                 url: ''
             },
             contact: {
-                name: 'AutonomousAI',
-                email: 'smartappbuilder_support@chainsys.com '
+                name: 'KodivianAI',
+                email: 'smartappbuilder_support@kodivian.com '
             }
         },
         servers: [
             {
                 url: `${getServerURL()}/api/v1`,
-                description: 'Autonomous Server'
+                description: 'Kodivian Server'
             }
         ]
     },

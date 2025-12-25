@@ -14,7 +14,7 @@ import { OrganizationConfigService } from '../services/org-config.service'
 import { logInfo, logWarn } from '../utils/logger/system-helper'
 import { getErrorMessage } from '../errors/utils'
 
-const QUEUE_NAME = process.env.QUEUE_NAME || 'autonomous-queue'
+const QUEUE_NAME = process.env.QUEUE_NAME || 'kodivian-queue'
 
 type QUEUE_TYPE = 'prediction' | 'upsert'
 

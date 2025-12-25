@@ -26,14 +26,14 @@ export function createSessionValidationMiddleware(
     return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
         try {
             // Only check for kodivian server token (KODIID) - exact logic from kodivian server
-            const autonomousToken = req.cookies?.KODIID
+            const kodivianToken = req.cookies?.KODIID
 
-            if (!autonomousToken) {
+            if (!kodivianToken) {
                 return res.status(401).json({ error: 'Session Expired' })
             }
 
-            // Validate autonomous token (exact logic from kodivian server)
-            return await validateAutonomousToken(autonomousToken, req, res, next)
+            // Validate kodivian token (exact logic from kodivian server)
+            return await validateKodivianToken(kodivianToken, req, res, next)
         } catch (error) {
             logError(
                 `Session authentication error (url: ${req.url}): ${error instanceof Error ? error.message : String(error)}`,
@@ -47,8 +47,8 @@ export function createSessionValidationMiddleware(
      * Validate kodivian server session
      * EXACT IMPLEMENTATION from kodivian server
      */
-    async function validateAutonomousToken(token: string, req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-        // Extract orgId from token (format: {uuid}$${chainsysSessionId}$${userId}$$Auto{orgId})
+    async function validateKodivianToken(token: string, req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+        // Extract orgId from token (format: {uuid}$${kodivianSessionId}$${userId}$$Auto{orgId})
         // EXACT LOGIC from kodivian server
         const parts = token.split('$$')
         const autoPart = parts[parts.length - 1] // "Kodi{orgId}"
@@ -82,7 +82,7 @@ export function createSessionValidationMiddleware(
                 // Silently fail - logging should not break authentication
             }
 
-            res.status(401).json({ error: 'Autonomous session expired' })
+            res.status(401).json({ error: 'Kodivian session expired' })
             return
         }
 
@@ -126,7 +126,7 @@ export function createSessionValidationMiddleware(
         }
         req.orgId = orgId
         req.userId = session.userId
-        req.sessionType = 'AUTONOMOUS'
+        req.sessionType = 'KODIVIAN'
 
         // Validate orgId in request body matches session orgId (if provided)
         if (req.body && req.body.orgId && req.body.orgId !== orgId) {

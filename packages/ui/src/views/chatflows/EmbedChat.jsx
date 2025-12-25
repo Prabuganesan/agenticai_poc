@@ -62,7 +62,7 @@ export const defaultThemeConfig = {
     },
     disclaimer: {
         title: 'Disclaimer',
-        message: 'By using this chatbot, you agree to the <a target="_blank" href="https://chainsys.com/terms">Terms & Condition</a>',
+        message: 'By using this chatbot, you agree to the <a target="_blank" href="https://kodivian.com/terms">Terms & Condition</a>',
         textColor: 'black',
         buttonColor: '#3b82f6',
         buttonText: 'Start Chatting',
@@ -71,11 +71,11 @@ export const defaultThemeConfig = {
         backgroundColor: 'white'
     },
     customCSS: `
-        [id*="autonomous-chatbot"], [class*="autonomous-chatbot"], [id*="chatbot-button"], [class*="chatbot-button"] {
+        [id*="kodivian-chatbot"], [class*="kodivian-chatbot"], [id*="chatbot-button"], [class*="chatbot-button"] {
             background-color: #ffffff !important;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
         }
-        [id*="autonomous-chatbot"] img, [class*="autonomous-chatbot"] img, [id*="chatbot-button"] img, [class*="chatbot-button"] img, img[alt*="Bubble"], img[alt*="button"], img.rounded-full {
+        [id*="kodivian-chatbot"] img, [class*="kodivian-chatbot"] img, [id*="chatbot-button"] img, [class*="chatbot-button"] img, img[alt*="Bubble"], img[alt*="button"], img.rounded-full {
             width: 50px !important;
             height: 30px !important;
             object-fit: contain !important;

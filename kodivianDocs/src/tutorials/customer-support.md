@@ -293,7 +293,7 @@ Refer to [Event Management Server](interacting-with-api.md#prerequisite) for the
 
 <figure><img src=".././assets/image (326).png" alt="" width="204"><figcaption></figcaption></figure>
 
-1. Add a third **Agent** node and connect it to **Condition 2** output. This will act as a fallback route that can answer any non-related query. Can also be replaced by [Direct Reply](../using-Autonomous/agentflow.md#id-12.-direct-reply-node) node if you would like to just return a default response.
+1. Add a third **Agent** node and connect it to **Condition 2** output. This will act as a fallback route that can answer any non-related query. Can also be replaced by [Direct Reply](../using-Kodivian/agentflow.md#id-12.-direct-reply-node) node if you would like to just return a default response.
 2. **Configuration**:
    * No additional tools required for general inquiries
    * No knowledge sources needed

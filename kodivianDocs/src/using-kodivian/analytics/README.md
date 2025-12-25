@@ -6,11 +6,11 @@ description: Learn how to analyze and troubleshoot your chatflows and agentflows
 
 ***
 
-Autonomous provides step by step tracing for [Agentflow](../agentflow.md):
+Kodivian provides step by step tracing for [Agentflow](../agentflow.md):
 
 <figure><img src="../.././assets/image (332).png" alt=""><figcaption></figcaption></figure>
 
-Besides, there are also several analytic providers Autonomous integrates with:
+Besides, there are also several analytic providers Kodivian integrates with:
 
 * [LunaryAI](https://lunary.ai/)
 * [Langsmith](https://smith.langchain.com/)

@@ -1,5 +1,5 @@
 ---
-description: Learn how Autonomous integrates with the LlamaIndex framework
+description: Learn how Kodivian integrates with the LlamaIndex framework
 ---
 
 # LlamaIndex
@@ -8,7 +8,7 @@ description: Learn how Autonomous integrates with the LlamaIndex framework
 
 [LlamaIndex](https://www.llamaindex.ai/) is a data framework for LLM applications to ingest, structure, and access private or domain-specific data. It has advanced retrieval techniques for designing RAG (Retrieval Augmented Generation) apps.
 
-Autonomous complements LlamaIndex by offering a visual interface. Here, nodes are organized into distinct sections, making it easier to build workflows.
+Kodivian complements LlamaIndex by offering a visual interface. Here, nodes are organized into distinct sections, making it easier to build workflows.
 
 ### LlamaIndex Sections:
 

@@ -1,11 +1,11 @@
-# Autonomous Nodes Analysis - Complete List
+# Kodivian Nodes Analysis - Complete List
 
 ## Overview
 
-This document provides a comprehensive analysis of **all node types** available in Autonomous, organized by category. This includes tools, agents, chains, chat models, embeddings, vector stores, memory, and all other node types.
+This document provides a comprehensive analysis of **all node types** available in Kodivian, organized by category. This includes tools, agents, chains, chat models, embeddings, vector stores, memory, and all other node types.
 
 **Context:**
-- Autonomous supports **multi-org** based on `orgId` (managed by external admin app)
+- Kodivian supports **multi-org** based on `orgId` (managed by external admin app)
 - Each client typically has their own instance (production)
 - Development uses single instance with multi-org
 - Configuration is restricted by `userId`
@@ -676,7 +676,7 @@ Speech-to-text nodes convert audio to text.
 
 ## Conclusion
 
-The Autonomous platform provides **281 total nodes** across 22 categories, covering all aspects of LLM application development:
+The Kodivian platform provides **281 total nodes** across 22 categories, covering all aspects of LLM application development:
 
 - **Agentflow & Agents**: Multi-agent workflows and agent architectures
 - **Tools**: Extensive tool ecosystem for agent capabilities

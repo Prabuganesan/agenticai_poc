@@ -1,6 +1,6 @@
 # Buffer Window Memory
 
-Use Autonomous database table `chat_message` as the storage mechanism for storing/retrieving conversations.
+Use Kodivian database table `chat_message` as the storage mechanism for storing/retrieving conversations.
 
 Difference being it only fetches the last K interactions. This approach is beneficial for preserving a sliding window of the most recent interactions, ensuring the buffer remains manageable in size.
 

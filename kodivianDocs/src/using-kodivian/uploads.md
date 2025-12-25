@@ -4,7 +4,7 @@ description: Learn how to use upload images, audio, and other files
 
 # Uploads
 
-Autonomous lets you upload images, audio, and other files from the chat. In this section, you'll learn how to enable and use these features.
+Kodivian lets you upload images, audio, and other files from the chat. In this section, you'll learn how to enable and use these features.
 
 ## Image
 
@@ -46,7 +46,7 @@ output = query({
         {
             "data": "data:image/png;base64,iVBORw0KGgdM2uN0", # base64 string or url
             "type": "file", # file | url
-            "name": "Autonomous.png",
+            "name": "Kodivian.png",
             "mime": "image/png"
         }
     ]
@@ -77,7 +77,7 @@ query({
         {
             "data": "data:image/png;base64,iVBORw0KGgdM2uN0", //base64 string or url
             "type": "file", // file | url
-            "name": "Autonomous.png",
+            "name": "Kodivian.png",
             "mime": "image/png"
         }
     ]
@@ -200,8 +200,8 @@ Here's how it works:
 2. This associates the file with the chatId.
 3. When querying, an **OR** filter applies:
 
-* Metadata contains `Autonomous_chatId`, and the value is the current chat session ID
-* Metadata does not contain `Autonomous_chatId`
+* Metadata contains `Kodivian_chatId`, and the value is the current chat session ID
+* Metadata does not contain `Kodivian_chatId`
 
 An example of a vector embedding upserted on Pinecone:
 

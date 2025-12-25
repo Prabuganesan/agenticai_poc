@@ -13,7 +13,7 @@ export class SessionService {
      * Validate session - for single-org, always returns default user
      * No Redis lookup, no designer service call
      */
-    async validateChainsysSession(orgId: string, chainsysSessionId: string): Promise<any> {
+    async validateKodivianSession(orgId: string, kodivianSessionId: string): Promise<any> {
         logInfo(`Session validated (single-org mode) - orgId: ${orgId}`).catch(() => { })
 
         // Return default user data for single-org mode

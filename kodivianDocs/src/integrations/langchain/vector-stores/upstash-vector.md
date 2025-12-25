@@ -7,7 +7,7 @@
    <figure><img src="../../.././assets/upstash/list-index.jpeg" alt=""><figcaption></figcaption></figure>
 3. Do the necessary configurations and create the index.
 
-   1. **Index Name**, name of the index to be created. (e.g. "Autonomous-upstash-demo")
+   1. **Index Name**, name of the index to be created. (e.g. "Kodivian-upstash-demo")
    2. **Dimensions**, size of the vectors to be inserted in the index. (e.g. 1536)
    3. **Embedding Model**, the model to be used in [Upstash Embeddings](https://upstash.com/docs/vector/features/embeddingmodels). This is optional. If you enable it, you don't need to provide embeddings model.
 
@@ -33,7 +33,7 @@
    - **Document** can be connected with any node under [**Document Loader**](../document-loaders/) category
    - **Embeddings** can be connected with any node under [**Embeddings** ](../embeddings/)category
 
-<figure><img src="../../.././assets/upstash/Autonomous-design.jpeg" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.././assets/upstash/Kodivian-design.jpeg" alt=""><figcaption></figcaption></figure>
 
 1. Verify from [Upstash dashboard](https://console.upstash.com) to see if data has been successfully updated:
 

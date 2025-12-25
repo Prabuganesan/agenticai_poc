@@ -1,4 +1,4 @@
-# Autonomous Functional Features Documentation
+# Kodivian Functional Features Documentation
 
 ## Table of Contents
 
@@ -23,7 +23,7 @@
 
 ## Overview
 
-Autonomous is an enterprise AI agent platform that enables users to build, deploy, and manage AI-powered conversational agents and multi-agent workflows. The platform provides a visual flow builder, extensive node library, and comprehensive management tools.
+Kodivian is an enterprise AI agent platform that enables users to build, deploy, and manage AI-powered conversational agents and multi-agent workflows. The platform provides a visual flow builder, extensive node library, and comprehensive management tools.
 
 ### Key Capabilities
 
@@ -368,7 +368,7 @@ Utility nodes for common operations.
 #### 2. Streaming Responses
 - **Server-Sent Events (SSE)**: Real-time response streaming
 - **Token-by-Token**: Responses streamed as generated
-- **Client Integration**: Use EventSource API or Autonomous embed
+- **Client Integration**: Use EventSource API or Kodivian embed
 
 **Configuration**:
 - Enable streaming in chatbot config
@@ -1037,7 +1037,7 @@ curl -X POST https://api.example.com/api/v1/prediction/:id \
 
 ### Chatbot Embedding
 
-**Purpose**: Embed Autonomous chatbots into external websites.
+**Purpose**: Embed Kodivian chatbots into external websites.
 
 **Features**:
 - **Iframe Embedding**: Embed via iframe
@@ -1407,5 +1407,5 @@ curl -X POST https://api.example.com/api/v1/prediction/:id \
 
 ## Conclusion
 
-This functional features documentation provides a comprehensive overview of Autonomous's user-facing features, workflows, and capabilities. For technical implementation details, refer to the Technical Documentation.
+This functional features documentation provides a comprehensive overview of Kodivian's user-facing features, workflows, and capabilities. For technical implementation details, refer to the Technical Documentation.
 

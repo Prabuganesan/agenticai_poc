@@ -2,11 +2,11 @@
 
 ### Install Git
 
-First, install Git and clone Autonomous repository. You can follow the steps from the [Get Started](broken-reference) guide.
+First, install Git and clone Kodivian repository. You can follow the steps from the [Get Started](broken-reference) guide.
 
 ### Structure
 
-Autonomous separate every node integration under the folder `packages/components/nodes`. Let's try to create a simple Tool!
+Kodivian separate every node integration under the folder `packages/components/nodes`. Let's try to create a simple Tool!
 
 ### Create Calculator Tool
 

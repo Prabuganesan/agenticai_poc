@@ -19,7 +19,7 @@
 
 <figure><img src="../../.././assets/image (2) (1) (1) (1) (1) (2) (1).png" alt=""><figcaption></figcaption></figure>
 
-6. Back to Autonomous canvas, drag and drop Astra node. Click **Create New** from the Credentials dropdown:
+6. Back to Kodivian canvas, drag and drop Astra node. Click **Create New** from the Credentials dropdown:
 
 <figure><img src="../../.././assets/image (4) (1) (1) (1) (1) (2).png" alt="" width="235"><figcaption></figcaption></figure>
 

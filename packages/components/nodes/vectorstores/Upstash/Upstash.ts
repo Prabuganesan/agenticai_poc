@@ -1,6 +1,6 @@
 import { flatten } from 'lodash'
 import { IndexingResult, INode, INodeOutputsValue, INodeParams, INodeData, ICommonObject } from '../../../src/Interface'
-import { AUTONOMOUS_CHATID, getBaseClasses, getCredentialData, getCredentialParam } from '../../../src/utils'
+import { KODIVIAN_CHATID, getBaseClasses, getCredentialData, getCredentialParam } from '../../../src/utils'
 import { Embeddings } from '@langchain/core/embeddings'
 import { Document } from '@langchain/core/documents'
 import { UpstashVectorStore } from '@langchain/community/vectorstores/upstash'
@@ -129,7 +129,7 @@ class Upstash_VectorStores implements INode {
             for (let i = 0; i < flattenDocs.length; i += 1) {
                 if (flattenDocs[i] && flattenDocs[i].pageContent) {
                     if (isFileUploadEnabled && options.chatId) {
-                        flattenDocs[i].metadata = { ...flattenDocs[i].metadata, [AUTONOMOUS_CHATID]: options.chatId }
+                        flattenDocs[i].metadata = { ...flattenDocs[i].metadata, [KODIVIAN_CHATID]: options.chatId }
                     }
                     finalDocs.push(new Document(flattenDocs[i]))
                 }
@@ -222,8 +222,8 @@ class Upstash_VectorStores implements INode {
             obj.filter = upstashMetadataFilter
         }
         if (isFileUploadEnabled && options.chatId) {
-            if (upstashMetadataFilter) obj.filter += ` OR ${AUTONOMOUS_CHATID} = "${options.chatId}" OR HAS NOT FIELD ${AUTONOMOUS_CHATID}`
-            else obj.filter = `${AUTONOMOUS_CHATID} = "${options.chatId}" OR HAS NOT FIELD ${AUTONOMOUS_CHATID}`
+            if (upstashMetadataFilter) obj.filter += ` OR ${KODIVIAN_CHATID} = "${options.chatId}" OR HAS NOT FIELD ${KODIVIAN_CHATID}`
+            else obj.filter = `${KODIVIAN_CHATID} = "${options.chatId}" OR HAS NOT FIELD ${KODIVIAN_CHATID}`
         }
 
         const vectorStore = await UpstashVectorStore.fromExistingIndex(embeddings, obj)

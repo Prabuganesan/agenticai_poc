@@ -75,10 +75,10 @@ The Deep Research Agent workflow consists of several key components working toge
 {
   "subagents": [
     {
-      "task": "Research the current state and recent developments in autonomous multi-agent systems technology. Focus on defining what autonomous multi-agent systems are, key technical components (coordination algorithms, communication protocols, decision-making frameworks), major technological advances in the last 2-3 years, and leading research institutions/companies working in this space. Use web search to find recent academic papers, industry reports, and technical documentation. Prioritize sources from IEEE, ACM, Nature, Science, and major tech companies' research divisions. Compile findings into a comprehensive technical overview covering definitions, core technologies, recent breakthroughs, and key players in the field."
+      "task": "Research the current state and recent developments in kodivian multi-agent systems technology. Focus on defining what kodivian multi-agent systems are, key technical components (coordination algorithms, communication protocols, decision-making frameworks), major technological advances in the last 2-3 years, and leading research institutions/companies working in this space. Use web search to find recent academic papers, industry reports, and technical documentation. Prioritize sources from IEEE, ACM, Nature, Science, and major tech companies' research divisions. Compile findings into a comprehensive technical overview covering definitions, core technologies, recent breakthroughs, and key players in the field."
     },
     {
-      "task": "Investigate real-world applications and deployments of autonomous multi-agent systems across different industries. Research specific use cases in robotics (swarm robotics, warehouse automation), transportation (autonomous vehicle fleets, traffic management), manufacturing (coordinated production systems), defense/military applications, smart cities, and any other domains where these systems are actively deployed. For each application area, identify specific companies, products, success stories, and quantitative results where available. Focus on practical implementations rather than theoretical research. Use web search to find case studies, company announcements, industry reports, and news articles about actual deployments."
+      "task": "Investigate real-world applications and deployments of kodivian multi-agent systems across different industries. Research specific use cases in robotics (swarm robotics, warehouse automation), transportation (kodivian vehicle fleets, traffic management), manufacturing (coordinated production systems), defense/military applications, smart cities, and any other domains where these systems are actively deployed. For each application area, identify specific companies, products, success stories, and quantitative results where available. Focus on practical implementations rather than theoretical research. Use web search to find case studies, company announcements, industry reports, and news articles about actual deployments."
     }
   ]
 }  
@@ -163,7 +163,7 @@ The Deep Research Agent workflow consists of several key components working toge
 
 ## Testing the Flow
 
-1. Start with a simple topic like "Autonomous Multi-Agent Systems in Real-World Environments"
+1. Start with a simple topic like "Kodivian Multi-Agent Systems in Real-World Environments"
 2. Observe how the Planner breaks down the research into focused tasks
 3. Monitor the SubAgents as they conduct parallel research
 4. Review the Writer Agent's synthesis of findings

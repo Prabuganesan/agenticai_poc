@@ -9,40 +9,40 @@ const CACHE_TTL = 15 * 60 * 1000 // 15 minutes cache
 // loadSimpleCrypto function removed - SimpleCrypto is imported directly
 
 /**
- * Get decrypted autonomousStore with caching
+ * Get decrypted kodivianStore with caching
  * This avoids decrypting on every orgId/userId access
  */
 const getDecryptedStore = () => {
     const now = Date.now()
-    
+
     // Return cached store if still valid
     if (cachedDecryptedStore && (now - cacheTimestamp) < CACHE_TTL) {
         return cachedDecryptedStore
     }
-    
+
     try {
-        const autonomousStoreStr = localStorage.getItem('autonomousStore')
-        if (!autonomousStoreStr) {
+        const kodivianStoreStr = localStorage.getItem('kodivianStore')
+        if (!kodivianStoreStr) {
             return null
         }
 
-        let encryptedString = autonomousStoreStr
+        let encryptedString = kodivianStoreStr
         try {
-            const parsed = JSON.parse(autonomousStoreStr)
-            encryptedString = typeof parsed === 'string' ? parsed : autonomousStoreStr
+            const parsed = JSON.parse(kodivianStoreStr)
+            encryptedString = typeof parsed === 'string' ? parsed : kodivianStoreStr
         } catch (parseError) {
-            encryptedString = autonomousStoreStr
+            encryptedString = kodivianStoreStr
         }
 
         const cryptoKey = import.meta.env.VITE_SIMPLE_CRYPTO_KEY || process.env.REACT_APP_SIMPLE_CRYPTO_KEY || '$mrT@pP-6!dr'
         // SimpleCrypto is already imported at top level - use it directly
         const simpleCrypto = new SimpleCrypto(cryptoKey)
         const decryptedStore = simpleCrypto.decryptObject(encryptedString)
-        
+
         // Cache the result
         cachedDecryptedStore = decryptedStore
         cacheTimestamp = now
-        
+
         return decryptedStore
     } catch (error) {
         // Silently fail - return null if decryption fails
@@ -51,7 +51,7 @@ const getDecryptedStore = () => {
 }
 
 /**
- * Clear the cache (useful when autonomousStore is updated)
+ * Clear the cache (useful when kodivianStore is updated)
  */
 const clearCache = () => {
     cachedDecryptedStore = null
@@ -95,7 +95,7 @@ const clearAllCookies = () => {
 /**
  * Extract user data from login response
  * Only extract essential fields: id, email, name
- * orgId and userId are NOT stored in Redux - they come from autonomousStore (encrypted)
+ * orgId and userId are NOT stored in Redux - they come from kodivianStore (encrypted)
  */
 const extractUser = (payload) => {
     const user = {
@@ -109,7 +109,7 @@ const extractUser = (payload) => {
 
 /**
  * Update Redux state and localStorage
- * Note: orgId and userId are NOT stored in localStorage or Redux - they come from autonomousStore (encrypted)
+ * Note: orgId and userId are NOT stored in localStorage or Redux - they come from kodivianStore (encrypted)
  * Clear cache when user updates to ensure fresh data
  */
 const updateStateAndLocalStorage = (state, payload) => {
@@ -120,7 +120,7 @@ const updateStateAndLocalStorage = (state, payload) => {
     state.features = payload.features || {}
     state.isAuthenticated = true
     state.isGlobal = true // Always true for kodivian server
-    
+
     // Store only non-sensitive user info in localStorage
     const userForStorage = {
         id: user.id,
@@ -128,19 +128,19 @@ const updateStateAndLocalStorage = (state, payload) => {
         name: user.name
         // orgId and userId are NOT stored here - use getOrgIdFromStore() instead
     }
-    
+
     localStorage.setItem('isAuthenticated', 'true')
     localStorage.setItem('isGlobal', 'true')
     localStorage.setItem('user', JSON.stringify(userForStorage))
     localStorage.setItem('permissions', JSON.stringify(payload.permissions || []))
     localStorage.setItem('features', JSON.stringify(payload.features || {}))
-    
-    // Clear cache to ensure fresh data if autonomousStore was updated
+
+    // Clear cache to ensure fresh data if kodivianStore was updated
     clearCache()
 }
 
 /**
- * Get orgId from autonomousStore (encrypted, in-memory)
+ * Get orgId from kodivianStore (encrypted, in-memory)
  * This is the source of truth for orgId - NOT stored in localStorage
  * Uses caching to avoid decrypting on every call
  */
@@ -149,13 +149,13 @@ const getOrgIdFromStore = () => {
     if (!decryptedStore) {
         return undefined
     }
-    
+
     const orgId = decryptedStore?.orgId
     return orgId ? String(orgId) : undefined
 }
 
 /**
- * Get userId from autonomousStore (encrypted, in-memory)
+ * Get userId from kodivianStore (encrypted, in-memory)
  * This is the source of truth for userId - NOT stored in localStorage
  * Uses caching to avoid decrypting on every call
  */
@@ -164,7 +164,7 @@ const getUserIdFromStore = () => {
     if (!decryptedStore) {
         return undefined
     }
-    
+
     const userId = decryptedStore?.userId
     return userId ? String(userId) : undefined
 }

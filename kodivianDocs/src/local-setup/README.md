@@ -18,13 +18,13 @@ Simple setup using PNPM:
 1. Clone the repository
 
 ```bash
-git clone https://git.chainsys.com/chainsysproducts/apdt_v21/devgit/appbuilder.git
+git clone https://git.kodivian.com/kodivianproducts/apdt_v21/devgit/appbuilder.git
 ```
 
 2. Go into repository folder
 
 ```bash
-cd appbuilder\app_v17_builder\inputs\autonomous
+cd appbuilder\app_v17_builder\inputs\kodivian
 ```
 
 3. Install all dependencies of all modules:
@@ -39,7 +39,7 @@ pnpm install
 pnpm build
 ```
 
-5. Start the app at [http://localhost:3030/autonomous](http://localhost:3030/autonomous)
+5. Start the app at [http://localhost:3030/kodivian](http://localhost:3030/kodivian)
 
 ```bash
 pnpm start

@@ -2,9 +2,9 @@
 
 ## Local
 
-### Important Note on Running NIM with Autonomous
+### Important Note on Running NIM with Kodivian
 
-If an existing NIM instance is already running (e.g., via NVIDIA’s ChatRTX), starting another instance through Autonomous **without checking for an existing endpoint** may cause conflicts. This issue occurs when multiple `podman run` commands are executed on the same NIM, leading to failures.
+If an existing NIM instance is already running (e.g., via NVIDIA’s ChatRTX), starting another instance through Kodivian **without checking for an existing endpoint** may cause conflicts. This issue occurs when multiple `podman run` commands are executed on the same NIM, leading to failures.
 
 For support, refer to:
 
@@ -15,7 +15,7 @@ For support, refer to:
 
 1. Setup [NVIDIA NIM locally with WSL2](https://docs.nvidia.com/nim/wsl2/1.0.0/getting-started.html).
 
-### Autonomous
+### Kodivian
 
 1. **Chat Models** > Drag the **Chat NVIDIA NIM** node > Click **Setup NIM Locally**.
 
@@ -46,13 +46,13 @@ For support, refer to:
 
 <figure><img src="../../.././assets/nvidia-nim-local-7.png" alt=""><figcaption></figcaption></figure>
 
-_Note: If you already have a container running with the selected model, Autonomous will ask you if you want to reuse the running container. You can choose to reuse the running container or start a new one with a different port._
+_Note: If you already have a container running with the selected model, Kodivian will ask you if you want to reuse the running container. You can choose to reuse the running container or start a new one with a different port._
 
 <figure><img src="../../.././assets/nvidia-nim-container-exists.png" alt=""><figcaption></figcaption></figure>
 
 8. **Save the chatflow**
 
-9. [🎉](https://emojipedia.org/party-popper/) **Voila!** Your **Chat NVIDIA NIM** node is now ready to use in Autonomous!
+9. [🎉](https://emojipedia.org/party-popper/) **Voila!** Your **Chat NVIDIA NIM** node is now ready to use in Kodivian!
 
 <figure><img src="../../.././assets/nvidia-nim-local-8.png" alt=""><figcaption></figcaption></figure>
 
@@ -73,7 +73,7 @@ _Note: If you already have a container running with the selected model, Autonomo
 
 <figure><img src="../../.././assets/image (249).png" alt="" width="563"><figcaption></figcaption></figure>
 
-### Autonomous
+### Kodivian
 
 1. **Chat Models** > drag **Chat NVIDIA NIM** node
 
@@ -83,7 +83,7 @@ _Note: If you already have a container running with the selected model, Autonomo
 
 <div align="left"><figure><img src="../../.././assets/image (251).png" alt=""><figcaption></figcaption></figure> <figure><img src="../../.././assets/Screenshot 2024-12-23 180712.png" alt=""><figcaption></figcaption></figure></div>
 
-3. Put in the model name and voila [🎉](https://emojipedia.org/party-popper/), your **Chat NVIDIA NIM node** is now ready to be used in Autonomous!
+3. Put in the model name and voila [🎉](https://emojipedia.org/party-popper/), your **Chat NVIDIA NIM node** is now ready to be used in Kodivian!
 
 <figure><img src="../../.././assets/image (252).png" alt=""><figcaption></figcaption></figure>
 

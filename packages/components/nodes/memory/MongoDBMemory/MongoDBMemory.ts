@@ -10,7 +10,7 @@ import {
     mapChatMessageToBaseMessage
 } from '../../../src/utils'
 import {
-    AutonomousMemory,
+    KodivianMemory,
     ICommonObject,
     IMessage,
     INode,
@@ -67,7 +67,7 @@ class MongoDB_Memory implements INode {
                 name: 'sessionId',
                 type: 'string',
                 description:
-                    'If not specified, a random id will be used. Learn <a target="_blank" href="[AUTONOMOUS_DOCS]/memory/long-term-memory#ui-and-embedded-chat">more</a>',
+                    'If not specified, a random id will be used. Learn <a target="_blank" href="[KODIVIAN_DOCS]/memory/long-term-memory#ui-and-embedded-chat">more</a>',
                 default: '',
                 additionalParams: true,
                 optional: true
@@ -95,7 +95,7 @@ const initializeMongoDB = async (nodeData: INodeData, options: ICommonObject): P
 
     const credentialData = await getCredentialData(nodeData.credential ?? '', options)
     const mongoDBConnectUrl = getCredentialParam('mongoDBConnectUrl', credentialData, nodeData)
-    const driverInfo = { name: 'Autonomous', version: (await getVersion()).version }
+    const driverInfo = { name: 'Kodivian', version: (await getVersion()).version }
 
     const orgId = options.orgId as string
 
@@ -123,7 +123,7 @@ interface BufferMemoryExtendedInput {
     }
 }
 
-class BufferMemoryExtended extends AutonomousMemory implements MemoryMethods {
+class BufferMemoryExtended extends KodivianMemory implements MemoryMethods {
     sessionId = ''
     orgId = ''
     mongoConnection: {

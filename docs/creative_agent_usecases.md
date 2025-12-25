@@ -1,4 +1,4 @@
-# Creative Agent Use Cases - Autonomous Platform
+# Creative Agent Use Cases - Kodivian Platform
 
 **Version**: 3.0.10 | **Date**: December 2025
 

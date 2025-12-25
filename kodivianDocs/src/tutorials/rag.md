@@ -11,7 +11,7 @@ The process can be separated out into 2 sub-processes:
 
 ## Indexing
 
-[Document Stores](../using-Autonomous/document-stores.md) is designed to help with the whole indexing pipelines - retrieveing data from different sources, chunking strategy, upserting to vector database, syncing with updated data.
+[Document Stores](../using-Kodivian/document-stores.md) is designed to help with the whole indexing pipelines - retrieveing data from different sources, chunking strategy, upserting to vector database, syncing with updated data.
 
 We support wide range of document loaders, ranging from files like Pdf, Word, Google Drive, to web scrapers like Playwright, Firecrawl, Apify and others. You can also create custom document loader.
 
@@ -21,7 +21,7 @@ We support wide range of document loaders, ranging from files like Pdf, Word, Go
 
 Based on the user's input, relevant document chunks are fetched from vector database. LLM then uses the retrieved context to generate a response.
 
-1. Drag and drop an [Agent](../using-Autonomous/agentflow.md#id-3.-agent-node) node, and configure the model to use.
+1. Drag and drop an [Agent](../using-Kodivian/agentflow.md#id-3.-agent-node) node, and configure the model to use.
 
 <figure><img src=".././assets/image (290).png" alt="" width="391"><figcaption></figcaption></figure>
 

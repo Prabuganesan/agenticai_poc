@@ -26,9 +26,9 @@ import { formatLogToString } from 'langchain/agents/format_scratchpad/log'
 import { IUsedTool } from './Interface'
 import { getErrorMessage } from './error'
 
-export const SOURCE_DOCUMENTS_PREFIX = '\n\n----AUTONOMOUS_SOURCE_DOCUMENTS----\n\n'
-export const ARTIFACTS_PREFIX = '\n\n----AUTONOMOUS_ARTIFACTS----\n\n'
-export const TOOL_ARGS_PREFIX = '\n\n----AUTONOMOUS_TOOL_ARGS----\n\n'
+export const SOURCE_DOCUMENTS_PREFIX = '\n\n----KODIVIAN_SOURCE_DOCUMENTS----\n\n'
+export const ARTIFACTS_PREFIX = '\n\n----KODIVIAN_ARTIFACTS----\n\n'
+export const TOOL_ARGS_PREFIX = '\n\n----KODIVIAN_TOOL_ARGS----\n\n'
 
 /**
  * Utility function to format tool error messages with parameters for debugging
@@ -451,7 +451,7 @@ export class AgentExecutor extends BaseChain<ChainValues, AgentExecutorOutput> {
                                 const possiblePaths = [
                                     path.resolve(__dirname, '../../server/src/utils/logger/module-methods'),
                                     path.resolve(process.cwd(), 'packages/server/src/utils/logger/module-methods'),
-                                    path.resolve(process.cwd(), 'autonomous/packages/server/src/utils/logger/module-methods')
+                                    path.resolve(process.cwd(), 'kodivian/packages/server/src/utils/logger/module-methods')
                                 ]
                                 let serverPath: string | null = null
                                 for (const p of possiblePaths) {
@@ -501,7 +501,7 @@ export class AgentExecutor extends BaseChain<ChainValues, AgentExecutorOutput> {
                                     const possiblePaths = [
                                         path.resolve(__dirname, '../../server/src/utils/logger/module-methods'),
                                         path.resolve(process.cwd(), 'packages/server/src/utils/logger/module-methods'),
-                                        path.resolve(process.cwd(), 'autonomous/packages/server/src/utils/logger/module-methods')
+                                        path.resolve(process.cwd(), 'kodivian/packages/server/src/utils/logger/module-methods')
                                     ]
                                     let serverPath: string | null = null
                                     for (const p of possiblePaths) {
@@ -540,7 +540,7 @@ export class AgentExecutor extends BaseChain<ChainValues, AgentExecutorOutput> {
                                     const possiblePaths = [
                                         path.resolve(__dirname, '../../server/src/utils/logger/module-methods'),
                                         path.resolve(process.cwd(), 'packages/server/src/utils/logger/module-methods'),
-                                        path.resolve(process.cwd(), 'autonomous/packages/server/src/utils/logger/module-methods')
+                                        path.resolve(process.cwd(), 'kodivian/packages/server/src/utils/logger/module-methods')
                                     ]
                                     let serverPath: string | null = null
                                     for (const p of possiblePaths) {

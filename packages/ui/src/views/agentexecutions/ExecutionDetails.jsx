@@ -747,7 +747,7 @@ export const ExecutionDetails = ({ open, isPublic, execution, metadata, onClose,
                                 label={localMetadata?.agentflow?.name || localMetadata?.agentflow?.id || 'Go to AgentFlow'}
                                 className={'button'}
                                 onClick={() => {
-                                    const basename = '/autonomous'
+                                    const basename = '/kodivian'
                                     window.open(`${basename}/v2/agentcanvas/${localMetadata?.agentflow?.id}`, '_blank')
                                 }}
                             />

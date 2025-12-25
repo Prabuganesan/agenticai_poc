@@ -112,7 +112,7 @@ export default class Worker extends BaseCommand {
 
                 // Setup metrics endpoint
                 if (this.metricsProvider instanceof Prometheus) {
-                    const contextPath = process.env.CONTEXT_PATH || '/autonomous'
+                    const contextPath = process.env.CONTEXT_PATH || '/kodivian'
                     const metricsPath = contextPath && contextPath !== '/' ? `${contextPath}/api/v1/metrics` : '/api/v1/metrics'
 
                     // Use GET method explicitly and handle errors

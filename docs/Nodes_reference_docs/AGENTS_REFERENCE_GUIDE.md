@@ -1,12 +1,12 @@
-# Autonomous Agents Reference Guide
+# Kodivian Agents Reference Guide
 
-A comprehensive guide to all agent types in the Autonomous platform. Agents combine LLMs with tools to autonomously complete tasks.
+A comprehensive guide to all agent types in the Kodivian platform. Agents combine LLMs with tools to kodivianly complete tasks.
 
 ---
 
 ## What are Agents?
 
-**Agents** are autonomous systems that use LLMs to decide which actions (tools) to take to accomplish a goal.
+**Agents** are kodivian systems that use LLMs to decide which actions (tools) to take to accomplish a goal.
 
 ### How Agents Work
 

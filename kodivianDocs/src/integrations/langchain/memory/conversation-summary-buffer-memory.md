@@ -1,6 +1,6 @@
 # Conversation Summary Buffer Memory
 
-Use Autonomous database table `chat_message` as the storage mechanism for storing/retrieving conversations.
+Use Kodivian database table `chat_message` as the storage mechanism for storing/retrieving conversations.
 
 This memory keeps a buffer of recent interactions and compiles old ones into a summary, using both in its storage. Instead of flushing old interactions based solely on their number, it now considers the total length of tokens to decide when to clear them out.
 

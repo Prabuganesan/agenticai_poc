@@ -72,7 +72,7 @@ class ExecuteFlow_Agentflow implements INode {
                 name: 'executeFlowBaseURL',
                 type: 'string',
                 description:
-                    'Base URL to Autonomous. By default, it is the URL of the incoming request. Useful when you need to execute agent through an alternative route.',
+                    'Base URL to Kodivian. By default, it is the URL of the incoming request. Useful when you need to execute agent through an alternative route.',
                 placeholder: getServerURL(),
                 optional: true
             },
@@ -202,7 +202,7 @@ class ExecuteFlow_Agentflow implements INode {
 
             let headers: Record<string, string> = {
                 'Content-Type': 'application/json',
-                'autonomous-tool': 'true'
+                'kodivian-tool': 'true'
             }
             if (chatflowApiKey) headers = { ...headers, Authorization: `Bearer ${chatflowApiKey}` }
 

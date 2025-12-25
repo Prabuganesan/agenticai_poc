@@ -56,9 +56,9 @@ export class DataSourceManager {
                     dbConfig = {
                         host: process.env.LOCAL_DB_HOST || 'localhost',
                         port: parseInt(process.env.LOCAL_DB_PORT || '5432'),
-                        username: process.env.LOCAL_DB_USER || 'chainsys',
+                        username: process.env.LOCAL_DB_USER || 'kodivian',
                         password: process.env.LOCAL_DB_PASSWORD || '',
-                        database: process.env.LOCAL_DB_DATABASE || 'autonomous',
+                        database: process.env.LOCAL_DB_DATABASE || 'kodivian',
                         maxPoolSize: parseInt(process.env.LOCAL_DB_MAX_POOL_SIZE || '10')
                     }
                     logInfo(`🔧 [DataSourceManager]: Using LOCAL database override for orgId ${orgId}: ${dbConfig.database}`).catch(
@@ -99,7 +99,7 @@ export class DataSourceManager {
                     poolErrorHandler: (err: any) => {
                         logError(`[DataSourceManager] Database pool error for orgId ${orgId}: ${JSON.stringify(err)}`).catch(() => { })
                     },
-                    applicationName: `Autonomous-Org-${orgId}`
+                    applicationName: `Kodivian-Org-${orgId}`
                 }
                 logInfo(`🔧 [DataSourceManager]: Configuring PostgreSQL connection for orgId ${orgId}: ${dbConfig.database}`).catch(
                     () => { }
@@ -195,9 +195,9 @@ export class DataSourceManager {
                 dbConfig = {
                     host: process.env.LOCAL_DB_HOST || 'localhost',
                     port: parseInt(process.env.LOCAL_DB_PORT || '5432'),
-                    username: process.env.LOCAL_DB_USER || 'chainsys',
+                    username: process.env.LOCAL_DB_USER || 'kodivian',
                     password: process.env.LOCAL_DB_PASSWORD || '',
-                    database: process.env.LOCAL_DB_DATABASE || 'autonomous',
+                    database: process.env.LOCAL_DB_DATABASE || 'kodivian',
                     maxPoolSize: parseInt(process.env.LOCAL_DB_MAX_POOL_SIZE || '10'),
                     dbType: 'postgres'
                 }
@@ -237,7 +237,7 @@ export class DataSourceManager {
                 poolErrorHandler: (err: any) => {
                     logError(`[DataSourceManager] Database pool error for orgId ${orgId}: ${JSON.stringify(err)}`).catch(() => { })
                 },
-                applicationName: `Autonomous-Org-${orgId}`
+                applicationName: `Kodivian-Org-${orgId}`
             }
             logInfo(`🔧 [DataSourceManager]: Configuring PostgreSQL connection for orgId ${orgId}: ${dbConfig.database}`).catch(
                 () => { }

@@ -33,7 +33,7 @@ import config from '../config'
  * @throws Error if orgId is missing for non-system groups
  */
 export function getLogFilePath(group: string, module: string, orgId?: string | number): string {
-    const baseDir = config.logging.dir // .autonomous/logs or AUTONOMOUS_DATA_PATH/.autonomous/logs
+    const baseDir = config.logging.dir // .kodivian/logs or KODIVIAN_DATA_PATH/.kodivian/logs
 
     // System group is ALWAYS system-level (no orgId)
     if (group === 'system') {
@@ -49,8 +49,8 @@ export function getLogFilePath(group: string, module: string, orgId?: string | n
     if (!orgId) {
         throw new Error(
             `orgId is required for non-system groups. ` +
-                `Group: ${group}, Module: ${module}. ` +
-                `Logs for non-system groups must be written to logs/{orgId}/{group}/{module}.json`
+            `Group: ${group}, Module: ${module}. ` +
+            `Logs for non-system groups must be written to logs/{orgId}/{group}/{module}.json`
         )
     }
 

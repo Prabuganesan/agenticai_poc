@@ -1,6 +1,6 @@
-# Autonomous Cache & Memory Reference Guide
+# Kodivian Cache & Memory Reference Guide
 
-A comprehensive guide to caching and memory options in the Autonomous platform. Both are about **storing data**, but they serve different purposes.
+A comprehensive guide to caching and memory options in the Kodivian platform. Both are about **storing data**, but they serve different purposes.
 
 ---
 
@@ -256,7 +256,7 @@ Serverless Redis by Upstash. No infrastructure management - pay only for what yo
 1. Create account at [upstash.com](https://upstash.com)
 2. Create a Redis database
 3. Copy REST URL and Token from dashboard
-4. Add as credential in Autonomous
+4. Add as credential in Kodivian
 
 ---
 
@@ -292,7 +292,7 @@ Distributed, serverless cache designed for global applications. Zero-configurati
 1. Create account at [momentohq.com](https://www.gomomento.com)
 2. Generate API key
 3. Create a cache
-4. Add credentials to Autonomous
+4. Add credentials to Kodivian
 
 ---
 

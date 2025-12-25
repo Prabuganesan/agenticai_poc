@@ -52,9 +52,9 @@ ufw status numbered
 
 If using Digital ocean separate firewall from dashboard, make sure port 8000 is added there too
 
-## Use in Autonomous UI
+## Use in Kodivian UI
 
-1. Back to Autonomous application, simply create a new canvas or use one of the template from marketplace. In this example, we are going to use **Simple Conversational Chain**
+1. Back to Kodivian application, simply create a new canvas or use one of the template from marketplace. In this example, we are going to use **Simple Conversational Chain**
 
 <figure><img src="../../.././assets/Untitled (3) (1).png" alt=""><figcaption></figcaption></figure>
 
@@ -107,7 +107,7 @@ ZEP_AUTH_REQUIRED=true
 ZEP_AUTH_SECRET=<the secret you generated above>
 ```
 
-#### 3. Configure Credential on Autonomous <a href="#id-2-configure-auth-environment-variables" id="id-2-configure-auth-environment-variables"></a>
+#### 3. Configure Credential on Kodivian <a href="#id-2-configure-auth-environment-variables" id="id-2-configure-auth-environment-variables"></a>
 
 Add a new credential for Zep, and put in the JWT Token in the API Key field:
 

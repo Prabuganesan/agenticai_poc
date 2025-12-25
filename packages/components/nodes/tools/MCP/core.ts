@@ -24,7 +24,7 @@ export class MCPToolkit extends BaseToolkit {
     async createClient(): Promise<Client> {
         const client = new Client(
             {
-                name: 'autonomous-client',
+                name: 'kodivian-client',
                 version: '1.0.0'
             },
             {

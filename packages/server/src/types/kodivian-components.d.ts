@@ -184,7 +184,7 @@ declare module 'kodivian-components' {
         [key: string]: any
     }
 
-    export interface AutonomousMemory {
+    export interface KodivianMemory {
         [key: string]: any
     }
 

@@ -1,12 +1,12 @@
 ---
-description: Learn about all available integrations / nodes in Autonomous
+description: Learn about all available integrations / nodes in Kodivian
 ---
 
 # Integrations
 
 ***
 
-In Autonomous, nodes are referred to as integrations. Similar to LEGO, you can build a customized LLM ochestration flow, a chatbot, an agent with all the integrations available in Autonomous.
+In Kodivian, nodes are referred to as integrations. Similar to LEGO, you can build a customized LLM ochestration flow, a chatbot, an agent with all the integrations available in Kodivian.
 
 ### LangChain
 

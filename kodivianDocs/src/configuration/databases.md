@@ -1,5 +1,5 @@
 ---
-description: Learn how to connect your Autonomous instance to a database
+description: Learn how to connect your Kodivian instance to a database
 ---
 
 # Databases
@@ -8,7 +8,7 @@ description: Learn how to connect your Autonomous instance to a database
 
 ## Setup
 
-Autonomous supports 4 database types:
+Kodivian supports 4 database types:
 
 - SQLite
 - MySQL
@@ -21,10 +21,10 @@ SQLite will be the default database. These databases can be configured with foll
 
 ```sh
 DATABASE_TYPE=sqlite
-DATABASE_PATH=/root/.Autonomous #your preferred location
+DATABASE_PATH=/root/.Kodivian #your preferred location
 ```
 
-A `database.sqlite` file will be created and saved in the path specified by `DATABASE_PATH`. If not specified, the default store path will be in your home directory -> .Autonomous
+A `database.sqlite` file will be created and saved in the path specified by `DATABASE_PATH`. If not specified, the default store path will be in your home directory -> .Kodivian
 
 **Note:** If none of the env variables is specified, SQLite will be the fallback database choice.
 
@@ -34,7 +34,7 @@ A `database.sqlite` file will be created and saved in the path specified by `DAT
 DATABASE_TYPE=mysql
 DATABASE_PORT=3306
 DATABASE_HOST=localhost
-DATABASE_NAME=Autonomous
+DATABASE_NAME=Kodivian
 DATABASE_USER=user
 DATABASE_PASSWORD=123
 ```
@@ -45,7 +45,7 @@ DATABASE_PASSWORD=123
 DATABASE_TYPE=postgres
 DATABASE_PORT=5432
 DATABASE_HOST=localhost
-DATABASE_NAME=Autonomous
+DATABASE_NAME=Kodivian
 DATABASE_USER=user
 DATABASE_PASSWORD=123
 PGSSLMODE=require
@@ -57,16 +57,16 @@ PGSSLMODE=require
 DATABASE_TYPE="mariadb"
 DATABASE_PORT="3306"
 DATABASE_HOST="localhost"
-DATABASE_NAME="Autonomous"
-DATABASE_USER="Autonomous"
+DATABASE_NAME="Kodivian"
+DATABASE_USER="Kodivian"
 DATABASE_PASSWORD="mypassword"
 ```
 
-### How to use Autonomous databases SQLite and MySQL/MariaDB
+### How to use Kodivian databases SQLite and MySQL/MariaDB
 
 ## Backup
 
-1. Shut down AutonomousAI application.
+1. Shut down KodivianAI application.
 2. Ensure that the database connection to other applications is turned off.
 3. Backup your database.
 4. Test backup database.
@@ -101,7 +101,7 @@ DATABASE_PASSWORD="mypassword"
    cp DATABASE_PATH/BACKUP_FILE_NAME.sqlite DATABASE_PATH/database.sqlite
    ```
 
-3. Test backup database by running Autonomous.
+3. Test backup database by running Kodivian.
 
 ### PostgreSQL
 
@@ -116,7 +116,7 @@ DATABASE_PASSWORD="mypassword"
    ```bash
    psql -U USERNAME -h HOST -p PORT -d TEST_DATABASE_NAME -f /PATH/TO/BACKUP_FILE_NAME.sql
    ```
-4. Test the backup database by running Autonomous with the `.env` file modified to point to the backup database.
+4. Test the backup database by running Kodivian with the `.env` file modified to point to the backup database.
 
 ### MySQL & MariaDB
 
@@ -131,4 +131,4 @@ DATABASE_PASSWORD="mypassword"
    ```bash
    mysql -u USERNAME -p TEST_DATABASE_NAME < BACKUP_FILE_NAME.sql
    ```
-4. Test the backup database by running Autonomous with the `.env` file modified to point to the backup database.
+4. Test the backup database by running Kodivian with the `.env` file modified to point to the backup database.

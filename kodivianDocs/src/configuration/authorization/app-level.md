@@ -1,5 +1,5 @@
 ---
-description: Learn how to set up app-level access control for your Autonomous instances
+description: Learn how to set up app-level access control for your Kodivian instances
 ---
 
 # Application
@@ -8,9 +8,9 @@ description: Learn how to set up app-level access control for your Autonomous in
 
 ## Email & Password
 
-From v3.0.1 onwards, a new authentication method was introduced. Autonomous uses a [**Passport.js**](https://www.passportjs.org/)**-based authentication system** with JWT tokens stored in secure HTTP-only cookies. When a user logs in, the system validates their email/password against the database using bcrypt hash comparison, then generates two JWT tokens: a short-lived access token (default 60 minutes) and a long-lived refresh token (default 90 days). These tokens are stored as secure cookies. For subsequent requests, the system extracts the JWT from cookies, validates the signature and claims using Passport's JWT strategy, and checks that the user session still exists. The system also supports automatic token refresh when the access token expires, maintains sessions using either Redis or database storage depending on configuration.
+From v3.0.1 onwards, a new authentication method was introduced. Kodivian uses a [**Passport.js**](https://www.passportjs.org/)**-based authentication system** with JWT tokens stored in secure HTTP-only cookies. When a user logs in, the system validates their email/password against the database using bcrypt hash comparison, then generates two JWT tokens: a short-lived access token (default 60 minutes) and a long-lived refresh token (default 90 days). These tokens are stored as secure cookies. For subsequent requests, the system extracts the JWT from cookies, validates the signature and claims using Passport's JWT strategy, and checks that the user session still exists. The system also supports automatic token refresh when the access token expires, maintains sessions using either Redis or database storage depending on configuration.
 
-For existing users who have been using [Username & Password (Deprecated)](app-level.md#username-and-password-deprecated), you need to set up a new admin account. To prevent unauthorized ownership claims, you must first authenticate using the existing username and password configured as `Autonomous_USERNAME` and `Autonomous_PASSWORD`.
+For existing users who have been using [Username & Password (Deprecated)](app-level.md#username-and-password-deprecated), you need to set up a new admin account. To prevent unauthorized ownership claims, you must first authenticate using the existing username and password configured as `Kodivian_USERNAME` and `Kodivian_PASSWORD`.
 
 <figure><img src="../.././assets/image (18) (1) (1).png" alt="" width="387"><figcaption></figcaption></figure>
 
@@ -18,11 +18,11 @@ The following environment variables can be altered:
 
 ### Application URL
 
-* `APP_URL` - Your hosted Autonomous appication URL. Default to `http://localhost:3000`
+* `APP_URL` - Your hosted Kodivian appication URL. Default to `http://localhost:3000`
 
 ### JWT Environment Variables Configuration
 
-To configure Autonomous's JWT authentication parameters, user may alter the following environment variables:
+To configure Kodivian's JWT authentication parameters, user may alter the following environment variables:
 
 * `JWT_AUTH_TOKEN_SECRET` - The secret key for signing access tokens
 * `JWT_REFRESH_TOKEN_SECRET` - Secret for refresh tokens (defaults to auth token secret if not set)
@@ -30,7 +30,7 @@ To configure Autonomous's JWT authentication parameters, user may alter the foll
 * `JWT_REFRESH_TOKEN_EXPIRY_IN_MINUTES` - Refresh token lifetime (default: 129,600 minutes or 90 days)
 * `JWT_AUDIENCE` - Token validation audience claim (default: 'AUDIENCE')
 * `JWT_ISSUER` - Token validation issuer claim (default: 'ISSUER')
-* `EXPRESS_SESSION_SECRET` - Session encryption secret (default: 'Autonomous')
+* `EXPRESS_SESSION_SECRET` - Session encryption secret (default: 'Kodivian')
 * `EXPIRE_AUTH_TOKENS_ON_RESTART` - Set to 'true' to invalidate all tokens on server restart (useful for development)
 
 ### SMTP Email Configuration
@@ -62,7 +62,7 @@ These variables control authentication security, token expiration, and password 
 
 ## Username & Password (Deprecated)
 
-App level authorization protects your Autonomous instance by username and password. This protects your apps from being accessible by anyone when deployed online.
+App level authorization protects your Kodivian instance by username and password. This protects your apps from being accessible by anyone when deployed online.
 
 <figure><img src="../.././assets/image (2) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
 
@@ -70,16 +70,16 @@ App level authorization protects your Autonomous instance by username and passwo
 
 #### Npm
 
-1. Install Autonomous
+1. Install Kodivian
 
 ```bash
-npm install -g Autonomous
+npm install -g Kodivian
 ```
 
-2. Start Autonomous with username & password
+2. Start Kodivian with username & password
 
 ```bash
-npx Autonomous start --Autonomous_USERNAME=user --Autonomous_PASSWORD=1234
+npx Kodivian start --Kodivian_USERNAME=user --Kodivian_PASSWORD=1234
 ```
 
 3. Open [http://localhost:3000](http://localhost:3000)
@@ -92,21 +92,21 @@ npx Autonomous start --Autonomous_USERNAME=user --Autonomous_PASSWORD=1234
 cd docker
 ```
 
-2. Create `.env` file and specify the `PORT`, `Autonomous_USERNAME`, and `Autonomous_PASSWORD`
+2. Create `.env` file and specify the `PORT`, `Kodivian_USERNAME`, and `Kodivian_PASSWORD`
 
 ```sh
 PORT=3000
-Autonomous_USERNAME=user
-Autonomous_PASSWORD=1234
+Kodivian_USERNAME=user
+Kodivian_PASSWORD=1234
 ```
 
-3. Pass `Autonomous_USERNAME` and `Autonomous_PASSWORD` to the `docker-compose.yml` file:
+3. Pass `Kodivian_USERNAME` and `Kodivian_PASSWORD` to the `docker-compose.yml` file:
 
 ```
 environment:
     - PORT=${PORT}
-    - Autonomous_USERNAME=${Autonomous_USERNAME}
-    - Autonomous_PASSWORD=${Autonomous_PASSWORD}
+    - Kodivian_USERNAME=${Kodivian_USERNAME}
+    - Kodivian_PASSWORD=${Kodivian_PASSWORD}
 ```
 
 4. `docker compose up -d`
@@ -115,9 +115,9 @@ environment:
 
 #### Git clone
 
-To enable app level authentication, add `Autonomous_USERNAME` and `Autonomous_PASSWORD` to the `.env` file in `packages/server`:
+To enable app level authentication, add `Kodivian_USERNAME` and `Kodivian_PASSWORD` to the `.env` file in `packages/server`:
 
 ```
-Autonomous_USERNAME=user
-Autonomous_PASSWORD=1234
+Kodivian_USERNAME=user
+Kodivian_PASSWORD=1234
 ```

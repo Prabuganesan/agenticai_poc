@@ -1,12 +1,12 @@
-# Running Autonomous using Queue
+# Running Kodivian using Queue
 
-By default, Autonomous runs in a NodeJS main thread. However, with large number of predictions, this does not scale well. Therefore there are 2 modes you can configure: `main` (default) and `queue`.
+By default, Kodivian runs in a NodeJS main thread. However, with large number of predictions, this does not scale well. Therefore there are 2 modes you can configure: `main` (default) and `queue`.
 
 ## Queue Mode
 
-With the following environment variables, you can run Autonomous in `queue` mode.
+With the following environment variables, you can run Kodivian in `queue` mode.
 
-<table><thead><tr><th width="263">Variable</th><th>Description</th><th>Type</th><th>Default</th></tr></thead><tbody><tr><td>MODE</td><td>Mode to run Autonomous</td><td>Enum String: <code>main</code>, <code>queue</code></td><td><code>main</code></td></tr><tr><td>WORKER_CONCURRENCY</td><td>How many jobs are allowed to be processed in parallel for a worker. If you have 1 worker, that means how many concurrent prediction tasks it can handle. More <a href="https://docs.bullmq.io/guide/workers/concurrency">info</a></td><td>Number</td><td>10000</td></tr><tr><td>QUEUE_NAME</td><td>The name of the message queue</td><td>String</td><td>Autonomous-queue</td></tr><tr><td>QUEUE_REDIS_EVENT_STREAM_MAX_LEN</td><td>Event stream is auto-trimmed so that its size does not grow too much. More <a href="https://docs.bullmq.io/guide/events">info</a></td><td>Number</td><td>10000</td></tr><tr><td>REDIS_URL</td><td>Redis URL</td><td>String</td><td></td></tr><tr><td>REDIS_HOST</td><td>Redis host</td><td>String</td><td>localhost</td></tr><tr><td>REDIS_PORT</td><td>Redis port</td><td>Number</td><td>6379</td></tr><tr><td>REDIS_USERNAME</td><td>Redis username (optional)</td><td>String</td><td></td></tr><tr><td>REDIS_PASSWORD</td><td>Redis password (optional)</td><td>String</td><td></td></tr><tr><td>REDIS_TLS</td><td>Redis TLS connection (optional) More <a href="https://redis.io/docs/latest/operate/oss_and_stack/management/security/encryption/">info</a></td><td>Boolean</td><td>false</td></tr><tr><td>REDIS_CERT</td><td>Redis self-signed certificate</td><td>String</td><td></td></tr><tr><td>REDIS_KEY</td><td>Redis self-signed certificate key file</td><td>String</td><td></td></tr><tr><td>REDIS_CA</td><td>Redis self-signed certificate CA file</td><td>String</td><td></td></tr></tbody></table>
+<table><thead><tr><th width="263">Variable</th><th>Description</th><th>Type</th><th>Default</th></tr></thead><tbody><tr><td>MODE</td><td>Mode to run Kodivian</td><td>Enum String: <code>main</code>, <code>queue</code></td><td><code>main</code></td></tr><tr><td>WORKER_CONCURRENCY</td><td>How many jobs are allowed to be processed in parallel for a worker. If you have 1 worker, that means how many concurrent prediction tasks it can handle. More <a href="https://docs.bullmq.io/guide/workers/concurrency">info</a></td><td>Number</td><td>10000</td></tr><tr><td>QUEUE_NAME</td><td>The name of the message queue</td><td>String</td><td>Kodivian-queue</td></tr><tr><td>QUEUE_REDIS_EVENT_STREAM_MAX_LEN</td><td>Event stream is auto-trimmed so that its size does not grow too much. More <a href="https://docs.bullmq.io/guide/events">info</a></td><td>Number</td><td>10000</td></tr><tr><td>REDIS_URL</td><td>Redis URL</td><td>String</td><td></td></tr><tr><td>REDIS_HOST</td><td>Redis host</td><td>String</td><td>localhost</td></tr><tr><td>REDIS_PORT</td><td>Redis port</td><td>Number</td><td>6379</td></tr><tr><td>REDIS_USERNAME</td><td>Redis username (optional)</td><td>String</td><td></td></tr><tr><td>REDIS_PASSWORD</td><td>Redis password (optional)</td><td>String</td><td></td></tr><tr><td>REDIS_TLS</td><td>Redis TLS connection (optional) More <a href="https://redis.io/docs/latest/operate/oss_and_stack/management/security/encryption/">info</a></td><td>Boolean</td><td>false</td></tr><tr><td>REDIS_CERT</td><td>Redis self-signed certificate</td><td>String</td><td></td></tr><tr><td>REDIS_KEY</td><td>Redis self-signed certificate key file</td><td>String</td><td></td></tr><tr><td>REDIS_CA</td><td>Redis self-signed certificate CA file</td><td>String</td><td></td></tr></tbody></table>
 
 In `queue` mode, the main server will be responsible for processing requests, sending jobs to message queue. Main server will not execute the job. One or multiple workers receive jobs from the queue, execute them and send the results back.
 
@@ -51,9 +51,9 @@ Independent worker processes poll Redis for jobs. When assigned:
 
 During execution:
 
-* [**RedisEventPublisher**](https://github.com/AutonomousAI/Autonomous/blob/main/packages/server/src/queue/RedisEventPublisher.ts) broadcasts events from worker to Redis
-* [**RedisEventSubscriber**](https://github.com/AutonomousAI/Autonomous/blob/main/packages/server/src/queue/RedisEventSubscriber.ts) forwards events from Redis to SSE clients
-* [**SSEStreamer**](https://github.com/AutonomousAI/Autonomous/blob/main/packages/server/src/utils/SSEStreamer.ts) delivers events to browser in real-time
+* [**RedisEventPublisher**](https://github.com/KodivianAI/Kodivian/blob/main/packages/server/src/queue/RedisEventPublisher.ts) broadcasts events from worker to Redis
+* [**RedisEventSubscriber**](https://github.com/KodivianAI/Kodivian/blob/main/packages/server/src/queue/RedisEventSubscriber.ts) forwards events from Redis to SSE clients
+* [**SSEStreamer**](https://github.com/KodivianAI/Kodivian/blob/main/packages/server/src/utils/SSEStreamer.ts) delivers events to browser in real-time
 
 #### 5. Completion & Response
 
@@ -73,7 +73,7 @@ For example, you can get Redis running on your Docker following this [guide](htt
 
 ### Start Main Server
 
-This is the same as you were to run Autonomous by default, with the exceptions of configuring the environment variables mentioned above.
+This is the same as you were to run Kodivian by default, with the exceptions of configuring the environment variables mentioned above.
 
 ```bash
 pnpm start
@@ -108,7 +108,7 @@ WORKER_PORT=5566
 
 # Queue Configuration (Required)
 MODE=queue
-QUEUE_NAME=Autonomous-queue
+QUEUE_NAME=Kodivian-queue
 REDIS_URL=redis://redis:6379
 
 # Optional Queue Settings
@@ -119,16 +119,16 @@ QUEUE_REDIS_EVENT_STREAM_MAX_LEN=1000
 ENABLE_BULLMQ_DASHBOARD=false
 
 # Database (Optional - defaults to SQLite)
-DATABASE_PATH=/root/.Autonomous
+DATABASE_PATH=/root/.Kodivian
 
 # Storage
-BLOB_STORAGE_PATH=/root/.Autonomous/storage
+BLOB_STORAGE_PATH=/root/.Kodivian/storage
 
 # Secret Keys
-SECRETKEY_PATH=/root/.Autonomous
+SECRETKEY_PATH=/root/.Kodivian
 
 # Logging
-LOG_PATH=/root/.Autonomous/logs
+LOG_PATH=/root/.Kodivian/logs
 ```
 
 **Step 2: Deploy**
@@ -145,17 +145,17 @@ docker compose -f docker-compose-queue-prebuilt.yml up -d
 docker compose -f docker-compose-queue-prebuilt.yml ps
 
 # View logs
-docker compose -f docker-compose-queue-prebuilt.yml logs -f Autonomous
-docker compose -f docker-compose-queue-prebuilt.yml logs -f Autonomous-worker
+docker compose -f docker-compose-queue-prebuilt.yml logs -f Kodivian
+docker compose -f docker-compose-queue-prebuilt.yml logs -f Kodivian-worker
 ```
 
 ### Method 2: Build from Source
 
-This method builds Autonomous from source code, useful for development or custom modifications.
+This method builds Kodivian from source code, useful for development or custom modifications.
 
 **Step 1: Setup Environment**
 
-Create the same `.env` file as in [Method 1](running-Autonomous-using-queue.md#method-1-pre-built-images-recommended).
+Create the same `.env` file as in [Method 1](running-Kodivian-using-queue.md#method-1-pre-built-images-recommended).
 
 **Step 2: Deploy**
 
@@ -168,7 +168,7 @@ docker compose -f docker-compose-queue-source.yml up -d
 
 The source build will:
 
-* Build the main Autonomous application from source
+* Build the main Kodivian application from source
 * Build the worker image from source
 * Set up Redis and networking
 
@@ -196,6 +196,6 @@ curl http://localhost:5566/healthz
 
 ## Queue Dashboard
 
-Set `ENABLE_BULLMQ_DASHBOARD` to true will allow users to view all the jobs, status, result, data by navigating to `<your-Autonomous-url.com>/admin/queues`
+Set `ENABLE_BULLMQ_DASHBOARD` to true will allow users to view all the jobs, status, result, data by navigating to `<your-Kodivian-url.com>/admin/queues`
 
 <figure><img src=".././assets/image (253).png" alt=""><figcaption></figcaption></figure>

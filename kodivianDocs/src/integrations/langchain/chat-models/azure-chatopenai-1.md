@@ -37,7 +37,7 @@
 
 <figure><img src="../../.././assets/azure/azure-general/2.png" alt=""><figcaption></figcaption></figure>
 
-### Autonomous
+### Kodivian
 
 1. **Chat Models** > drag **Azure ChatOpenAI** node
 
@@ -51,7 +51,7 @@
 
 <figure><img src="../../.././assets/azure/azure-chatopenai/5.png" alt="" width="563"><figcaption></figcaption></figure>
 
-4. Voila [🎉](https://emojipedia.org/party-popper/), you have created **Azure ChatOpenAI node** in Autonomous
+4. Voila [🎉](https://emojipedia.org/party-popper/), you have created **Azure ChatOpenAI node** in Kodivian
 
 <figure><img src="../../.././assets/azure/azure-general/5.png" alt=""><figcaption></figcaption></figure>
 

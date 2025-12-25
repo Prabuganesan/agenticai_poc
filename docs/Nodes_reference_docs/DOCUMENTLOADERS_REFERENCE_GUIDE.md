@@ -1,6 +1,6 @@
-# Autonomous Document Loaders Reference Guide
+# Kodivian Document Loaders Reference Guide
 
-A comprehensive guide to all document loaders in the Autonomous platform. Document loaders extract content from various file formats and sources for use in RAG applications.
+A comprehensive guide to all document loaders in the Kodivian platform. Document loaders extract content from various file formats and sources for use in RAG applications.
 
 ---
 
@@ -178,7 +178,7 @@ Professional web scraping platform.
 ---
 
 ## 12. Spider Loader
-Autonomous crawl and scrape service.
+Kodivian crawl and scrape service.
 
 | Setting | Description |
 |---------|-------------|

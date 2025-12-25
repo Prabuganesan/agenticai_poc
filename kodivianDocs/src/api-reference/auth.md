@@ -2,7 +2,7 @@
 
 **GET** `/auth/permissions`
 
-Get user permissions. For the autonomous server, this currently returns an empty array as all authenticated users have global access.
+Get user permissions. For the kodivian server, this currently returns an empty array as all authenticated users have global access.
 
 ## Responses
 

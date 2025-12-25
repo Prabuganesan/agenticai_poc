@@ -7,12 +7,12 @@ description: Learn how to build multi-agents system using Agentflow, written by 
 This guide explores the Agentflow architecture, detailing its core concepts, use cases, Flow State, and comprehensive node references.
 
 {% hint style="warning" %}
-**Disclaimer:** This documentation describes Agentflow as of its current official release. Features, functionalities, and node parameters are subject to change in future updates and versions of Autonomous. Please refer to the latest official release notes or in-app information for the most up-to-date details.
+**Disclaimer:** This documentation describes Agentflow as of its current official release. Features, functionalities, and node parameters are subject to change in future updates and versions of Kodivian. Please refer to the latest official release notes or in-app information for the most up-to-date details.
 {% endhint %}
 
 ## Core Concept
 
-Agentflow represents a significant architectural evolution, introducing a new paradigm in Autonomous that focuses on explicit workflow orchestration and enhanced flexibility. Unlike V1's primary reliance on external frameworks for its core agent graph logic, Agentflow shifts the focus towards designing the entire workflow using a granular set of specialized, standalone nodes developed natively as core Autonomous components.
+Agentflow represents a significant architectural evolution, introducing a new paradigm in Kodivian that focuses on explicit workflow orchestration and enhanced flexibility. Unlike V1's primary reliance on external frameworks for its core agent graph logic, Agentflow shifts the focus towards designing the entire workflow using a granular set of specialized, standalone nodes developed natively as core Kodivian components.
 
 In this architecture, each node functions as an independent unit, executing a discrete operation based on its specific design and configuration. The visual connections between nodes on the canvas explicitly define the workflow's path and control sequence, data can be passed between nodes by referencing the outputs of any previously executed node in the current flow, and the Flow State provides an explicit mechanism for managing and sharing data throughout the workflow.
 
@@ -40,7 +40,7 @@ Execution is paused while awaiting human input, without blocking the running thr
 
 The use of checkpoints enables **long-running, stateful agents**.
 
-Agents can also be configured to **request permission before executing tools**, similar to how Claude asks for user approval before using MCP tools. This helps prevent the autonomous execution of sensitive actions without explicit user approval.
+Agents can also be configured to **request permission before executing tools**, similar to how Claude asks for user approval before using MCP tools. This helps prevent the kodivian execution of sensitive actions without explicit user approval.
 
 <figure><picture><source srcset=".././assets/Screenshot 2025-05-16 154908.png" media="(prefers-color-scheme: dark)"><img src=".././assets/image (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1).png" alt=""></picture><figcaption></figcaption></figure>
 
@@ -110,15 +110,15 @@ Provides direct access to a configured Large Language Model (LLM) for executing 
 
 ### **3. Agent Node**
 
-Represents an autonomous AI entity capable of reasoning, planning, and interacting with tools or knowledge sources to accomplish a given objective.
+Represents an kodivian AI entity capable of reasoning, planning, and interacting with tools or knowledge sources to accomplish a given objective.
 
 * **Functionality:** This node uses an LLM to dynamically decide a sequence of actions. Based on the user's goal — provided via messages/input — it can choose to use available Tools or query Document Stores to gather information or perform actions. It manages its own reasoning cycle and can utilize memory for the conversation thread and `Flow State`. Suitable for tasks requiring multi-step reasoning or interacting dynamically with external systems or tools.
 * **Configuration Parameters**
   * **Model**: Specifies the AI model from a chosen service — e.g., OpenAI's GPT-4o or Google Gemini — that will drive the agent's reasoning and decision-making processes.
   * **Messages**: Define the initial conversational input, objective, or context for the agent, structuring it as a sequence of roles — System, User, Assistant, Developer — to guide the agent's understanding and subsequent actions. Dynamic data can be inserted using `{{ variable }}`.
-  * **Tools**: Specify which pre-defined Autonomous Tools the agent is authorized to use to achieve its goals.
+  * **Tools**: Specify which pre-defined Kodivian Tools the agent is authorized to use to achieve its goals.
     * For each selected tool, an optional **Require Human Input flag** indicates if the tool's operation might itself pause to ask for human intervention.
-  * **Knowledge / Document Stores**: Configure access to information within Autonomous-managed Document Stores.
+  * **Knowledge / Document Stores**: Configure access to information within Kodivian-managed Document Stores.
     * **Document Store**: Choose a pre-configured Document Store from which the agent can retrieve information. These stores must be set up and populated in advance.
     * **Describe Knowledge**: Provide a natural language description of the content and purpose of this Document Store. This description guides the agent in understanding what kind of information the store contains and when it would be appropriate to query it.
   * **Knowledge / Vector Embeddings**: Configure access to external, pre-existing vector stores as additional knowledge sources for the agent.
@@ -141,18 +141,18 @@ Represents an autonomous AI entity capable of reasoning, planning, and interacti
 
 ### **4. Tool Node**
 
-Provides a mechanism for directly and deterministically executing a specific, pre-defined Autonomous Tool within the workflow sequence. Unlike the Agent node, where the LLM dynamically chooses a tool based on reasoning, the Tool node executes exactly the tool selected by the workflow designer during configuration.
+Provides a mechanism for directly and deterministically executing a specific, pre-defined Kodivian Tool within the workflow sequence. Unlike the Agent node, where the LLM dynamically chooses a tool based on reasoning, the Tool node executes exactly the tool selected by the workflow designer during configuration.
 
 * **Functionality:** This node is used when the workflow requires the execution of a known, specific capability at a defined point, with readily available inputs. It ensures deterministic action without involving LLM reasoning for tool selection.
 * **How it Works**
   1. **Triggering:** When the workflow execution reaches a Tool node, it activates.
-  2. **Tool Identification:** It identifies the specific Autonomous Tool selected in its configuration.
+  2. **Tool Identification:** It identifies the specific Kodivian Tool selected in its configuration.
   3. **Input Argument Resolution:** It looks at the Tool Input Arguments configuration. For each required input parameter of the selected tool.
-  4. **Execution:** It invokes the underlying code or API call associated with the selected Autonomous Tool, passing the resolved input arguments.
+  4. **Execution:** It invokes the underlying code or API call associated with the selected Kodivian Tool, passing the resolved input arguments.
   5. **Output Generation:** It receives the result returned by the tool's execution.
   6. **Output Propagation:** It makes this result available via its output anchor for subsequent nodes to use.
 * **Configuration Parameters**
-  * **Tool Selection**: Choose the specific, registered Autonomous Tool that this node will execute from a dropdown list.
+  * **Tool Selection**: Choose the specific, registered Kodivian Tool that this node will execute from a dropdown list.
   * **Input Arguments**: Define how data from your workflow is supplied to the selected tool. This section dynamically adapts based on the chosen tool, presenting its specific required input parameters:
     * **Map Argument Name**: For each input the selected tool requires (e.g., `input` for a Calculator), this field will show the expected parameter name as defined by the tool itself.
     * **Provide Argument Value**: Set the value for that corresponding parameter, using a dynamic variable like `{{ previousNode.output }}`, `{{ $flow.state.someKey }}`, or by entering static text.
@@ -307,8 +307,8 @@ Provides a mechanism for executing custom server-side Javascript code within the
 * **Functionality:** This node allows to write and run arbitrary Javascript snippets, offering a efective way to implement complex data transformations, bespoke business logic, or interactions with resources not directly supported by other standard nodes. The executed code operates within a Node.js environment and has specific ways to access data:
   * **Input Variables:** Values passed via the `Input Variables` configuration are accessible within the function, typically prefixed with `$` — e.g., if an input variable `userid` is defined, it can be accessed as `$userid`.
   * **Flow Context:** Default flow configuration variables are available, such as `$flow.sessionId`, `$flow.chatId`, `$flow.chatflowId`, `$flow.input` — the initial input that started the workflow — and the entire `$flow.state` object.
-  * **Custom Variables:** Any custom variables set up in Autonomous — e.g., `$vars.<variable-name>`.
-  * **Libraries:** The function can utilize any libraries that have been imported and made available within the Autonomous backend environment.**The function must return a string value at the end of its execution**.
+  * **Custom Variables:** Any custom variables set up in Kodivian — e.g., `$vars.<variable-name>`.
+  * **Libraries:** The function can utilize any libraries that have been imported and made available within the Kodivian backend environment.**The function must return a string value at the end of its execution**.
 * **Configuration Parameters**
   * **Input Variables**: Configure an array of input definitions that will be passed as variables into the scope of your Javascript function. For each variable you wish to define, you will specify:
     * **Variable Name**: The name you will use to refer to this variable within your Javascript code, typically prefixed with a `$` — e.g., if you enter `myValue` here, you might access it as `$myValue` in the script, corresponding to how input schema properties are mapped.
@@ -324,15 +324,15 @@ Provides a mechanism for executing custom server-side Javascript code within the
 
 ### **14. Execute Flow Node**
 
-Enables the invocation and execution of another complete Autonomous Chatflow or AgentFlow from within the current workflow.
+Enables the invocation and execution of another complete Kodivian Chatflow or AgentFlow from within the current workflow.
 
-* **Functionality:** This node functions as a sub-workflow caller, promoting modular design and reusability of logic. It allows the current workflow to trigger a separate, pre-existing workflow — identified by its name or ID within the Autonomous instance — pass an initial input to it, optionally override specific configurations of the target flow for that particular run, and then receive its final output back into the calling workflow to continue processing.
+* **Functionality:** This node functions as a sub-workflow caller, promoting modular design and reusability of logic. It allows the current workflow to trigger a separate, pre-existing workflow — identified by its name or ID within the Kodivian instance — pass an initial input to it, optionally override specific configurations of the target flow for that particular run, and then receive its final output back into the calling workflow to continue processing.
 * **Configuration Parameters**
   * **Connect Credential**: Optionally provide Chatflow API credentials if the target flow being called requires specific authentication or permissions for execution.
-  * **Select Flow**: Specify the particular Chatflow or AgentFlow that this node will execute from the list of available flows in your Autonomous instance.
+  * **Select Flow**: Specify the particular Chatflow or AgentFlow that this node will execute from the list of available flows in your Kodivian instance.
   * **Input**: Define the data — static text or `{{ variable }}` — that will be passed as the primary input to the target workflow when it is invoked.
   * **Override Config**: Optionally provide a JSON object containing parameters that will override the default configuration of the target workflow specifically for this execution instance — e.g., temporarily changing a model or prompt used in the sub-flow.
-  * **Base URL**: Optionally specify an alternative base URL for the Autonomous instance that hosts the target flow. This is useful in distributed setups or when flows are accessed via different routes, defaulting to the current instance's URL if not set.
+  * **Base URL**: Optionally specify an alternative base URL for the Kodivian instance that hosts the target flow. This is useful in distributed setups or when flows are accessed via different routes, defaulting to the current instance's URL if not set.
   * **Return Response As**: Determine how the final output from the executed sub-flow should be categorized when it's returned to the current workflow — as a `User Message` or `Assistant Message`.
   * **Update Flow State**: Allows the node to modify the workflow's runtime state `$flow.state` during execution by updating pre-defined keys. This makes it possible, for example, to store this Execute Flow node's output under such a key, making it accessible to subsequent nodes.
 * **Inputs:** Requires the selection of a target flow and the `Input` data for it.

@@ -20,13 +20,13 @@
 
 <figure><img src="../../.././assets/image (140).png" alt=""><figcaption></figcaption></figure>
 
-3. Voila [🎉](https://emojipedia.org/party-popper/), you can now use **ChatOllama node** in Autonomous
+3. Voila [🎉](https://emojipedia.org/party-popper/), you can now use **ChatOllama node** in Kodivian
 
 <figure><img src="../../.././assets/image (141).png" alt=""><figcaption></figcaption></figure>
 
 ### Additional
 
-If you are running both Autonomous and Ollama on docker. You'll have to change the Base URL for ChatOllama.
+If you are running both Kodivian and Ollama on docker. You'll have to change the Base URL for ChatOllama.
 
 For Windows and MacOS Operating Systems specify [http://host.docker.internal:8000](http://host.docker.internal:8000/). For Linux based systems the default docker gateway should be used since host.docker.internal is not available: [http://172.17.0.1:8000](http://172.17.0.1:8000/)
 

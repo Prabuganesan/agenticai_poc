@@ -28,11 +28,11 @@ TOKEN_HASH_SECRET
 
 </details>
 
-By default, new installation of Autonomous will require an admin setup, similar to how you have to setup a root user for your database initially.
+By default, new installation of Kodivian will require an admin setup, similar to how you have to setup a root user for your database initially.
 
 <figure><img src=".././assets/image (2) (1) (1) (1) (1) (1) (2).png" alt="" width="478"><figcaption></figcaption></figure>
 
-After setting up, user will be brought to Autonomous dashboard. From the left side bar, you will see User & Workspace Management section. A default workspace was automatically created.
+After setting up, user will be brought to Kodivian dashboard. From the left side bar, you will see User & Workspace Management section. A default workspace was automatically created.
 
 <figure><img src=".././assets/image (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (1) (2) (1) (1).png" alt=""><figcaption></figcaption></figure>
 

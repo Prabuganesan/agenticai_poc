@@ -1,12 +1,12 @@
 # Introduction
 
 
-Welcome to the official Autonomous documentation
+Welcome to the official Kodivian documentation
 
 
-<figure><img src="./assets/AutonomousIntro (1).gif" alt=""><figcaption></figcaption></figure>
+<figure><img src="./assets/KodivianIntro (1).gif" alt=""><figcaption></figcaption></figure>
 
-Autonomous is a generative AI development platform for building AI Agents and LLM workflows.
+Kodivian is a generative AI development platform for building AI Agents and LLM workflows.
 
 It offers a complete solution that includes:
 
@@ -37,13 +37,13 @@ Chatflow is designed to build single-agent systems, chatbots and simple LLM flow
 
 ## Agentflow
 
-Agentflow is the superset of Chatflow & Assistant. It can be used to create chat assistant, single-agent system, multi-agent systems, and complex workflow orchestration. Learn more [Agentflow](using-Autonomous/agentflow.md)
+Agentflow is the superset of Chatflow & Assistant. It can be used to create chat assistant, single-agent system, multi-agent systems, and complex workflow orchestration. Learn more [Agentflow](using-Kodivian/agentflow.md)
 
 <figure><picture><source srcset="./assets/screely-1749594631028.png" media="(prefers-color-scheme: dark)"><img src="./assets/screely-1749594614881.png" alt=""></picture><figcaption></figcaption></figure>
 
-## Autonomous Capabilities
+## Kodivian Capabilities
 
-| Feature Area                 | Autonomous Capabilities                                                                                                |
+| Feature Area                 | Kodivian Capabilities                                                                                                |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------- |
 | Orchestration                | Visual editor, supports open-source & proprietary models, expressions, custom code, branching/looping/routing logic |
 | Data Ingestion & Integration | Connects to 100+ sources, tools, vector databases, memories                                                         |

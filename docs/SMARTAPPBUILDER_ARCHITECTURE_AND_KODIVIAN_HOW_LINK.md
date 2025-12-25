@@ -1,10 +1,10 @@
-# Smart App Builder (SAB) Architecture & Autonomous Integration
+# Smart App Builder (SAB) Architecture & Kodivian Integration
 
 ## Table of Contents
 1. [Overview](#overview)
 2. [System Architecture](#system-architecture)
 3. [Core Components](#core-components)
-4. [Autonomous Server Integration](#autonomous-server-integration)
+4. [Kodivian Server Integration](#kodivian-server-integration)
 5. [Data Flow](#data-flow)
 6. [Technology Stack](#technology-stack)
 7. [Deployment Model](#deployment-model)
@@ -18,11 +18,11 @@
 1. **Java Designer Server** - Visual drag-and-drop designer for creating application metadata
 2. **SAB Builder Server** - Generates Angular applications from metadata JSON
 3. **Deployment Server** - Hosts generated applications and handles CouchDB CRUD operations
-4. **Autonomous Server** - AI orchestration engine for chatflows, agentflows, RAG, and tools
+4. **Kodivian Server** - AI orchestration engine for chatflows, agentflows, RAG, and tools
 
 ### Key Integration
 
-**Autonomous Server** (Apache 2.0) is integrated as the **AI automation engine**, providing:
+**Kodivian Server** (Apache 2.0) is integrated as the **AI automation engine**, providing:
 - Natural Language Query (NLQ)
 - Object creation assistance
 - Summaries and JSON comparison
@@ -93,7 +93,7 @@
 └─────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────────────┐
-│              Autonomous Server                                         │
+│              Kodivian Server                                         │
 │  ┌──────────────────────────────────────────────────────────────┐  │
 │  │ Backend: Node.js + LangGraph + TypeScript                     │  │
 │  │ - Chatflow/Agentflow Management                               │  │
@@ -104,7 +104,7 @@
 │  │ - RAG Embeddings and Search                                   │  │
 │  └──────────────────────────────────────────────────────────────┘  │
 │  ┌──────────────────────────────────────────────────────────────┐  │
-│  │ Frontend: React (Autonomous UI)                                │  │
+│  │ Frontend: React (Kodivian UI)                                │  │
 │  │ - Visual Flow Builder (React Flow)                            │  │
 │  │ - 100+ Pre-built LangChain Nodes                              │  │
 │  │ - Chat Interface                                              │  │
@@ -221,7 +221,7 @@ Java Designer → Meta JSON → SAB Builder → Angular Apps → Deployment Serv
 
 #### Session Management:
 - Uses **SABID** cookie for session tracking
-- Session stored in Redis with format: `{sab_id}$${chainsysSessionId}$${userId}$$Sails{orgId}`
+- Session stored in Redis with format: `{sab_id}$${kodivianSessionId}$${userId}$$Sails{orgId}`
 - Session validation via `AuthCheck.js` policy
 - Multi-organization session isolation
 
@@ -237,14 +237,14 @@ Java Designer → Meta JSON → SAB Builder → Angular Apps → Deployment Serv
 - **Embeds Objects** - Employee, Department, Leave, and other business objects
 - **Drag-and-Drop UI** - Generated apps with drag-and-drop capabilities
 
-### 5. Autonomous Server
+### 5. Kodivian Server
 
-**Location:** `inputs/autonomous/`
+**Location:** `inputs/kodivian/`
 
-**Location:** `inputs/autonomous/`  
-**Base:** Autonomous open-source (Apache 2.0)  
+**Location:** `inputs/kodivian/`  
+**Base:** Kodivian open-source (Apache 2.0)  
 **Framework:** Express.js + TypeScript + LangGraph  
-**Frontend:** React (Autonomous UI)  
+**Frontend:** React (Kodivian UI)  
 **Monorepo Structure:** pnpm workspace
 
 #### Key Responsibilities:
@@ -355,11 +355,11 @@ packages/
 
 ---
 
-## Autonomous Server Integration
+## Kodivian Server Integration
 
 ### Integration Architecture
 
-Autonomous Server integrates with SAB through a **session bridge mechanism** and shared infrastructure:
+Kodivian Server integrates with SAB through a **session bridge mechanism** and shared infrastructure:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -367,24 +367,24 @@ Autonomous Server integrates with SAB through a **session bridge mechanism** and
 │                                                              │
 │  User Login → Session Created (SABID cookie)                │
 │       ↓                                                      │
-│  Session Info: {orgId, userId, chainsysSessionId}             │
+│  Session Info: {orgId, userId, kodivianSessionId}             │
 │  Session Stored in: SAB Redis                                │
 └──────────────────────┬──────────────────────────────────────┘
                         │
                         │ GET /api/v1/sessionhandler
-                        │ ?params={base64({orgId, chainsysSessionId})}
+                        │ ?params={base64({orgId, kodivianSessionId})}
                         ↓
 ┌─────────────────────────────────────────────────────────────┐
-│              Autonomous Server (Express.js)                  │
+│              Kodivian Server (Express.js)                  │
 │                                                              │
 │  Session Handler Controller:                                 │
 │  1. Decode base64 params                                     │
 │  2. Validate organization configuration                      │
-│  3. Create autonomous session token                          │
+│  3. Create kodivian session token                          │
 │  4. Store in Redis (per-org, uses SAB Redis)                 │
 │  5. Set AUTOID cookie                                        │
 │                                                              │
-│  Token Format: {uuid}$${chainsysSessionId}$${userId}$$Auto{orgId}│
+│  Token Format: {uuid}$${kodivianSessionId}$${userId}$$Auto{orgId}│
 │                                                              │
 │  Uses SAB's:                                                 │
 │  - PostgreSQL org metadata DB                                │
@@ -397,54 +397,54 @@ Autonomous Server integrates with SAB through a **session bridge mechanism** and
 
 **1. Session Creation Request:**
 ```
-GET /api/v1/sessionhandler?params={base64({orgId, chainsysSessionId})}
+GET /api/v1/sessionhandler?params={base64({orgId, kodivianSessionId})}
 ```
 
 **2. Session Handler Process:**
 - Decodes base64 parameters
 - Validates organization configuration
 - Checks for existing AUTOID cookie
-- Creates new autonomous session token
+- Creates new kodivian session token
 - Stores session in Redis (per-organization)
 - Sets AUTOID cookie with session token
 
 **3. Session Token Format:**
 ```
-{uuid}$${chainsysSessionId}$${userId}$$Auto{orgId}
+{uuid}$${kodivianSessionId}$${userId}$$Auto{orgId}
 ```
 
 **4. Session Storage:**
-- Redis key: `AUTONOMOUS_SESSION_{token}`
+- Redis key: `KODIVIAN_SESSION_{token}`
 - Redis database: Per-organization (REDIS_DB_SESSION)
 - TTL: SESSION_COOKIE_MAX_AGE (default: 900 seconds)
 
 ### Key Integration Points
 
 #### 1. Session Handler Route
-**File:** `autonomous/packages/server/src/routes/session-handler.route.ts`
+**File:** `kodivian/packages/server/src/routes/session-handler.route.ts`
 
 - Handles session creation from main server
 - Validates organization configuration
-- Creates autonomous session tokens
+- Creates kodivian session tokens
 - Manages AUTOID cookies
 
 #### 2. Session Handler Controller
-**File:** `autonomous/packages/server/src/controllers/session-handler.controller.ts`
+**File:** `kodivian/packages/server/src/controllers/session-handler.controller.ts`
 
-- `createSession()` - Creates autonomous session from SAB session
-- `validateSession()` - Validates existing autonomous session
+- `createSession()` - Creates kodivian session from SAB session
+- `validateSession()` - Validates existing kodivian session
 - Uses SimpleCrypto for encryption (same key as SAB)
 
-#### 3. Autonomous Session Service
-**File:** `autonomous/packages/server/src/services/autonomous-session.service.ts`
+#### 3. Kodivian Session Service
+**File:** `kodivian/packages/server/src/services/kodivian-session.service.ts`
 
-- `createAutonomousSession()` - Creates session token
-- `getAutonomousSession()` - Retrieves session data
-- `deleteAutonomousSession()` - Deletes session
+- `createKodivianSession()` - Creates session token
+- `getKodivianSession()` - Retrieves session data
+- `deleteKodivianSession()` - Deletes session
 - Manages per-organization Redis pools
 
 #### 4. Session Validation Middleware
-**File:** `autonomous/packages/server/src/middlewares/session-validation.middleware.ts`
+**File:** `kodivian/packages/server/src/middlewares/session-validation.middleware.ts`
 
 - Validates AUTOID cookie on each request
 - Extracts orgId, userId from token
@@ -452,7 +452,7 @@ GET /api/v1/sessionhandler?params={base64({orgId, chainsysSessionId})}
 
 ### Organization Configuration
 
-**File:** `autonomous/packages/server/src/services/org-config.service.ts`
+**File:** `kodivian/packages/server/src/services/org-config.service.ts`
 
 - Loads organization configurations from main database
 - Manages per-organization:
@@ -469,7 +469,7 @@ GET /api/v1/sessionhandler?params={base64({orgId, chainsysSessionId})}
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│              Autonomous Server Instance                      │
+│              Kodivian Server Instance                      │
 │                                                              │
 │  ┌────────────────────────────────────────────────────┐    │
 │  │  Organization Config Service                       │    │
@@ -535,30 +535,30 @@ Session Created (SABID cookie in SAB Redis)
 User Redirected to Application (Deployment Server)
 ```
 
-### 3. Autonomous Session Creation Flow
+### 3. Kodivian Session Creation Flow
 
 ```
-User Accesses Autonomous UI
+User Accesses Kodivian UI
   ↓
-BrowserApp Redirects to Autonomous Server
+BrowserApp Redirects to Kodivian Server
   ↓
-GET /api/v1/sessionhandler?params={base64({orgId, chainsysSessionId})}
+GET /api/v1/sessionhandler?params={base64({orgId, kodivianSessionId})}
   ↓
 SessionHandlerController.createSession()
   ↓
 1. Decode params
 2. Validate org config
-3. Create autonomous session token
+3. Create kodivian session token
 4. Store in Redis (per-org)
 5. Set AUTOID cookie
   ↓
-User Authenticated in Autonomous Server
+User Authenticated in Kodivian Server
 ```
 
 ### 4. AI Agent Execution Flow
 
 ```
-User Creates Chatflow/Agentflow in Autonomous UI
+User Creates Chatflow/Agentflow in Kodivian UI
   ↓
 Flow Saved to PostgreSQL (per-org)
   ↓
@@ -630,12 +630,12 @@ User Notified (WebSocket/HTTP)
 - **CouchDB:** Handles all CRUD operations
 - **Session:** SABID cookie-based session management
 
-### Autonomous Server
+### Kodivian Server
 - **Base:** Flowise open-source (Apache 2.0)
 - **Framework:** Express.js + TypeScript
 - **AI Framework:** LangChain + LangGraph
 - **Runtime:** Node.js 18+
-- **Frontend:** React (Autonomous UI) + React Flow
+- **Frontend:** React (Kodivian UI) + React Flow
 - **Queue System:** BullMQ (org-wise queues)
 - **Session Store:** Redis (uses SAB Redis, AUTOID cookie)
 - **Database:** PostgreSQL (uses SAB's org metadata DB), Oracle (optional)
@@ -689,9 +689,9 @@ User Notified (WebSocket/HTTP)
 │  └────────────────────────────────────────────────────┘    │
 │                                                              │
 │  ┌────────────────────────────────────────────────────┐    │
-│  │  Autonomous Server (inputs/autonomous/)              │    │
+│  │  Kodivian Server (inputs/kodivian/)              │    │
 │  │  - Port: 3030 (SERVER_PORT)                         │    │
-│  │  - Context Path: /autonomous                        │    │
+│  │  - Context Path: /kodivian                        │    │
 │  │  - Handles: AI Agents, LLM Orchestration            │    │
 │  │  - Uses SAB's PostgreSQL & Redis                    │    │
 │  └────────────────────────────────────────────────────┘    │
@@ -711,7 +711,7 @@ User Notified (WebSocket/HTTP)
 1. **Multi-Server Structure:**
    - **SAB Builder Server** (Root level: `api/`, `config/`, `core/`) - Handles app build, meta JSON processing, Redis/queue, CouchDB live changes, CI/CD
    - **Deployment Server** (`inputs/browserapp/`) - Stores generated apps, serves apps to users, handles CouchDB CRUD
-   - **Autonomous Server** (`inputs/autonomous/`) - AI automation engine
+   - **Kodivian Server** (`inputs/kodivian/`) - AI automation engine
    - All servers connect to the same PostgreSQL + CouchDB
 
 2. **Design → Generate → Deploy Pipeline:**
@@ -720,7 +720,7 @@ User Notified (WebSocket/HTTP)
    - Deployment Server hosts generated apps + handles CouchDB CRUD
 
 3. **Single Instance, Multi-Organization:**
-   - One Autonomous server instance
+   - One Kodivian server instance
    - Multiple organizations share the instance
    - Data isolation via per-org databases
    - Uses SAB's PostgreSQL org metadata DB
@@ -728,8 +728,8 @@ User Notified (WebSocket/HTTP)
 
 4. **Session Bridge:**
    - Builder server creates SAB session (SABID cookie)
-   - Autonomous server creates autonomous session via session handler
-   - Both sessions linked via chainsysSessionId
+   - Kodivian server creates kodivian session via session handler
+   - Both sessions linked via kodivianSessionId
    - User session managed by SAB Redis
 
 5. **Database Isolation:**
@@ -759,9 +759,9 @@ User Notified (WebSocket/HTTP)
 - Handles CouchDB CRUD operations
 - Session management (SABID cookie)
 
-**Autonomous Server:**
+**Kodivian Server:**
 - `SERVER_PORT` - Server port (default: 3030)
-- `CONTEXT_PATH` - Context path (default: /autonomous)
+- `CONTEXT_PATH` - Context path (default: /kodivian)
 - `MAIN_DB_*` - Main database connection (uses SAB's PostgreSQL)
 - `SESSION_COOKIE_DOMAIN` - Cookie domain
 - `REDIS_DB_SESSION` - Redis DB for sessions (default: 1, uses SAB Redis)
@@ -772,7 +772,7 @@ User Notified (WebSocket/HTTP)
 
 ## Summary
 
-Smart App Builder is a comprehensive low-code platform with a **"design → generate → deploy"** pipeline that integrates Autonomous Server as its AI automation engine.
+Smart App Builder is a comprehensive low-code platform with a **"design → generate → deploy"** pipeline that integrates Kodivian Server as its AI automation engine.
 
 ### Architecture Summary (One Line Each)
 
@@ -783,21 +783,21 @@ Smart App Builder is a comprehensive low-code platform with a **"design → gene
 5. **CouchDB** → Stores dynamic transactional data
 6. **Redis** → Session + queue management
 7. **Angular Frontend** → Renders dynamic app (Standalone Components, Material UI)
-8. **Autonomous Server** (`inputs/autonomous/`) → AI automation engine (chatflows, agentflows, RAG, tools)
+8. **Kodivian Server** (`inputs/kodivian/`) → AI automation engine (chatflows, agentflows, RAG, tools)
 
 ### Key Integration Points
 
-1. **Session Bridge** - Seamless session sharing between SAB Builder Server and Autonomous Server
-2. **Shared Infrastructure** - Autonomous uses SAB's PostgreSQL org metadata DB and Redis
+1. **Session Bridge** - Seamless session sharing between SAB Builder Server and Kodivian Server
+2. **Shared Infrastructure** - Kodivian uses SAB's PostgreSQL org metadata DB and Redis
 3. **Multi-Organization Support** - Isolated data and configurations per organization
 4. **Unified User Experience** - Single sign-on across both platforms
 5. **AI-Powered Workflows** - Visual flow builder for creating AI agents and workflows
 6. **Scalable Architecture** - Queue-based processing for async operations (org-wise queues)
-7. **Authentication Alignment** - Autonomous authentication aligned with SAB session + API Key
+7. **Authentication Alignment** - Kodivian authentication aligned with SAB session + API Key
 
-### Autonomous Server Role
+### Kodivian Server Role
 
-Autonomous becomes the **AI brain for SAB**, providing:
+Kodivian becomes the **AI brain for SAB**, providing:
 - Chat with data (NLQ)
 - Write logic
 - Analyze objects

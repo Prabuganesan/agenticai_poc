@@ -2,7 +2,7 @@
 
 ## Mode
 
-When running in production, we highly recommend using [Queue](running-Autonomous-using-queue.md) mode with the following settings:
+When running in production, we highly recommend using [Queue](running-Kodivian-using-queue.md) mode with the following settings:
 
 * 2 main servers with load balancing, each starting from 4vCPU 8GB RAM
 * 4 workers, each starting from 4vCPU 8GB RAM
@@ -11,15 +11,15 @@ You can configure auto scaling depending on the traffic and volume.
 
 ## Database
 
-By default, Autonomous will use SQLite as the database. However when running at scale, its recommended to use PostgresQL.
+By default, Kodivian will use SQLite as the database. However when running at scale, its recommended to use PostgresQL.
 
 ## Storage
 
-Currently Autonomous only supports [AWS S3](https://aws.amazon.com/s3/) with plan to support more blob storage providers. This will allow files and logs to be stored on S3, instead of local file path. Refer [#for-storage](environment-variables.md#for-storage "mention")
+Currently Kodivian only supports [AWS S3](https://aws.amazon.com/s3/) with plan to support more blob storage providers. This will allow files and logs to be stored on S3, instead of local file path. Refer [#for-storage](environment-variables.md#for-storage "mention")
 
 ## Encryption
 
-Autonomous uses an encryption key to encrypt/decrypt credentials you use such as OpenAI API keys. [AWS Secret Manager](https://aws.amazon.com/secrets-manager/) is recommended to be used in production for better security control and key rotation. Refer [#for-credentials](environment-variables.md#for-credentials "mention")
+Kodivian uses an encryption key to encrypt/decrypt credentials you use such as OpenAI API keys. [AWS Secret Manager](https://aws.amazon.com/secrets-manager/) is recommended to be used in production for better security control and key rotation. Refer [#for-credentials](environment-variables.md#for-credentials "mention")
 
 ## Rate Limit
 
@@ -27,4 +27,4 @@ When deployed to cloud/on-prem, most likely the instances are behind a proxy/loa
 
 ## Load Testing
 
-Artillery can be used to load testing your deployed Autonomous application. Example script can be found [here](https://github.com/AutonomousAI/Autonomous/blob/main/artillery-load-test.yml).
+Artillery can be used to load testing your deployed Kodivian application. Example script can be found [here](https://github.com/KodivianAI/Kodivian/blob/main/artillery-load-test.yml).

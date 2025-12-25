@@ -20,7 +20,7 @@ This module provides a sophisticated GitHub document loader that can:
 ## Inputs
 
 ### Required Parameters
-- **Repo Link**: The GitHub repository URL (e.g., https://github.com/AutonomousAI/Autonomous)
+- **Repo Link**: The GitHub repository URL (e.g., https://github.com/KodivianAI/Kodivian)
 - **Branch**: The branch to load content from (default: main)
 
 ### Optional Parameters

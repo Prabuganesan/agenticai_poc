@@ -11,7 +11,7 @@
 
 | Field Name                | Description                                       |
 | ------------------------- | ------------------------------------------------- |
-| **Name**                  | name of the project to be created. (e.g. Autonomous) |
+| **Name**                  | name of the project to be created. (e.g. Kodivian) |
 | **Database** **Password** | password to your postgres database                |
 
 <figure><img src="../../.././assets/image (25) (1) (1).png" alt=""><figcaption></figcaption></figure>

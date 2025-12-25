@@ -1,6 +1,6 @@
 # Tools & MCP
 
-In the previous [**Interacting with API**](interacting-with-api.md) tutorial, we explored how to enable LLMs to call external APIs. To enhance the user experience, Autonomous provides a list of prebuilt tools. Refer to the [**Tools**](../integrations/langchain/tools/) section for the full list of available integrations.
+In the previous [**Interacting with API**](interacting-with-api.md) tutorial, we explored how to enable LLMs to call external APIs. To enhance the user experience, Kodivian provides a list of prebuilt tools. Refer to the [**Tools**](../integrations/langchain/tools/) section for the full list of available integrations.
 
 In cases where the tool you need is not yet available, you can create a **Custom Tool** to suit your requirements.
 
@@ -41,7 +41,7 @@ try {
 
 ### How to use function:
 
-* You can use any libraries imported in Autonomous.
+* You can use any libraries imported in Kodivian.
 * You can use properties specified in Input Schema as variables with prefix `$`:
   * Property from Input Schema = `name`
   * Variable to be used in Function = `$name`
@@ -73,7 +73,7 @@ In this case, **Tool Input Arguments must be explicitly defined and filled with 
 
 ## MCP
 
-MCP ([Model Context Protocol](https://modelcontextprotocol.io/introduction)) provides a standardized way to connect AI models to different data sources and tools. In other words, instead of relying on Autonomous built in tools or creating custom tool, one can uses MCP servers that have been created by others. MCP is widely considered an industry standard and is typically supported and maintained by the official providers. For example, the GitHub MCP is developed and maintained by the GitHub team, with similar support provided for Atlassian Jira, Brave Search, and others. You can find the list of supported servers [here](https://modelcontextprotocol.io/examples).
+MCP ([Model Context Protocol](https://modelcontextprotocol.io/introduction)) provides a standardized way to connect AI models to different data sources and tools. In other words, instead of relying on Kodivian built in tools or creating custom tool, one can uses MCP servers that have been created by others. MCP is widely considered an industry standard and is typically supported and maintained by the official providers. For example, the GitHub MCP is developed and maintained by the GitHub team, with similar support provided for Atlassian Jira, Brave Search, and others. You can find the list of supported servers [here](https://modelcontextprotocol.io/examples).
 
 <figure><img src=".././assets/image (1) (1) (1) (1) (1) (1) (1) (1).png" alt="" width="413"><figcaption></figcaption></figure>
 
@@ -83,7 +83,7 @@ Apart from the prebuilt MCP tools, the most powerful feature is **Custom MCP**, 
 
 MCP follows a client-server architecture where:
 
-* **Hosts** are LLM applications (like Autonomous) that initiate connections
+* **Hosts** are LLM applications (like Kodivian) that initiate connections
 * **Clients** maintain 1:1 connections with servers, inside the host application (like Custom MCP)
 * **Servers** provide context, tools, and prompts to clients (example [servers](https://modelcontextprotocol.io/examples))
 
@@ -100,7 +100,7 @@ To handle the actual communication between clients and servers. MCP supports mul
 
 Stdio transport enables communication through standard input and output streams. This is particularly useful for local integrations and command-line tools.
 
-Only use this when using Autonomous locally, not when deployed to cloud services. This is because running command like `npx` will install the MCP server package (ex: `@modelcontextprotocol/server-sequential-thinking`)  locally, and it often takes long time for that.&#x20;
+Only use this when using Kodivian locally, not when deployed to cloud services. This is because running command like `npx` will install the MCP server package (ex: `@modelcontextprotocol/server-sequential-thinking`)  locally, and it often takes long time for that.&#x20;
 
 It is more suited for desktop application like Claude Desktop, VS Code etc.
 
@@ -122,7 +122,7 @@ For Windows, refer to this [guide](https://gist.github.com/feveromo/7a340d7795fc
 
 #### **Docker command**
 
-The Docker command is suitable when the machine running Autonomous also has access to Docker. However, it is not suitable for deployments on cloud services where Docker access is restricted or unavailable.
+The Docker command is suitable when the machine running Kodivian also has access to Docker. However, it is not suitable for deployments on cloud services where Docker access is restricted or unavailable.
 
 ```json
 {
@@ -180,7 +180,7 @@ In order to access the MCP server, we need to create a Personal Access Token fro
 
 #### Step 2: Create Custom MCP
 
-Create an Agent node, and add a new Custom MCP tool. For streamable HTTP, we just need to put in the URL and other necessary headers. You can use [variables](../using-Autonomous/variables.md) in the MCP Server Config with double curly braces `{{ }}` and prefix `$vars.<variableName>`.
+Create an Agent node, and add a new Custom MCP tool. For streamable HTTP, we just need to put in the URL and other necessary headers. You can use [variables](../using-Kodivian/variables.md) in the MCP Server Config with double curly braces `{{ }}` and prefix `$vars.<variableName>`.
 
 ```json
 {
@@ -195,7 +195,7 @@ Create an Agent node, and add a new Custom MCP tool. For streamable HTTP, we jus
 
 #### Step 3: Select the actions
 
-If the MCP server configuration is working correctly, you can refresh the **Available Actions**, and Autonomous will automatically pull in all available actions from the MCP server.
+If the MCP server configuration is working correctly, you can refresh the **Available Actions**, and Kodivian will automatically pull in all available actions from the MCP server.
 
 <figure><img src=".././assets/image (3) (1) (1) (1) (1) (1) (1).png" alt="" width="359"><figcaption></figcaption></figure>
 

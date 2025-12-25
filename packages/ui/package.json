@@ -5,7 +5,7 @@
   "homepage": "https://kodivian.com",
   "author": {
     "name": "Kodivian",
-    "email": "kodivian@chainsys.com"
+    "email": "kodivian@kodivian.com"
   },
   "dependencies": {
     "@codemirror/lang-javascript": "6.2.2",

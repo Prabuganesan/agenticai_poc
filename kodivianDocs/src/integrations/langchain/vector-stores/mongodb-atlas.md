@@ -52,7 +52,7 @@ Once this is done, proceed to build the index.
 This section is a work in progress. We appreciate any help you can provide in completing this section. Please check our [Contribution Guide](broken-reference) to get started.
 {% endhint %}
 
-### Autonomous Configuration
+### Kodivian Configuration
 
 Drag and drop the MongoDB Atlas Vector Store, and add a new credential. Use the connection string provided from the MongoDB Atlas dashboard:
 

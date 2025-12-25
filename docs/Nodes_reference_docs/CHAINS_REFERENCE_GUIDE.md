@@ -1,6 +1,6 @@
-# Autonomous Chains Reference Guide
+# Kodivian Chains Reference Guide
 
-A comprehensive guide to all available chains in the Autonomous platform. Use this document to choose the right chain for your use case.
+A comprehensive guide to all available chains in the Kodivian platform. Use this document to choose the right chain for your use case.
 
 ---
 

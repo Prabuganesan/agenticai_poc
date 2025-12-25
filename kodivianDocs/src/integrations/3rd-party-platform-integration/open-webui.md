@@ -2,7 +2,7 @@
 
 [Open WebUI](https://github.com/open-webui/open-webui) is an extensible, feature-rich, and user-friendly _self-hosted AI platform_ designed to operate entirely offline.
 
-[Functions](https://docs.openwebui.com/features/plugin/functions/) are like plugins for Open WebUI. We can create a custom [Pipe Function](https://docs.openwebui.com/features/plugin/functions/pipe) that process inputs and generate responses by invoking Autonomous Prediction API before returning results to the user. Through this, Autonomous can be used in Open WebUI.
+[Functions](https://docs.openwebui.com/features/plugin/functions/) are like plugins for Open WebUI. We can create a custom [Pipe Function](https://docs.openwebui.com/features/plugin/functions/pipe) that process inputs and generate responses by invoking Kodivian Prediction API before returning results to the user. Through this, Kodivian can be used in Open WebUI.
 
 ## Setup
 
@@ -18,10 +18,10 @@
 
 ```python
 """
-title: Autonomous Integration for OpenWebUI
+title: Kodivian Integration for OpenWebUI
 Requirements:
-  - Autonomous API URL (set via Autonomous_API_URL)
-  - Autonomous API Key (set via Autonomous_API_KEY)
+  - Kodivian API URL (set via Kodivian_API_URL)
+  - Kodivian API Key (set via Kodivian_API_KEY)
 """
 
 from pydantic import BaseModel, Field
@@ -33,40 +33,40 @@ import os
 
 class Pipe:
     class Valves(BaseModel):
-        Autonomous_url: str = Field(
-            default=os.getenv("Autonomous_API_URL", ""),
-            description="Autonomous URL",
+        Kodivian_url: str = Field(
+            default=os.getenv("Kodivian_API_URL", ""),
+            description="Kodivian URL",
         )
-        Autonomous_api_key: str = Field(
-            default=os.getenv("Autonomous_API_KEY", ""),
-            description="Autonomous API key for authentication",
+        Kodivian_api_key: str = Field(
+            default=os.getenv("Kodivian_API_KEY", ""),
+            description="Kodivian API key for authentication",
         )
 
     def __init__(self):
         self.type = "manifold"
-        self.id = "Autonomous_chat"
+        self.id = "Kodivian_chat"
         self.valves = self.Valves()
 
         # Validate required settings
-        if not self.valves.Autonomous_url:
+        if not self.valves.Kodivian_url:
             print(
-                "⚠️ Please set your Autonomous URL using the Autonomous_API_URL environment variable"
+                "⚠️ Please set your Kodivian URL using the Kodivian_API_URL environment variable"
             )
-        if not self.valves.Autonomous_api_key:
+        if not self.valves.Kodivian_api_key:
             print(
-                "⚠️ Please set your Autonomous API key using the Autonomous_API_KEY environment variable"
+                "⚠️ Please set your Kodivian API key using the Kodivian_API_KEY environment variable"
             )
 
     def pipes(self):
-        if self.valves.Autonomous_api_key and self.valves.Autonomous_url:
+        if self.valves.Kodivian_api_key and self.valves.Kodivian_url:
             try:
                 headers = {
-                    "Authorization": f"Bearer {self.valves.Autonomous_api_key}",
+                    "Authorization": f"Bearer {self.valves.Kodivian_api_key}",
                     "Content-Type": "application/json",
                 }
 
                 r = requests.get(
-                    f"{self.valves.Autonomous_url}/api/v1/chatflows?type=AGENTFLOW",
+                    f"{self.valves.Kodivian_url}/api/v1/chatflows?type=AGENTFLOW",
                     headers=headers,
                 )
                 models = r.json()
@@ -109,7 +109,7 @@ class Pipe:
         try:
             stream_enabled = body.get("stream", True)
             session_id = (__metadata__ or {}).get("chat_id") or "owui-session"
-            # model can be "Autonomous.<id>" or just "<id>"
+            # model can be "Kodivian.<id>" or just "<id>"
             model_name = body.get("model", "")
             dot = model_name.find(".")
             model_id = model_name[dot + 1 :] if dot != -1 else model_name
@@ -126,12 +126,12 @@ class Pipe:
             }
 
             headers = {
-                "Authorization": f"Bearer {self.valves.Autonomous_api_key}",
+                "Authorization": f"Bearer {self.valves.Kodivian_api_key}",
                 "Content-Type": "application/json",
                 "Accept": "text/event-stream" if stream_enabled else "application/json",
             }
 
-            url = f"{self.valves.Autonomous_url}/api/v1/prediction/{model_id}"
+            url = f"{self.valves.Kodivian_url}/api/v1/prediction/{model_id}"
             with requests.post(
                 url, json=data, headers=headers, stream=stream_enabled, timeout=60
             ) as r:
@@ -154,7 +154,7 @@ class Pipe:
                         if payload in ("[DONE]", '"[DONE]"'):
                             break
 
-                        # Autonomous usually sends {"event":"token","data":"..."}
+                        # Kodivian usually sends {"event":"token","data":"..."}
                         try:
                             obj = json.loads(payload)
                         except json.JSONDecodeError:
@@ -188,12 +188,12 @@ class Pipe:
                 detail = http_err.response.text[:500]
             except Exception:
                 detail = ""
-            return f"HTTP error from Autonomous: {http_err.response.status_code} {detail}"
+            return f"HTTP error from Kodivian: {http_err.response.status_code} {detail}"
         except Exception as e:
-            return f"Error in Autonomous pipe: {e}"
+            return f"Error in Kodivian pipe: {e}"
 ```
 
-4. After Function has been saved, enable it, and click the settings button to put in your Autonomous URL and Autonomous API Key:
+4. After Function has been saved, enable it, and click the settings button to put in your Kodivian URL and Kodivian API Key:
 
 <figure><img src="../.././assets/image (2) (1) (1) (1).png" alt="" width="563"><figcaption></figcaption></figure>
 
@@ -201,9 +201,9 @@ class Pipe:
 
 5. Now when you refresh and click New Chat, you will be able to see the list of flows. You can modify the code to show:
 
-* Only Agentflows V2: `f"{self.valves.Autonomous_url}/api/v1/chatflows?type=AGENTFLOW"`
-* Only Chatflows: `f"{self.valves.Autonomous_url}/api/v1/chatflows?type=CHATFLOW"`
-* Only Assistants: `f"{self.valves.Autonomous_url}/api/v1/chatflows?type=ASSISTANT"`
+* Only Agentflows V2: `f"{self.valves.Kodivian_url}/api/v1/chatflows?type=AGENTFLOW"`
+* Only Chatflows: `f"{self.valves.Kodivian_url}/api/v1/chatflows?type=CHATFLOW"`
+* Only Assistants: `f"{self.valves.Kodivian_url}/api/v1/chatflows?type=ASSISTANT"`
 
 <figure><img src="../.././assets/image (4) (1) (1).png" alt=""><figcaption></figcaption></figure>
 

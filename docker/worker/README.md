@@ -1,10 +1,10 @@
-# Autonomous Worker
+# Kodivian Worker
 
-By utilizing worker instances when operating in queue mode, Autonomous can be scaled horizontally by adding more workers to handle increased workloads or scaled down by removing workers when demand decreases.
+By utilizing worker instances when operating in queue mode, Kodivian can be scaled horizontally by adding more workers to handle increased workloads or scaled down by removing workers when demand decreases.
 
 Here's an overview of the process:
 
-1. The primary Autonomous instance sends an execution ID to a message broker, Redis, which maintains a queue of pending executions, allowing the next available worker to process them.
+1. The primary Kodivian instance sends an execution ID to a message broker, Redis, which maintains a queue of pending executions, allowing the next available worker to process them.
 2. A worker from the pool retrieves a message from Redis.
    The worker starts execute the actual job.
 3. Once the execution is completed, the worker alerts the main instance that the execution is finished.
@@ -25,4 +25,4 @@ Here's an overview of the process:
 
 ## Entrypoint:
 
-Different from main server image which is using `autonomous start`, entrypoint for worker is `pnpm run start-worker`. This is because the worker's [Dockerfile](./Dockerfile) build the image from source files via `pnpm build` instead of npm registry via `RUN npm install -g autonomous`.
+Different from main server image which is using `kodivian start`, entrypoint for worker is `pnpm run start-worker`. This is because the worker's [Dockerfile](./Dockerfile) build the image from source files via `pnpm build` instead of npm registry via `RUN npm install -g kodivian`.

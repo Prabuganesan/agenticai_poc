@@ -25,15 +25,15 @@ const shareChatBot = async (req: any, res: Response, next: NextFunction) => {
                 await kodivianSessionService.extendKodivianSessionWithData(existingToken, orgId, existingSession)
 
                 const proxyUrl = process.env.PROXY_URL || ''
-                const contextPath = orgConfigService.getContextPath(parseInt(orgId)) || '/autonomous'
+                const contextPath = orgConfigService.getContextPath(parseInt(orgId)) || '/kodivian'
                 const cleanContextPath = contextPath.startsWith('/') ? contextPath.substring(1) : contextPath
                 const chatBotPageUrl = `${proxyUrl}/${cleanContextPath}/chatbot/${chatId}`
                 const baseUrl = `${proxyUrl}/${cleanContextPath}/api/v1`
 
                 let userData: any
-                const chainsysSessionId = existingSession['chainsysSessionId']
+                const kodivianSessionId = existingSession['kodivianSessionId']
                 try {
-                    userData = await sessionService.validateChainsysSession(orgId, chainsysSessionId)
+                    userData = await sessionService.validateKodivianSession(orgId, kodivianSessionId)
                 } catch (sessionError) {
                     return res.status(500).json({
                         error: `Failed to validate session: ${sessionError instanceof Error ? sessionError.message : String(sessionError)}`

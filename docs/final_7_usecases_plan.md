@@ -1,9 +1,9 @@
-# SAB Platform - Final 7 Autonomous Use Cases
+# SAB Platform - Final 7 Kodivian Use Cases
 ## Complete Implementation Plan
 
 **Platform**: SAB Dynamic App Generation Platform  
 **Data Layer**: CouchDB (application data) + Clousea (search indexes) + PostgreSQL (config)  
-**AI Platform**: Autonomous  
+**AI Platform**: Kodivian  
 
 ---
 

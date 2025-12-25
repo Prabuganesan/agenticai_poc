@@ -564,7 +564,7 @@ const getSinglePublicChatbotConfig = async (chatflowId: string, baseURL?: string
         const uploadsConfig = await utilGetUploadsConfig(chatflowId, orgId)
         // Default theme configuration for embed
         // Use provided baseURL or construct from environment
-        const contextPath = process.env.CONTEXT_PATH || '/autonomous'
+        const contextPath = process.env.CONTEXT_PATH || '/kodivian'
         const finalBaseURL = baseURL
             ? `${baseURL}${contextPath}`
             : (() => {
@@ -590,18 +590,18 @@ const getSinglePublicChatbotConfig = async (chatflowId: string, baseURL?: string
             },
             chatWindow: {
                 footer: {
-                    text: 'Powered by Autonomous SAB',
+                    text: 'Powered by Kodivian SAB',
                     company: '',
                     companyLink: ''
                 }
             },
             customCSS: `
-                [id*="autonomous-chatbot"], [class*="autonomous-chatbot"], [id*="chatbot-button"], [class*="chatbot-button"], button[style*="position: fixed"] {
+                [id*="kodivian-chatbot"], [class*="kodivian-chatbot"], [id*="chatbot-button"], [class*="chatbot-button"], button[style*="position: fixed"] {
                     background-color: #ffffff !important;
                     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
                     border-radius: 50% !important;
                 }
-                [id*="autonomous-chatbot"] img, [class*="autonomous-chatbot"] img, [id*="chatbot-button"] img, [class*="chatbot-button"] img, button[style*="position: fixed"] img, img[alt*="Bubble"], img[alt*="button"], img.rounded-full {
+                [id*="kodivian-chatbot"] img, [class*="kodivian-chatbot"] img, [id*="chatbot-button"] img, [class*="chatbot-button"] img, button[style*="position: fixed"] img, img[alt*="Bubble"], img[alt*="button"], img.rounded-full {
                     width: 50px !important;
                     height: 30px !important;
                     object-fit: contain !important;
@@ -754,7 +754,7 @@ const getEmbedTheme = async (chatflowId: string, baseURL?: string, orgId?: strin
             throw new InternalKodivianError(StatusCodes.NOT_FOUND, `Chatflow ${chatflowId} not found`)
         }
         // Construct baseURL
-        const contextPath = process.env.CONTEXT_PATH || '/autonomous'
+        const contextPath = process.env.CONTEXT_PATH || '/kodivian'
         const finalBaseURL = baseURL
             ? `${baseURL}${contextPath}`
             : (() => {
@@ -781,18 +781,18 @@ const getEmbedTheme = async (chatflowId: string, baseURL?: string, orgId?: strin
             },
             chatWindow: {
                 footer: {
-                    text: 'Powered by Autonomous SAB',
+                    text: 'Powered by Kodivian SAB',
                     company: '',
                     companyLink: ''
                 }
             },
             customCSS: `
-                [id*="autonomous-chatbot"], [class*="autonomous-chatbot"], [id*="chatbot-button"], [class*="chatbot-button"], button[style*="position: fixed"] {
+                [id*="kodivian-chatbot"], [class*="kodivian-chatbot"], [id*="chatbot-button"], [class*="chatbot-button"], button[style*="position: fixed"] {
                     background-color: #ffffff !important;
                     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
                     border-radius: 50% !important;
                 }
-                [id*="autonomous-chatbot"] img, [class*="autonomous-chatbot"] img, [id*="chatbot-button"] img, [class*="chatbot-button"] img, button[style*="position: fixed"] img, img[alt*="Bubble"], img[alt*="button"], img.rounded-full {
+                [id*="kodivian-chatbot"] img, [class*="kodivian-chatbot"] img, [id*="chatbot-button"] img, [class*="chatbot-button"] img, button[style*="position: fixed"] img, img[alt*="Bubble"], img[alt*="button"], img.rounded-full {
                     width: 50px !important;
                     height: 30px !important;
                     object-fit: contain !important;

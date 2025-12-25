@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `encryption.key` file is a **critical security component** of Autonomous that stores the master encryption key used to encrypt and decrypt sensitive credential data (API keys, passwords, tokens, etc.) stored in the database.
+The `encryption.key` file is a **critical security component** of Kodivian that stores the master encryption key used to encrypt and decrypt sensitive credential data (API keys, passwords, tokens, etc.) stored in the database.
 
 **Important Distinction**: 
 - **Credential Encryption** (uses `encryption.key`): AES encryption for credentials stored in database - **Always enabled**
@@ -23,7 +23,7 @@ The `encryption.key` file contains a **master encryption key** (32 bytes, base64
 - **Auto-generated**: Created automatically on first server startup if it doesn't exist
 - **Persistent**: Stored on disk and reused across server restarts
 - **Critical**: **Losing this file means all encrypted credentials become unusable**
-- **Single key**: One key per Autonomous instance (shared across all organizations)
+- **Single key**: One key per Kodivian instance (shared across all organizations)
 - **File-based**: Stored as plain text file (not encrypted itself)
 - **Length**: 32 characters (24 random bytes → base64 encoding)
 - **Format**: Base64-encoded string, single line, no newlines
@@ -35,22 +35,22 @@ The `encryption.key` file contains a **master encryption key** (32 bytes, base64
 
 ### Default Location
 
-**Path**: `{AUTONOMOUS_DATA_PATH}/.autonomous/encryption.key`
+**Path**: `{KODIVIAN_DATA_PATH}/.kodivian/encryption.key`
 
-**Default**: `packages/server/.autonomous/encryption.key`
+**Default**: `packages/server/.kodivian/encryption.key`
 
 ### Path Resolution Logic
 
 **File**: `packages/server/src/utils/index.ts` (lines 100-113)
 
 ```typescript
-export const getAutonomousDataPath = (): string => {
-    if (process.env.AUTONOMOUS_DATA_PATH) {
-        return path.join(process.env.AUTONOMOUS_DATA_PATH, '.autonomous')
+export const getKodivianDataPath = (): string => {
+    if (process.env.KODIVIAN_DATA_PATH) {
+        return path.join(process.env.KODIVIAN_DATA_PATH, '.kodivian')
     }
-    // Default to .autonomous inside the server package directory
+    // Default to .kodivian inside the server package directory
     const serverRoot = path.resolve(__dirname, '..', '..')
-    return path.join(serverRoot, '.autonomous')
+    return path.join(serverRoot, '.kodivian')
 }
 ```
 
@@ -59,18 +59,18 @@ export const getAutonomousDataPath = (): string => {
 The system checks multiple possible locations in order:
 
 1. `SECRETKEY_PATH/encryption.key` (if `SECRETKEY_PATH` env var is set)
-2. `{AUTONOMOUS_DATA_PATH}/.autonomous/encryption.key` (if `AUTONOMOUS_DATA_PATH` is set)
+2. `{KODIVIAN_DATA_PATH}/.kodivian/encryption.key` (if `KODIVIAN_DATA_PATH` is set)
 3. Various relative paths from components directory (legacy support)
-4. Default: `packages/server/.autonomous/encryption.key`
+4. Default: `packages/server/.kodivian/encryption.key`
 
 ### Environment Variables
 
 | Variable | Purpose | Example |
 |----------|---------|---------|
-| `AUTONOMOUS_DATA_PATH` | Base directory for all Autonomous data | `/data/autonomous` → `/data/autonomous/.autonomous/encryption.key` |
+| `KODIVIAN_DATA_PATH` | Base directory for all Kodivian data | `/data/kodivian` → `/data/kodivian/.kodivian/encryption.key` |
 | `SECRETKEY_PATH` | Override path for encryption key specifically | `/secrets` → `/secrets/encryption.key` |
 
-**Priority**: `SECRETKEY_PATH` > `AUTONOMOUS_DATA_PATH/.autonomous` > default
+**Priority**: `SECRETKEY_PATH` > `KODIVIAN_DATA_PATH/.kodivian` > default
 
 ---
 
@@ -103,7 +103,7 @@ The system checks multiple possible locations in order:
 
 3. **Ensure directory exists**
    ```typescript
-   ensureAutonomousDataPath()  // Creates .autonomous directory if needed
+   ensureKodivianDataPath()  // Creates .kodivian directory if needed
    ```
 
 4. **Write file exclusively**
@@ -382,7 +382,7 @@ return credentials.map(cred => omit(cred, ['encryptedData']))
 
 **Purpose**: Prevent password fields from being returned to client in API responses
 
-**Constant**: `REDACTED_CREDENTIAL_VALUE = '_AUTONOMOUS_BLANK_07167752-1a71-43b1-bf8f-4f32252165db'`
+**Constant**: `REDACTED_CREDENTIAL_VALUE = '_KODIVIAN_BLANK_07167752-1a71-43b1-bf8f-4f32252165db'`
 
 **File**: `packages/server/src/utils/index.ts` (line 67, 1738-1751)
 
@@ -412,7 +412,7 @@ return credentials.map(cred => omit(cred, ['encryptedData']))
 // After redaction (returned to client)
 {
     "apiKey": "sk-1234567890",
-    "apiSecret": "_AUTONOMOUS_BLANK_07167752-1a71-43b1-bf8f-4f32252165db"
+    "apiSecret": "_KODIVIAN_BLANK_07167752-1a71-43b1-bf8f-4f32252165db"
 }
 ```
 
@@ -421,7 +421,7 @@ return credentials.map(cred => omit(cred, ['encryptedData']))
 // Client sends update with redacted password
 {
     "apiKey": "sk-new-key",
-    "apiSecret": "_AUTONOMOUS_BLANK_07167752-1a71-43b1-bf8f-4f32252165db"
+    "apiSecret": "_KODIVIAN_BLANK_07167752-1a71-43b1-bf8f-4f32252165db"
 }
 
 // Server preserves old password value
@@ -585,7 +585,7 @@ ls -l encryption.key
    ```bash
    # Point to secure location
    export SECRETKEY_PATH=/secure/secrets
-   export AUTONOMOUS_DATA_PATH=/data/autonomous
+   export KODIVIAN_DATA_PATH=/data/kodivian
    ```
 
 3. **Docker Secrets**:
@@ -622,12 +622,12 @@ ls -l encryption.key
 
 1. **Backup encryption key**:
    ```bash
-   cp .autonomous/encryption.key /backup/encryption.key.backup
+   cp .kodivian/encryption.key /backup/encryption.key.backup
    ```
 
 2. **Backup database**:
    ```bash
-   pg_dump autonomous_db > /backup/database.sql
+   pg_dump kodivian_db > /backup/database.sql
    ```
 
 3. **Store backups securely**:
@@ -645,7 +645,7 @@ ls -l encryption.key
 
 1. Restore from backup:
    ```bash
-   cp /backup/encryption.key.backup .autonomous/encryption.key
+   cp /backup/encryption.key.backup .kodivian/encryption.key
    ```
 
 2. Verify decryption:
@@ -662,7 +662,7 @@ ls -l encryption.key
 
 ### Migration Between Servers
 
-**Scenario**: Moving Autonomous to new server
+**Scenario**: Moving Kodivian to new server
 
 **Required Files**:
 1. `encryption.key` - **Must be copied**
@@ -672,11 +672,11 @@ ls -l encryption.key
 **Process**:
 ```bash
 # On old server
-cp .autonomous/encryption.key /backup/
+cp .kodivian/encryption.key /backup/
 
 # On new server
-cp /backup/encryption.key .autonomous/
-# Ensure same path or set AUTONOMOUS_DATA_PATH
+cp /backup/encryption.key .kodivian/
+# Ensure same path or set KODIVIAN_DATA_PATH
 ```
 
 **Warning**: 
@@ -704,7 +704,7 @@ cp /backup/encryption.key .autonomous/
 ```bash
 # All instances mount same volume
 # encryption.key stored on shared volume
-export AUTONOMOUS_DATA_PATH=/shared/autonomous-data
+export KODIVIAN_DATA_PATH=/shared/kodivian-data
 ```
 
 **Option 2: Environment Variable**
@@ -757,14 +757,14 @@ When multiple instances start simultaneously:
 **Solutions**:
 ```bash
 # Check if directory exists
-ls -la .autonomous/
+ls -la .kodivian/
 
 # Create directory if needed
-mkdir -p .autonomous/
+mkdir -p .kodivian/
 
 # Check permissions
-chmod 755 .autonomous/
-chmod 600 .autonomous/encryption.key
+chmod 755 .kodivian/
+chmod 600 .kodivian/encryption.key
 
 # Check disk space
 df -h
@@ -784,13 +784,13 @@ df -h
 **Solutions**:
 ```bash
 # Verify key file integrity
-cat .autonomous/encryption.key
+cat .kodivian/encryption.key
 
 # Check if key matches backup
-diff .autonomous/encryption.key /backup/encryption.key.backup
+diff .kodivian/encryption.key /backup/encryption.key.backup
 
 # Restore from backup if different
-cp /backup/encryption.key.backup .autonomous/encryption.key
+cp /backup/encryption.key.backup .kodivian/encryption.key
 ```
 
 ### Issue: "Decryption produced empty result"
@@ -810,22 +810,22 @@ cp /backup/encryption.key.backup .autonomous/encryption.key
 **Solutions**:
 ```bash
 # Check key file encoding
-file .autonomous/encryption.key
+file .kodivian/encryption.key
 # Should be: ASCII text
 
 # Check for hidden characters
-cat -A .autonomous/encryption.key
+cat -A .kodivian/encryption.key
 
 # Verify key length (should be 32 chars, no newline)
-wc -c .autonomous/encryption.key
+wc -c .kodivian/encryption.key
 # Should show: 32 (or 33 if newline present)
 
 # Trim whitespace
-cat .autonomous/encryption.key | tr -d '\n\r ' > .autonomous/encryption.key.tmp
-mv .autonomous/encryption.key.tmp .autonomous/encryption.key
+cat .kodivian/encryption.key | tr -d '\n\r ' > .kodivian/encryption.key.tmp
+mv .kodivian/encryption.key.tmp .kodivian/encryption.key
 
 # Verify key format (should be base64)
-base64 -d .autonomous/encryption.key > /dev/null 2>&1 && echo "Valid base64" || echo "Invalid base64"
+base64 -d .kodivian/encryption.key > /dev/null 2>&1 && echo "Valid base64" || echo "Invalid base64"
 ```
 
 ### Issue: "Failed to decrypt credential - encryption key may be incorrect"
@@ -844,20 +844,20 @@ base64 -d .autonomous/encryption.key > /dev/null 2>&1 && echo "Valid base64" || 
 **Solutions**:
 ```bash
 # Compare key with backup
-diff .autonomous/encryption.key /backup/encryption.key.backup
+diff .kodivian/encryption.key /backup/encryption.key.backup
 
 # Check if key matches across instances (cluster)
 # Instance 1
-cat .autonomous/encryption.key
+cat .kodivian/encryption.key
 
 # Instance 2
-cat .autonomous/encryption.key
+cat .kodivian/encryption.key
 
 # If different, copy from primary instance
-scp instance1:/path/to/.autonomous/encryption.key instance2:/path/to/.autonomous/
+scp instance1:/path/to/.kodivian/encryption.key instance2:/path/to/.kodivian/
 
 # Restore from backup
-cp /backup/encryption.key.backup .autonomous/encryption.key
+cp /backup/encryption.key.backup .kodivian/encryption.key
 ```
 
 ### Issue: Credential update preserves redacted values incorrectly
@@ -887,16 +887,16 @@ cp /backup/encryption.key.backup .autonomous/encryption.key
 ```bash
 # Compare keys across instances
 # Instance 1
-cat .autonomous/encryption.key > /tmp/key1.txt
+cat .kodivian/encryption.key > /tmp/key1.txt
 
 # Instance 2
-cat .autonomous/encryption.key > /tmp/key2.txt
+cat .kodivian/encryption.key > /tmp/key2.txt
 
 # Compare
 diff /tmp/key1.txt /tmp/key2.txt
 
 # If different, copy from primary instance
-scp instance1:/path/to/.autonomous/encryption.key instance2:/path/to/.autonomous/
+scp instance1:/path/to/.kodivian/encryption.key instance2:/path/to/.kodivian/
 ```
 
 ---
@@ -1005,7 +1005,7 @@ POST /api/v1/credentials
     "credentialName": "awsCredential",
     "plainDataObj": {
         "awsAccessKeyId": "AKIAIOSFODNN7EXAMPLE",
-        "awsSecretAccessKey": "_AUTONOMOUS_BLANK_07167752-1a71-43b1-bf8f-4f32252165db"
+        "awsSecretAccessKey": "_KODIVIAN_BLANK_07167752-1a71-43b1-bf8f-4f32252165db"
     }
 }
 ```
@@ -1017,7 +1017,7 @@ PUT /api/v1/credentials/cred-guid-123
     "name": "AWS Production Updated",
     "plainDataObj": {
         "awsAccessKeyId": "AKIAIOSFODNN7NEWKEY",
-        "awsSecretAccessKey": "_AUTONOMOUS_BLANK_07167752-1a71-43b1-bf8f-4f32252165db"  // Preserves old value
+        "awsSecretAccessKey": "_KODIVIAN_BLANK_07167752-1a71-43b1-bf8f-4f32252165db"  // Preserves old value
     }
 }
 ```
@@ -1056,7 +1056,7 @@ const credentialData = await getCredentialData(credentialId, options)
 
 ### Development
 
-**Default**: `packages/server/.autonomous/encryption.key`
+**Default**: `packages/server/.kodivian/encryption.key`
 
 **Permissions**: `644` (readable by all)
 
@@ -1064,7 +1064,7 @@ const credentialData = await getCredentialData(credentialId, options)
 
 ### Staging
 
-**Path**: `/data/staging/.autonomous/encryption.key`
+**Path**: `/data/staging/.kodivian/encryption.key`
 
 **Permissions**: `600` (owner only)
 
@@ -1088,7 +1088,7 @@ const credentialData = await getCredentialData(credentialId, options)
 
 1. **Server-side**:
    - `packages/server/src/utils/index.ts` (lines 100-1708)
-     - `getAutonomousDataPath()` - Get data directory path
+     - `getKodivianDataPath()` - Get data directory path
      - `getEncryptionKeyPath()` - Get encryption key file path
      - `getEncryptionKey()` - Read/create encryption key
      - `generateEncryptKey()` - Generate new key
@@ -1114,7 +1114,7 @@ const credentialData = await getCredentialData(credentialId, options)
 | `generateEncryptKey()` | Generate random key | `server/src/utils/index.ts:1705` |
 | `encryptCredentialData()` | Encrypt credential object | `server/src/utils/index.ts:1665` |
 | `decryptCredentialData()` | Decrypt credential string | `server/src/utils/index.ts:1677` |
-| `getAutonomousDataPath()` | Get data directory | `server/src/utils/index.ts:105` |
+| `getKodivianDataPath()` | Get data directory | `server/src/utils/index.ts:105` |
 | `getEncryptionKeyPath()` | Get key file path | `server/src/utils/index.ts:36` |
 
 ---
@@ -1165,7 +1165,7 @@ const credentialData = await getCredentialData(credentialId, options)
 ### Key Points
 
 1. **Purpose**: Master encryption key for credential encryption/decryption
-2. **Location**: `{AUTONOMOUS_DATA_PATH}/.autonomous/encryption.key`
+2. **Location**: `{KODIVIAN_DATA_PATH}/.kodivian/encryption.key`
 3. **Format**: 32-character base64 string (24 random bytes)
 4. **Creation**: Auto-generated on first server startup
 5. **Usage**: Encrypt/decrypt credentials stored in database

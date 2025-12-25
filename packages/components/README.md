@@ -1,16 +1,16 @@
 <!-- markdownlint-disable MD030 -->
 
-# Autonomous Components
+# Kodivian Components
 
 
-Apps integration for Autonomous. Contain Nodes and Credentials.
+Apps integration for Kodivian. Contain Nodes and Credentials.
 
-![Autonomous](https://github.com/FlowiseAI/Flowise/blob/main/images/flowise_agentflow.gif?raw=true)
+![Kodivian](https://github.com/FlowiseAI/Flowise/blob/main/images/flowise_agentflow.gif?raw=true)
 
 Install:
 
 ```bash
-npm i autonomous-components
+npm i kodivian-components
 ```
 
 ## License

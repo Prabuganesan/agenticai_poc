@@ -56,7 +56,7 @@ Description is an important piece as ChatGPT is relying on this to decide when t
 <figure><img src="../../.././assets/image (6) (3).png" alt=""><figcaption></figcaption></figure>
 
 * JavaScript Function: We are going to use [Morning Star](https://rapidapi.com/apidojo/api/morning-star) `/market/v2/get-movers` API to get data. First you have to click Subscribe to Test if you haven't already, then copy the code and paste it into JavaScript Function.
-  * Add `const fetch = require('node-fetch');` at the top to import the library. You can import any built-in NodeJS [modules](https://www.w3schools.com/nodejs/ref_modules.asp) and [external libraries](https://github.com/AutonomousAI/Autonomous/blob/main/packages/components/src/utils.ts#L289).
+  * Add `const fetch = require('node-fetch');` at the top to import the library. You can import any built-in NodeJS [modules](https://www.w3schools.com/nodejs/ref_modules.asp) and [external libraries](https://github.com/KodivianAI/Kodivian/blob/main/packages/components/src/utils.ts#L289).
   * Return the `result` at the end.
 
 <figure><img src="../../.././assets/Untitled (4) (1).png" alt=""><figcaption></figcaption></figure>
@@ -107,7 +107,7 @@ Input Schema tells LLM what to return as a JSON object. In this case, we are exp
 <figure><img src="../../.././assets/image (4) (2).png" alt=""><figcaption></figcaption></figure>
 
 * JavaScript Function: We are going to use [Morning Star](https://rapidapi.com/apidojo/api/morning-star) `/news/list` API to get the data. First you have to click Subscribe to Test if you haven't already, then copy the code and paste it into JavaScript Function.
-  * Add `const fetch = require('node-fetch');` at the top to import the library. You can import any built-in NodeJS [modules](https://www.w3schools.com/nodejs/ref_modules.asp) and [external libraries](https://github.com/AutonomousAI/Autonomous/blob/main/packages/components/src/utils.ts#L289).
+  * Add `const fetch = require('node-fetch');` at the top to import the library. You can import any built-in NodeJS [modules](https://www.w3schools.com/nodejs/ref_modules.asp) and [external libraries](https://github.com/KodivianAI/Kodivian/blob/main/packages/components/src/utils.ts#L289).
   * Return the `result` at the end.
 * Next, replace the hard-coded url query parameter performanceId: `0P0000OQN8` to the property variable specified in Input Schema: `$performanceId`
 * You can use any properties specified in Input Schema as variables in the JavaScript Function by appending a prefix `$` at the front of the variable name.
@@ -313,7 +313,7 @@ By default, Function in custom tool has access to variables:
 $vars.<variable-name>
 ```
 
-Example of how to pass variables in Autonomous using API and Embedded:
+Example of how to pass variables in Kodivian using API and Embedded:
 
 {% tabs %}
 {% tab title="Javascript API" %}
@@ -349,7 +349,7 @@ query({
 {% tab title="Embed" %}
 ```html
 <script type="module">
-    import Chatbot from 'https://cdn.jsdelivr.net/npm/Autonomous-embed/dist/web.js';
+    import Chatbot from 'https://cdn.jsdelivr.net/npm/Kodivian-embed/dist/web.js';
     Chatbot.init({
         chatflowid: 'chatflow-id',
         apiHost: 'http://localhost:3000',
@@ -448,12 +448,12 @@ query({
 
 ### Import External Dependencies
 
-You can import any built-in NodeJS [modules](https://www.w3schools.com/nodejs/ref_modules.asp) and supported [external libraries](https://github.com/AutonomousAI/Autonomous/blob/main/packages/components/src/utils.ts#L289) into Function.
+You can import any built-in NodeJS [modules](https://www.w3schools.com/nodejs/ref_modules.asp) and supported [external libraries](https://github.com/KodivianAI/Kodivian/blob/main/packages/components/src/utils.ts#L289) into Function.
 
 1. To import any non-supported libraries, you can easily add the new npm package to `package.json` in `packages/components` folder.
 
 ```bash
-cd Autonomous && cd packages && cd components
+cd Kodivian && cd packages && cd components
 pnpm add <your-library>
 cd .. && cd ..
 pnpm install

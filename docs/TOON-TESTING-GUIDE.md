@@ -2,7 +2,7 @@
 
 ## Overview
 
-TOON (Token-Oriented Object Notation) format is designed to reduce token usage for **structured data (JSON objects/arrays)**, not plain text. This guide lists all places in Autonomous where JSON is used with LLMs, making them ideal for testing TOON format.
+TOON (Token-Oriented Object Notation) format is designed to reduce token usage for **structured data (JSON objects/arrays)**, not plain text. This guide lists all places in Kodivian where JSON is used with LLMs, making them ideal for testing TOON format.
 
 ---
 

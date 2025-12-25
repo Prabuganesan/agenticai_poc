@@ -6,11 +6,11 @@ description: Scrape & Crawl the web with Spider - the fastest open source web sc
 
 <figure><img src="../../.././assets/spider.png" alt="Spider Node" width="365"><figcaption><p>Spider Web Scraper/Crawler Node</p></figcaption></figure>
 
-[Spider](https://spider.cloud/?ref=Autonomous) is the fastest open source web scraper & crawler that returns LLM-ready data. To get started using this node you need an API key from [Spider.cloud](https://spider.cloud/?ref=Autonomous).
+[Spider](https://spider.cloud/?ref=Kodivian) is the fastest open source web scraper & crawler that returns LLM-ready data. To get started using this node you need an API key from [Spider.cloud](https://spider.cloud/?ref=Kodivian).
 
 ## Get Started
 
-1. Go to the [Spider.cloud](https://spider.cloud/?ref=Autonomous) website and sign up for a free account.
+1. Go to the [Spider.cloud](https://spider.cloud/?ref=Kodivian) website and sign up for a free account.
 2. Then go to the [API Keys](https://spider.cloud/api-keys) and create a new API key.
 3. Copy the API key and paste it into the "Credential" field in the Spider node.
 

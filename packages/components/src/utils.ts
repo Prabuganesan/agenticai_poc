@@ -22,10 +22,10 @@ import JSON5 from 'json5'
 
 export const numberOrExpressionRegex = '^(\\d+\\.?\\d*|{{.*}})$' //return true if string consists only numbers OR expression {{}}
 export const notEmptyRegex = '(.|\\s)*\\S(.|\\s)*' //return true if string is not empty or blank
-export const AUTONOMOUS_CHATID = 'autonomous_chatId'
+export const KODIVIAN_CHATID = 'kodivian_chatId'
 
 /*
- * List of dependencies allowed to be import in @autonomousai/nodevm
+ * List of dependencies allowed to be import in @kodivianai/nodevm
  */
 export const availableDependencies = [
     '@aws-sdk/client-bedrock-runtime',
@@ -504,8 +504,8 @@ const getEncryptionKeyFilePath = (): string => {
         path.join(__dirname, '..', '..', '..', '..', 'server', 'encryption.key'),
         path.join(__dirname, '..', '..', '..', '..', '..', 'encryption.key'),
         path.join(__dirname, '..', '..', '..', '..', '..', 'server', 'encryption.key'),
-        // Use getAutonomousDataPath() for centralized path (defined below)
-        path.join(getAutonomousDataPath(), 'encryption.key')
+        // Use getKodivianDataPath() for centralized path (defined below)
+        path.join(getKodivianDataPath(), 'encryption.key')
     ]
     for (const checkPath of checkPaths) {
         if (fs.existsSync(checkPath)) {
@@ -513,7 +513,7 @@ const getEncryptionKeyFilePath = (): string => {
         }
     }
     // Return default path even if file doesn't exist yet (will be created automatically)
-    return path.join(getAutonomousDataPath(), 'encryption.key')
+    return path.join(getKodivianDataPath(), 'encryption.key')
 }
 
 export const getEncryptionKeyPath = (): string => {
@@ -526,7 +526,7 @@ export const getEncryptionKeyPath = (): string => {
  */
 /**
  * Get encryption key from file
- * For cluster environments, use AUTONOMOUS_DATA_PATH to point to shared volume
+ * For cluster environments, use KODIVIAN_DATA_PATH to point to shared volume
  * All instances will read from the same file location
  */
 const getEncryptionKey = async (): Promise<string> => {
@@ -554,7 +554,7 @@ const getEncryptionKey = async (): Promise<string> => {
     // First instance creates it, others will read it on retry
     const crypto = await import('crypto')
     const encryptKey = crypto.randomBytes(24).toString('base64')
-    const dataPath = getAutonomousDataPath()
+    const dataPath = getKodivianDataPath()
 
     // Ensure directory exists
     if (!fs.existsSync(dataPath)) {
@@ -717,13 +717,13 @@ export const getCredentialParam = (paramName: string, credentialData: ICommonObj
 
 // reference https://www.freeformatter.com/json-escape.html
 const jsonEscapeCharacters = [
-    { escape: '"', value: 'AUTONOMOUS_DOUBLE_QUOTE' },
-    { escape: '\n', value: 'AUTONOMOUS_NEWLINE' },
-    { escape: '\b', value: 'AUTONOMOUS_BACKSPACE' },
-    { escape: '\f', value: 'AUTONOMOUS_FORM_FEED' },
-    { escape: '\r', value: 'AUTONOMOUS_CARRIAGE_RETURN' },
-    { escape: '\t', value: 'AUTONOMOUS_TAB' },
-    { escape: '\\', value: 'AUTONOMOUS_BACKSLASH' }
+    { escape: '"', value: 'KODIVIAN_DOUBLE_QUOTE' },
+    { escape: '\n', value: 'KODIVIAN_NEWLINE' },
+    { escape: '\b', value: 'KODIVIAN_BACKSPACE' },
+    { escape: '\f', value: 'KODIVIAN_FORM_FEED' },
+    { escape: '\r', value: 'KODIVIAN_CARRIAGE_RETURN' },
+    { escape: '\t', value: 'KODIVIAN_TAB' },
+    { escape: '\\', value: 'KODIVIAN_BACKSLASH' }
 ]
 
 function handleEscapesJSONParse(input: string, reverse: Boolean): string {
@@ -767,15 +767,19 @@ export const getUserHome = (): string => {
 }
 
 /**
- * Returns the base autonomous server data directory path
- * Uses AUTONOMOUS_DATA_PATH if set, otherwise defaults to server folder/.autonomous
- * This matches the logic in server/src/utils/index.ts getAutonomousDataPath()
+ * Returns the base kodivian server data directory path
+ * Uses KODIVIAN_DATA_PATH if set, otherwise defaults to server folder/.kodivian
+ * This matches the logic in server/src/utils/index.ts getKodivianDataPath()
  */
-export const getAutonomousDataPath = (): string => {
-    if (process.env.AUTONOMOUS_DATA_PATH) {
-        return path.join(process.env.AUTONOMOUS_DATA_PATH, '.autonomous')
+export const getKodivianDataPath = (): string => {
+    if (process.env.KODIVIAN_DATA_PATH) {
+        return path.join(process.env.KODIVIAN_DATA_PATH, '.kodivian')
     }
-    // Default to .autonomous inside the server package directory
+    // Fallback for backward compatibility if KODIVIAN_DATA_PATH is not set
+    if (process.env.KODIVIAN_DATA_PATH) {
+        return path.join(process.env.KODIVIAN_DATA_PATH, '.kodivian')
+    }
+    // Default to .kodivian inside the server package directory
     // When running from server, process.cwd() might be packages/server/bin, so we need to handle that
     const cwd = process.cwd()
 
@@ -787,7 +791,7 @@ export const getAutonomousDataPath = (): string => {
         }
         try {
             const packageJsonContent = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
-            return packageJsonContent.name === 'autonomous' && !!packageJsonContent.oclif
+            return (packageJsonContent.name === 'kodivian' || packageJsonContent.name === 'kodivian') && !!packageJsonContent.oclif
         } catch {
             return false
         }
@@ -795,14 +799,14 @@ export const getAutonomousDataPath = (): string => {
 
     // Check if current directory is the server package
     if (isServerRoot(cwd)) {
-        return path.join(cwd, '.autonomous')
+        return path.join(cwd, '.kodivian')
     }
 
     // Check if we're in a bin subdirectory (common when running from bin/run)
     if (path.basename(cwd) === 'bin') {
         const parentDir = path.dirname(cwd)
         if (isServerRoot(parentDir)) {
-            return path.join(parentDir, '.autonomous')
+            return path.join(parentDir, '.kodivian')
         }
     }
 
@@ -814,11 +818,11 @@ export const getAutonomousDataPath = (): string => {
         // If we're in node_modules, try to find server
         (() => {
             let current = __dirname
-            // Find node_modules/autonomous-components
+            // Find node_modules/kodivian-components
             while (current && current !== path.dirname(current)) {
-                if (current.includes('node_modules' + path.sep + 'autonomous-components')) {
+                if (current.includes('node_modules' + path.sep + 'kodivian-components')) {
                     // Go up from node_modules to find server
-                    const parts = current.split('node_modules' + path.sep + 'autonomous-components')
+                    const parts = current.split('node_modules' + path.sep + 'kodivian-components')
                     if (parts[0]) {
                         const nodeModulesDir = path.join(parts[0], 'node_modules')
                         const potentialServer = path.dirname(nodeModulesDir)
@@ -835,14 +839,14 @@ export const getAutonomousDataPath = (): string => {
 
     // Use the first valid server root found
     if (possibleServerRoots.length > 0) {
-        return path.join(possibleServerRoots[0], '.autonomous')
+        return path.join(possibleServerRoots[0], '.kodivian')
     }
 
     // Fallback: try to find server by going up from cwd until we find a package.json with oclif
     let searchDir = cwd
     for (let i = 0; i < 5; i++) {
         if (isServerRoot(searchDir)) {
-            return path.join(searchDir, '.autonomous')
+            return path.join(searchDir, '.kodivian')
         }
         const parent = path.dirname(searchDir)
         if (parent === searchDir) break // Reached filesystem root
@@ -850,7 +854,7 @@ export const getAutonomousDataPath = (): string => {
     }
 
     // Last resort: use current working directory
-    return path.join(cwd, '.autonomous')
+    return path.join(cwd, '.kodivian')
 }
 
 /**

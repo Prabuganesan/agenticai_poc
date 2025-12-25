@@ -6,7 +6,7 @@ description: Learn how to call a webhook on Make
 
 ***
 
-This tutorial walks you through creating a custom tool in AutonomousAI that calls a webhook endpoint, passing the necessary parameters in the request body. We will use [Make.com](https://www.make.com/en) to set up a webhook workflow that sends messages to a Discord channel.
+This tutorial walks you through creating a custom tool in KodivianAI that calls a webhook endpoint, passing the necessary parameters in the request body. We will use [Make.com](https://www.make.com/en) to set up a webhook workflow that sends messages to a Discord channel.
 
 ## Setting Up a Webhook in Make.com
 
@@ -40,16 +40,16 @@ This tutorial walks you through creating a custom tool in AutonomousAI that call
 
 Congratulations! You have successfully set up a webhook workflow that sends messages to Discord. 🎉
 
-## Creating a Webhook Tool in AutonomousAI
+## Creating a Webhook Tool in KodivianAI
 
-Next, we will create a custom tool in AutonomousAI to send webhook requests.
+Next, we will create a custom tool in KodivianAI to send webhook requests.
 
 ### Step 1: Add a New Tool
 
-1. Open the **AutonomousAI** dashboard.
+1. Open the **KodivianAI** dashboard.
 2. Click **Tools**, then select **Create**.
 
-   <figure><img src=".././assets/screely-1691758397783.png" alt="Creating tool in AutonomousAI"><figcaption></figcaption></figure>
+   <figure><img src=".././assets/screely-1691758397783.png" alt="Creating tool in KodivianAI"><figcaption></figcaption></figure>
 
 3. Fill in the following fields:
 
@@ -57,7 +57,7 @@ Next, we will create a custom tool in AutonomousAI to send webhook requests.
    |-------|-------|
    | **Tool Name** | `make_webhook` (must be in snake_case) |
    | **Tool Description** | Useful when you need to send messages to Discord |
-   | **Tool Icon Src** | [Autonomous Tool Icon](https://github.com/AutonomousAI/Autonomous/assets/26460777/517fdab2-8a6e-4781-b3c8-fb92cc78aa0b) |
+   | **Tool Icon Src** | [Kodivian Tool Icon](https://github.com/KodivianAI/Kodivian/assets/26460777/517fdab2-8a6e-4781-b3c8-fb92cc78aa0b) |
 
 4. Define the **Input Schema**:
 

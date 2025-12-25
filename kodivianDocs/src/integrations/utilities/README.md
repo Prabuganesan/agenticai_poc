@@ -1,5 +1,5 @@
 ---
-description: Learn how to use Autonomous utility nodes
+description: Learn how to use Kodivian utility nodes
 ---
 
 # Utilities

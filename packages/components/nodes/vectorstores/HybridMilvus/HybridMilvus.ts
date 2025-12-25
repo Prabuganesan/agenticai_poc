@@ -4,7 +4,7 @@ import { MilvusLibArgs, Milvus } from '@langchain/community/vectorstores/milvus'
 import { Embeddings } from '@langchain/core/embeddings'
 import { BaseRetriever } from '@langchain/core/retrievers'
 import { ICommonObject, INode, INodeData, INodeOutputsValue, INodeParams } from '../../../src/Interface'
-import { AUTONOMOUS_CHATID, getBaseClasses, getCredentialData, getCredentialParam } from '../../../src/utils'
+import { KODIVIAN_CHATID, getBaseClasses, getCredentialData, getCredentialParam } from '../../../src/utils'
 import { howToUseFileUpload } from '../VectorStoreUtils'
 import { MilvusClient } from '@zilliz/milvus2-sdk-node'
 
@@ -25,7 +25,7 @@ const checkJsonString = (value: string): { isJson: boolean; obj: any } => {
  * Custom Hybrid Milvus Retriever that implements scalar/semantic query logic
  */
 class HybridMilvusRetriever extends BaseRetriever {
-    lc_namespace = ['autonomous', 'vectorstores', 'hybridmilvus']
+    lc_namespace = ['kodivian', 'vectorstores', 'hybridmilvus']
 
     private milvusClient: MilvusClient
     private collectionName: string
@@ -836,8 +836,8 @@ class HybridMilvus_VectorStores implements INode {
 
         let milvusFilter = _milvusFilter
         if (isFileUploadEnabled && options.chatId) {
-            if (milvusFilter) milvusFilter += ` OR ${AUTONOMOUS_CHATID} == "${options.chatId}" OR NOT EXISTS(${AUTONOMOUS_CHATID})`
-            else milvusFilter = `${AUTONOMOUS_CHATID} == "${options.chatId}" OR NOT EXISTS(${AUTONOMOUS_CHATID})`
+            if (milvusFilter) milvusFilter += ` OR ${KODIVIAN_CHATID} == "${options.chatId}" OR NOT EXISTS(${KODIVIAN_CHATID})`
+            else milvusFilter = `${KODIVIAN_CHATID} == "${options.chatId}" OR NOT EXISTS(${KODIVIAN_CHATID})`
         }
 
         // Use LangChain Milvus for field discovery

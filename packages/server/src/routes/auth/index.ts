@@ -8,7 +8,7 @@ const router = Router()
 // Get permissions - requires authentication
 // Create middleware lazily to avoid circular dependency (getRunningExpressApp called at module load)
 router.get('/permissions', (req, res, next) => {
-    // Get autonomous session service and org config service from running app
+    // Get kodivian session service and org config service from running app
     const appServer = getRunningExpressApp()
     const sessionValidationMiddleware = createSessionValidationMiddleware(appServer.kodivianSessionService, appServer.orgConfigService)
     // Call the middleware, then the controller

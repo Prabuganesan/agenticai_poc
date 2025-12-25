@@ -1,7 +1,7 @@
 {
-  "name": "autonomous-api",
+  "name": "kodivian-api",
   "version": "1.0.0",
-  "description": "Autonomous API documentation server",
+  "description": "Kodivian API documentation server",
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",

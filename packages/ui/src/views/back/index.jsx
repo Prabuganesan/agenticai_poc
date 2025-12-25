@@ -10,24 +10,24 @@ const Back = () => {
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        // Get session_id from autonomousStore or cookie (for back navigation)
-        
+        // Get session_id from kodivianStore or cookie (for back navigation)
+
         // Call the back API
         backPage.back()
             .then((response) => {
                 // Handle successful response - check if API returned a redirect URL
-                    window.location.href = response.data.redirectUrl
+                window.location.href = response.data.redirectUrl
             })
             .catch((error) => {
-                console.error('Error calling back API:', error)                
-                    // If session expired and no redirect URL, navigate to unauthorized
-                    if (error?.response?.status === 401) {
-                        setLoading(false)
-                        navigate('/unauthorized')
-                    } else {
-                        setLoading(false)
-                        navigate(-1)
-                    }
+                console.error('Error calling back API:', error)
+                // If session expired and no redirect URL, navigate to unauthorized
+                if (error?.response?.status === 401) {
+                    setLoading(false)
+                    navigate('/unauthorized')
+                } else {
+                    setLoading(false)
+                    navigate(-1)
+                }
             })
     }, [navigate])
 

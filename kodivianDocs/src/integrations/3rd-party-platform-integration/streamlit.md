@@ -1,26 +1,26 @@
 # Streamlit
 
-[Python SDK](https://github.com/AutonomousAI/AutonomousPy) can be used to create a [Streamlit](https://streamlit.io/) app:
+[Python SDK](https://github.com/KodivianAI/KodivianPy) can be used to create a [Streamlit](https://streamlit.io/) app:
 
 ```python
 import streamlit as st
-from Autonomous import Autonomous, PredictionData
+from Kodivian import Kodivian, PredictionData
 import json
 
-# Autonomous app base url
-base_url = st.secrets["APP_URL"] or "https://your-Autonomous-url.com"
+# Kodivian app base url
+base_url = st.secrets["APP_URL"] or "https://your-Kodivian-url.com"
 
 # Chatflow/Agentflow ID
 flow_id = st.secrets["FLOW_ID"] or "abc"
 
 # Show title and description.
-st.title("💬 Autonomous Streamlit Chat")
+st.title("💬 Kodivian Streamlit Chat")
 st.write(
-    "This is a simple chatbot that uses Autonomous Python SDK"
+    "This is a simple chatbot that uses Kodivian Python SDK"
 )
 
-# Create a Autonomous client.
-client = Autonomous(base_url=base_url)
+# Create a Kodivian client.
+client = Kodivian(base_url=base_url)
 
 # Create a session state variable to store the chat messages. This ensures that the
 # messages persist across reruns.
@@ -68,4 +68,4 @@ if prompt := st.chat_input("What is up?"):
     st.session_state.messages.append({"role": "assistant", "content": full_response})
 ```
 
-Full Github Repo: [https://github.com/HenryHengZJ/Autonomous-streamlit](https://github.com/HenryHengZJ/Autonomous-streamlit)
+Full Github Repo: [https://github.com/HenryHengZJ/Kodivian-streamlit](https://github.com/HenryHengZJ/Kodivian-streamlit)

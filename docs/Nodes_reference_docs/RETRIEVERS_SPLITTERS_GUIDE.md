@@ -1,6 +1,6 @@
-# Autonomous Retrievers & Text Splitters Reference Guide
+# Kodivian Retrievers & Text Splitters Reference Guide
 
-A comprehensive guide to retrievers and text splitters in the Autonomous platform. These components are essential for high-quality RAG (Retrieval-Augmented Generation) applications.
+A comprehensive guide to retrievers and text splitters in the Kodivian platform. These components are essential for high-quality RAG (Retrieval-Augmented Generation) applications.
 
 ---
 

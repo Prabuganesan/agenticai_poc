@@ -8,7 +8,7 @@ import { formatToOpenAIToolMessages } from 'langchain/agents/format_scratchpad/o
 import { getBaseClasses, transformBracesWithColon, convertChatHistoryToText, convertBaseMessagetoIMessage } from '../../../src/utils'
 import { type ToolsAgentStep } from 'langchain/agents/openai/output_parser'
 import {
-    AutonomousMemory,
+    KodivianMemory,
     ICommonObject,
     INode,
     INodeData,
@@ -132,7 +132,7 @@ class ConversationalRetrievalToolAgent_Agents implements INode {
     }
 
     async run(nodeData: INodeData, input: string, options: ICommonObject): Promise<string | ICommonObject> {
-        const memory = nodeData.inputs?.memory as AutonomousMemory
+        const memory = nodeData.inputs?.memory as KodivianMemory
         const moderations = nodeData.inputs?.inputModeration as Moderation[]
 
         const shouldStreamResponse = options.shouldStreamResponse
@@ -304,7 +304,7 @@ const prepareAgent = async (
 ) => {
     const model = nodeData.inputs?.model as BaseChatModel
     const maxIterations = nodeData.inputs?.maxIterations as string
-    const memory = nodeData.inputs?.memory as AutonomousMemory
+    const memory = nodeData.inputs?.memory as KodivianMemory
     let systemMessage = nodeData.inputs?.systemMessage as string
     let tools = nodeData.inputs?.tools
     tools = flatten(tools)

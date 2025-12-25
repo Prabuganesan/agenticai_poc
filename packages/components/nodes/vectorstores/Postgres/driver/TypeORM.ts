@@ -1,6 +1,6 @@
 import { DataSourceOptions } from 'typeorm'
 import { VectorStoreDriver } from './Base'
-import { AUTONOMOUS_CHATID, ICommonObject } from '../../../../src'
+import { KODIVIAN_CHATID, ICommonObject } from '../../../../src'
 import { TypeORMVectorStore, TypeORMVectorStoreArgs, TypeORMVectorStoreDocument } from '@langchain/community/vectorstores/typeorm'
 import { VectorStore } from '@langchain/core/vectorstores'
 import { Document } from '@langchain/core/documents'
@@ -134,21 +134,21 @@ export class TypeORMDriver extends VectorStoreDriver {
     ) => {
         const embeddingString = `[${query.join(',')}]`
         let chatflowOr = ''
-        const { [AUTONOMOUS_CHATID]: chatId, ...restFilters } = filter || {}
+        const { [KODIVIAN_CHATID]: chatId, ...restFilters } = filter || {}
 
         const _filter = JSON.stringify(restFilters || {})
         const parameters: any[] = [embeddingString, _filter, k]
 
         // Match chatflow uploaded file and keep filtering on other files
         if (chatId) {
-            parameters.push({ [AUTONOMOUS_CHATID]: chatId })
+            parameters.push({ [KODIVIAN_CHATID]: chatId })
             chatflowOr = `OR metadata @> $${parameters.length}`
         }
 
         const queryString = `
             SELECT *, embedding ${distanceOperator} $1 as "_distance"
             FROM ${tableName}
-            WHERE ((metadata @> $2) AND NOT (metadata ? '${AUTONOMOUS_CHATID}')) ${chatflowOr}
+            WHERE ((metadata @> $2) AND NOT (metadata ? '${KODIVIAN_CHATID}')) ${chatflowOr}
             ORDER BY "_distance" ASC
             LIMIT $3;`
 

@@ -84,7 +84,7 @@ class ChatflowTool_Tools implements INode {
                 name: 'baseURL',
                 type: 'string',
                 description:
-                    'Base URL to Autonomous. By default, it is the URL of the incoming request. Useful when you need to execute the Chatflow through an alternative route.',
+                    'Base URL to Kodivian. By default, it is the URL of the incoming request. Useful when you need to execute the Chatflow through an alternative route.',
                 placeholder: getServerURL(),
                 optional: true,
                 additionalParams: true
@@ -344,7 +344,7 @@ class ChatflowTool extends StructuredTool {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'autonomous-tool': 'true',
+                'kodivian-tool': 'true',
                 ...this.headers
             },
             body: JSON.stringify(body)

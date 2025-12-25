@@ -9,7 +9,7 @@ import {
     MessageType,
     IMessage,
     MemoryMethods,
-    AutonomousMemory
+    KodivianMemory
 } from '../../../src/Interface'
 import {
     convertBaseMessagetoIMessage,
@@ -53,7 +53,7 @@ class RedisBackedChatMemory_Memory implements INode {
                 name: 'sessionId',
                 type: 'string',
                 description:
-                    'If not specified, a random id will be used. Learn <a target="_blank" href="[AUTONOMOUS_DOCS]/memory/long-term-memory#ui-and-embedded-chat">more</a>',
+                    'If not specified, a random id will be used. Learn <a target="_blank" href="[KODIVIAN_DOCS]/memory/long-term-memory#ui-and-embedded-chat">more</a>',
                 default: '',
                 additionalParams: true,
                 optional: true
@@ -129,7 +129,7 @@ interface BufferMemoryExtendedInput {
     redisOptions: RedisOptions | string
 }
 
-class BufferMemoryExtended extends AutonomousMemory implements MemoryMethods {
+class BufferMemoryExtended extends KodivianMemory implements MemoryMethods {
     sessionId = ''
     orgId = ''
     windowSize?: number

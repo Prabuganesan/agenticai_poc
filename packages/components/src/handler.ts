@@ -496,12 +496,12 @@ class ExtendedLunaryHandler extends LunaryHandler {
     thread: any
     apiMessageId: string
 
-    constructor({ autonomousOptions, ...options }: any) {
+    constructor({ kodivianOptions, ...options }: any) {
         super(options)
-        this.appDataSource = autonomousOptions.appDataSource
-        this.databaseEntities = autonomousOptions.databaseEntities
-        this.chatId = autonomousOptions.chatId
-        this.apiMessageId = autonomousOptions.apiMessageId
+        this.appDataSource = kodivianOptions.appDataSource
+        this.databaseEntities = kodivianOptions.databaseEntities
+        this.chatId = kodivianOptions.chatId
+        this.apiMessageId = kodivianOptions.apiMessageId
     }
 
     async initThread() {
@@ -613,7 +613,7 @@ export const additionalCallbacks = async (nodeData: INodeData, options: ICommonO
                         secretKey: langFuseSecretKey,
                         publicKey: langFusePublicKey,
                         baseUrl: langFuseEndpoint ?? 'https://cloud.langfuse.com',
-                        sdkIntegration: 'Autonomous'
+                        sdkIntegration: 'Kodivian'
                     }
                     if (release) langFuseOptions.release = release
                     if (options.chatId) langFuseOptions.sessionId = options.chatId
@@ -631,8 +631,8 @@ export const additionalCallbacks = async (nodeData: INodeData, options: ICommonO
                     let lunaryFields = {
                         publicKey: lunaryPublicKey,
                         apiUrl: lunaryEndpoint ?? 'https://api.lunary.ai',
-                        runtime: 'autonomous',
-                        autonomousOptions: options
+                        runtime: 'kodivian',
+                        kodivianOptions: options
                     }
 
                     if (nodeData?.inputs?.analytics?.lunary) {
@@ -673,7 +673,7 @@ export const additionalCallbacks = async (nodeData: INodeData, options: ICommonO
                         spaceId: arizeSpaceId,
                         baseUrl: arizeEndpoint ?? 'https://otlp.arize.com',
                         projectName: arizeProject ?? 'default',
-                        sdkIntegration: 'Autonomous',
+                        sdkIntegration: 'Kodivian',
                         enableCallback: true
                     }
 
@@ -693,7 +693,7 @@ export const additionalCallbacks = async (nodeData: INodeData, options: ICommonO
                         apiKey: phoenixApiKey,
                         baseUrl: phoenixEndpoint ?? 'https://app.phoenix.arize.com',
                         projectName: phoenixProject ?? 'default',
-                        sdkIntegration: 'Autonomous',
+                        sdkIntegration: 'Kodivian',
                         enableCallback: true
                     }
 
@@ -715,7 +715,7 @@ export const additionalCallbacks = async (nodeData: INodeData, options: ICommonO
                         baseUrl: opikEndpoint ?? 'https://www.comet.com/opik/api',
                         projectName: opikProject ?? 'default',
                         workspace: opikWorkspace ?? 'default',
-                        sdkIntegration: 'Autonomous',
+                        sdkIntegration: 'Kodivian',
                         enableCallback: true
                     }
 
@@ -831,7 +831,7 @@ export class AnalyticHandler {
                 secretKey: langFuseSecretKey,
                 publicKey: langFusePublicKey,
                 baseUrl: langFuseEndpoint ?? 'https://cloud.langfuse.com',
-                sdkIntegration: 'Autonomous',
+                sdkIntegration: 'Kodivian',
                 release
             })
             this.handlers['langFuse'] = { client: langfuse }
@@ -842,7 +842,7 @@ export class AnalyticHandler {
             lunary.init({
                 publicKey: lunaryPublicKey,
                 apiUrl: lunaryEndpoint,
-                runtime: 'autonomous'
+                runtime: 'kodivian'
             })
 
             this.handlers['lunary'] = { client: lunary }
@@ -867,7 +867,7 @@ export class AnalyticHandler {
                 spaceId: arizeSpaceId,
                 baseUrl: arizeEndpoint ?? 'https://otlp.arize.com',
                 projectName: arizeProject ?? 'default',
-                sdkIntegration: 'Autonomous',
+                sdkIntegration: 'Kodivian',
                 enableCallback: false
             }
 
@@ -884,7 +884,7 @@ export class AnalyticHandler {
                 apiKey: phoenixApiKey,
                 baseUrl: phoenixEndpoint ?? 'https://app.phoenix.arize.com',
                 projectName: phoenixProject ?? 'default',
-                sdkIntegration: 'Autonomous',
+                sdkIntegration: 'Kodivian',
                 enableCallback: false
             }
 
@@ -903,7 +903,7 @@ export class AnalyticHandler {
                 baseUrl: opikEndpoint ?? 'https://www.comet.com/opik/api',
                 projectName: opikProject ?? 'default',
                 workspace: opikWorkspace ?? 'default',
-                sdkIntegration: 'Autonomous',
+                sdkIntegration: 'Kodivian',
                 enableCallback: false
             }
 
@@ -1041,7 +1041,7 @@ export class AnalyticHandler {
             let rootSpan: Span | undefined = this.handlers['arize'].rootSpan
 
             if (!parentIds || !Object.keys(parentIds).length) {
-                rootSpan = tracer ? tracer.startSpan('Autonomous') : undefined
+                rootSpan = tracer ? tracer.startSpan('Kodivian') : undefined
                 if (rootSpan) {
                     rootSpan.setAttribute('session.id', this.options.chatId)
                     rootSpan.setAttribute('openinference.span.kind', 'CHAIN')
@@ -1075,7 +1075,7 @@ export class AnalyticHandler {
             let rootSpan: Span | undefined = this.handlers['phoenix'].rootSpan
 
             if (!parentIds || !Object.keys(parentIds).length) {
-                rootSpan = tracer ? tracer.startSpan('Autonomous') : undefined
+                rootSpan = tracer ? tracer.startSpan('Kodivian') : undefined
                 if (rootSpan) {
                     rootSpan.setAttribute('session.id', this.options.chatId)
                     rootSpan.setAttribute('openinference.span.kind', 'CHAIN')
@@ -1109,7 +1109,7 @@ export class AnalyticHandler {
             let rootSpan: Span | undefined = this.handlers['opik'].rootSpan
 
             if (!parentIds || !Object.keys(parentIds).length) {
-                rootSpan = tracer ? tracer.startSpan('Autonomous') : undefined
+                rootSpan = tracer ? tracer.startSpan('Kodivian') : undefined
                 if (rootSpan) {
                     rootSpan.setAttribute('session.id', this.options.chatId)
                     rootSpan.setAttribute('openinference.span.kind', 'CHAIN')

@@ -1,5 +1,5 @@
 ---
-description: Learn how to set up chatflow-level access control for your Autonomous instances
+description: Learn how to set up chatflow-level access control for your Kodivian instances
 ---
 
 # Flows

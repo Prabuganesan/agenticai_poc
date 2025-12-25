@@ -2,13 +2,13 @@
 
 This guide is to help users to migrate from Cloud V1 to V2.
 
-In Cloud V1, the URL of the apps looks like <mark style="color:blue;">**https://\<your-instance-name>.app.Autonomousai.com**</mark>
+In Cloud V1, the URL of the apps looks like <mark style="color:blue;">**https://\<your-instance-name>.app.Kodivianai.com**</mark>
 
-In Cloud V2, the URL of the apps is <mark style="color:blue;">**https://cloud.Autonomousai.com**</mark>
+In Cloud V2, the URL of the apps is <mark style="color:blue;">**https://cloud.Kodivianai.com**</mark>
 
 Why Cloud V2? We have re-written cloud from scratch, that has 5x speed improvement, ability to have multiple workspaces, organization members, and most importantly it is highly scalable with [production-ready architecture](../configuration/running-in-production.md).
 
-1. Login to Cloud V1 via [https://Autonomousai.com/auth/login](https://Autonomousai.com/auth/login)
+1. Login to Cloud V1 via [https://Kodivianai.com/auth/login](https://Kodivianai.com/auth/login)
 2. In your dashboard, at the top right corner:
 
 <figure><img src=".././assets/image (8) (2).png" alt=""><figcaption></figcaption></figure>
@@ -22,7 +22,7 @@ Why Cloud V2? We have re-written cloud from scratch, that has 5x speed improveme
 <figure><img src=".././assets/image (20) (2).png" alt="" width="563"><figcaption></figcaption></figure>
 
 5. Save the exported JSON file.
-6. Navigate to Cloud V2 [https://cloud.Autonomousai.com](https://cloud.Autonomousai.com/)
+6. Navigate to Cloud V2 [https://cloud.Kodivianai.com](https://cloud.Kodivianai.com/)
 7. Cloud V2 account does not sync with your existing account in Cloud V1, you'll have to register again or sign in with Google/Github.
 
 <figure><img src=".././assets/image (37).png" alt="" width="563"><figcaption></figcaption></figure>
@@ -41,14 +41,14 @@ Why Cloud V2? We have re-written cloud from scratch, that has 5x speed improveme
 
 <figure><img src=".././assets/image (80).png" alt=""><figcaption></figcaption></figure>
 
-11. After added payment method, navigate back to Autonomous, click Get Started on the selected plan and Confirm Change:
+11. After added payment method, navigate back to Kodivian, click Get Started on the selected plan and Confirm Change:
 
 <figure><img src=".././assets/image (95).png" alt="" width="563"><figcaption></figcaption></figure>
 
 12. If everything goes smoothly, you should be on Starter Plan with unlimited flows & assistants! Hooray :tada: Try importing the JSON file again if it was failing previously due to the free plan limitation.
 
 {% hint style="success" %}
-All the IDs from exported data remain the same, so you don't have to worry about updating the ID for the API, you just need to update the URL such as [https://cloud.Autonomousai.com/api/v1/prediction/69fb1055-ghj324-ghj-0a4ytrerf](https://cloud.Autonomousai.com/api/v1/prediction/69fb1055-ghj324-ghj-0a4ytrerf)
+All the IDs from exported data remain the same, so you don't have to worry about updating the ID for the API, you just need to update the URL such as [https://cloud.Kodivianai.com/api/v1/prediction/69fb1055-ghj324-ghj-0a4ytrerf](https://cloud.Kodivianai.com/api/v1/prediction/69fb1055-ghj324-ghj-0a4ytrerf)
 {% endhint %}
 
 {% hint style="warning" %}
@@ -69,4 +69,4 @@ Credentials are not exported. You will have to create new credentials and use th
 
 <figure><img src=".././assets/image (137).png" alt=""><figcaption></figcaption></figure>
 
-We sincerely apologize for any inconvenience we have caused during the process of migration. If anything we would love to help, don't hesitate to reach us at support@Autonomousai.com.
+We sincerely apologize for any inconvenience we have caused during the process of migration. If anything we would love to help, don't hesitate to reach us at support@Kodivianai.com.

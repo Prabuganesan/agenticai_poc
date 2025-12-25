@@ -1,4 +1,4 @@
-**📄 ChainSys Platform – Session Architecture & Autonomous Integration**
+**📄 ChainSys Platform – Session Architecture & Kodivian Integration**
 
 ## **1\. ChainSys Platform – High-Level Overview**
 
@@ -50,7 +50,7 @@
 * **Node.js runtime server**  
 * **Hosts generated Angular applications**  
 * **Each app is accessed via URL like:**  
-  **https://dev.chainsys.com/apps/pfm\_apps/{orgId}/{appId}/index.html**  
+  **https://dev.kodivian.com/apps/pfm\_apps/{orgId}/{appId}/index.html**  
 * 
 
 **Deployment servers can be:**
@@ -125,35 +125,35 @@
 * **This keeps user logged in seamlessly across products**  
   ---
 
-  ## **7\. Autonomous Server Introduction**
+  ## **7\. Kodivian Server Introduction**
 
-  ### **7.1 Autonomous Server Characteristics**
+  ### **7.1 Kodivian Server Characteristics**
 
 * **Node.js based**  
 * **Deployed once per environment**  
 * **Shared across all organizations**  
 * **Accessed via:**  
-  **/autonomous**  
+  **/kodivian**  
 *   
   ---
 
-  ## **8\. Autonomous Session Handling (Current)**
+  ## **8\. Kodivian Session Handling (Current)**
 
   ### **Access Flow:**
 
 1. **User logs in to ChainSys Platform**  
 2. **User enters AppBuilder**  
-3. **User clicks Autonomous**  
-4. **AppBuilder redirects to Autonomous with:**  
+3. **User clicks Kodivian**  
+4. **AppBuilder redirects to Kodivian with:**  
    * **`javaSessionId`**  
    * **`orgId`**  
-5. **Autonomous Server:**  
+5. **Kodivian Server:**  
    * **Validates Java session**  
-   * **Creates Redis-based Autonomous session**  
+   * **Creates Redis-based Kodivian session**  
 * **Sets cookie at root path:**  
   **/**  
   *   
-  * **Opens Autonomous frontend**
+  * **Opens Kodivian frontend**
 
   ### **Session Properties:**
 
@@ -163,20 +163,20 @@
 * **❌ Not stored in `login_session` table**  
   ---
 
-  ## **9\. Autonomous API Access Model**
+  ## **9\. Kodivian API Access Model**
 
-**Autonomous supports API-based usage in addition to UI.**
+**Kodivian supports API-based usage in addition to UI.**
 
 ### **API Key Support**
 
-* **Users can generate Autonomous API Keys**  
+* **Users can generate Kodivian API Keys**  
 * **API keys are:**  
   * **Org-scoped**  
   * **Used for non-browser access**
 
   ---
 
-  ## **10\. Planned Autonomous Access Scenarios**
+  ## **10\. Planned Kodivian Access Scenarios**
 
   ### **10.1 API Access**
 
@@ -203,18 +203,18 @@
 
 **Builder server** \- /app\_v17\_builder  
 **Deployment server** \- /app\_v17\_builder/inputs/browserapp/  
-**Autonomous server** \- /app\_v17\_builder/inputs/autonomous/
+**Kodivian server** \- /app\_v17\_builder/inputs/kodivian/
 
 **Session change plan**  
 ---
 
 ## **✅ Goal** 
 
-* **One Java session** → `ChainsysSessionid`  
+* **One Java session** → `KodivianSessionid`  
 * **One Redis session** → `SABID`  
 * `SABID` shared by:  
   * Deployment Server (`/apps/...`)  
-  * Autonomous Server (`/autonomous`)  
+  * Kodivian Server (`/kodivian`)  
 * Builder server remains unchanged  
 * `SABID` **stored in DB**  
 * Cookie accessible across context paths
@@ -223,7 +223,7 @@
 
 ## **🔑 Key Constraint**
 
-Cookies set with path `/apps` ❌ **are NOT accessible** to `/autonomous`
+Cookies set with path `/apps` ❌ **are NOT accessible** to `/kodivian`
 
 So we **must move `SABID` cookie to root path `/`**
 
@@ -244,7 +244,7 @@ Set-Cookie: SABID=xyz; Path=/;
 ✅ This makes the cookie available to:
 
 * `/apps/*`  
-* `/autonomous/*`
+* `/kodivian/*`
 
 ---
 
@@ -262,9 +262,9 @@ Set-Cookie: SABID=xyz; Path=/;
 
 ---
 
-### **3️⃣ Autonomous Server Changes**
+### **3️⃣ Kodivian Server Changes**
 
-* Stop creating a **separate autonomous-only cookie**  
+* Stop creating a **separate kodivian-only cookie**  
 * Read existing `SABID` cookie from request  
 * Validate `SABID` in Redis  
 * Extend Redis TTL on every request  
@@ -272,7 +272,7 @@ Set-Cookie: SABID=xyz; Path=/;
 * Map session data using:  
   * `orgId`  
   * `userId`  
-  * `ChainsysSessionid` (if needed)
+  * `KodivianSessionid` (if needed)
 
 ---
 
@@ -313,7 +313,7 @@ Because cookie path is `/`:
   * `/apps`  
   * `/test`  
   * `/apps2`  
-* Autonomous always uses `/autonomous`  
+* Kodivian always uses `/kodivian`  
 * **Single SABID works everywhere**
 
 ---
@@ -321,12 +321,12 @@ Because cookie path is `/`:
 ## **🧠 Final Architecture (Simple View)**
 
 Java Platform  
-  └── ChainsysSessionid (Tomcat \+ DB)
+  └── KodivianSessionid (Tomcat \+ DB)
 
 Deployment Server  
   └── SABID (Redis \+ DB, Path=/)
 
-Autonomous Server  
+Kodivian Server  
   └── Uses same SABID (Redis only)
 
 Builder Server  

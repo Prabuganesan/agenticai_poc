@@ -35,7 +35,7 @@
 
 <figure><img src="../../.././assets/elastic9.png" alt=""><figcaption></figcaption></figure>
 
-## Autonomous Setup
+## Kodivian Setup
 
 1. Add a new **Elasticsearch** node on canvas and fill in the **Index Name**
 

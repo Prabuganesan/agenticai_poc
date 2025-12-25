@@ -1,6 +1,6 @@
 # Prediction
 
-Prediction API is the primary endpoint for interacting with your Autonomous flows and assistants. It allows you to send messages to your selected flow and receive responses back. This API handles the core chat functionality, including:
+Prediction API is the primary endpoint for interacting with your Kodivian flows and assistants. It allows you to send messages to your selected flow and receive responses back. This API handles the core chat functionality, including:
 
 * **Chat Interactions**: Send questions or messages to your flow and receive AI-generated responses
 * **Streaming Responses**: Get real-time streaming responses for better user experience
@@ -12,7 +12,7 @@ For details, see the [Prediction Endpoint API Reference](../api-reference/predic
 
 ## Base URL and Authentication
 
-**Base URL**: `http://localhost:3000` (or your Autonomous instance URL)
+**Base URL**: `http://localhost:3000` (or your Kodivian instance URL)
 
 **Endpoint**: `POST /api/v1/prediction/:id`
 
@@ -47,23 +47,23 @@ For details, see the [Prediction Endpoint API Reference](../api-reference/predic
 
 ## SDK Libraries
 
-Autonomous provides official SDKs for Python and TypeScript/JavaScript:
+Kodivian provides official SDKs for Python and TypeScript/JavaScript:
 
 #### Installation
 
-**Python**: `pip install Autonomous`
+**Python**: `pip install Kodivian`
 
-**TypeScript/JavaScript**: `npm install Autonomous-sdk`
+**TypeScript/JavaScript**: `npm install Kodivian-sdk`
 
 #### Python SDK Usage
 
 {% tabs %}
 {% tab title="Basic Usage" %}
 ```python
-from Autonomous import Autonomous, PredictionData
+from Kodivian import Kodivian, PredictionData
 
 # Initialize client
-client = Autonomous(base_url="http://localhost:3000")
+client = Kodivian(base_url="http://localhost:3000")
 
 # Non-streaming prediction
 try:
@@ -86,9 +86,9 @@ except Exception as e:
 
 {% tab title="Streaming" %}
 ```python
-from Autonomous import Autonomous, PredictionData
+from Kodivian import Kodivian, PredictionData
 
-client = Autonomous(base_url="http://localhost:3000")
+client = Kodivian(base_url="http://localhost:3000")
 
 # Streaming prediction
 try:
@@ -112,9 +112,9 @@ except Exception as e:
 
 {% tab title="With Configuration" %}
 ```python
-from Autonomous import Autonomous, PredictionData
+from Kodivian import Kodivian, PredictionData
 
-client = Autonomous(base_url="http://localhost:3000")
+client = Kodivian(base_url="http://localhost:3000")
 
 # Advanced configuration
 try:
@@ -146,10 +146,10 @@ except Exception as e:
 {% tabs %}
 {% tab title="Basic Usage" %}
 ```typescript
-import { AutonomousClient } from 'Autonomous-sdk';
+import { KodivianClient } from 'Kodivian-sdk';
 
 // Initialize client
-const client = new AutonomousClient({ 
+const client = new KodivianClient({ 
     baseUrl: 'http://localhost:3000' 
 });
 
@@ -175,9 +175,9 @@ chatWithFlow();
 
 {% tab title="Streaming" %}
 ```typescript
-import { AutonomousClient } from 'Autonomous-sdk';
+import { KodivianClient } from 'Kodivian-sdk';
 
-const client = new AutonomousClient({ 
+const client = new KodivianClient({ 
     baseUrl: 'http://localhost:3000' 
 });
 
@@ -206,9 +206,9 @@ streamingChat();
 
 {% tab title="With Configuration" %}
 ```typescript
-import { AutonomousClient } from 'Autonomous-sdk';
+import { KodivianClient } from 'Kodivian-sdk';
 
-const client = new AutonomousClient({ 
+const client = new KodivianClient({ 
     baseUrl: 'http://localhost:3000' 
 });
 
@@ -762,7 +762,7 @@ Use `sessionId` to maintain conversation state across multiple API calls. Each s
 ```python
 import requests
 
-class AutonomousSession:
+class KodivianSession:
     def __init__(self, flow_id, session_id, base_url="http://localhost:3000"):
         self.flow_id= flow_id
         self.session_id = session_id
@@ -792,7 +792,7 @@ class AutonomousSession:
             return None
 
 # Usage
-session = AutonomousSession(
+session = KodivianSession(
     flow_id="your-flow-id",
     session_id="user-session-123"
 )
@@ -809,7 +809,7 @@ print("Response 2:", response2)
 
 {% tab title="JavaScript" %}
 ```javascript
-class AutonomousSession {
+class KodivianSession {
     constructor(flowId, sessionId, baseUrl = 'http://localhost:3000') {
         this.flowId= flowId;
         this.sessionId = sessionId;
@@ -848,7 +848,7 @@ class AutonomousSession {
 }
 
 // Usage
-const session = new AutonomousSession(
+const session = new KodivianSession(
     'your-flow-id',
     'user-session-123'
 );

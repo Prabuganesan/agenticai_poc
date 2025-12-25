@@ -1,6 +1,6 @@
 # Environment Setup Guide
 
-This document provides instructions for setting up the `.env` file for the Autonomous Server.
+This document provides instructions for setting up the `.env` file for the Kodivian Server.
 
 ## Quick Start
 
@@ -20,11 +20,12 @@ This document provides instructions for setting up the `.env` file for the Auton
 
 ### Base Configuration
 
-#### `AUTONOMOUS_DATA_PATH`
-- **Description**: Base path for all autonomous server data (database, uploads, logs, encryption keys, API keys, etc.)
-- **Default**: If not set, defaults to `packages/server/.autonomous`
-- **Example**: `AUTONOMOUS_DATA_PATH=/path/to/your/data`
-- **Note**: All data will be stored in `AUTONOMOUS_DATA_PATH/.autonomous/`
+#### `KODIVIAN_DATA_PATH`
+- **Description**: Base path for all kodivian server data (database, uploads, logs, encryption keys, API keys, etc.)
+- **Default**: If not set, defaults to `packages/server/.kodivian`
+- **Example**: `KODIVIAN_DATA_PATH=/path/to/your/data`
+- **Note**: All data will be stored in `KODIVIAN_DATA_PATH/.kodivian/`
+- **Backward Compatibility**: `KODIVIAN_DATA_PATH` is also supported but `KODIVIAN_DATA_PATH` is preferred.
 
 ---
 
@@ -81,7 +82,7 @@ This document provides instructions for setting up the `.env` file for the Auton
 - **Default**: `authorization,x-api-key,x-auth-token,cookie`
 
 **Log Directory Structure**:
-- Logs are stored in `{AUTONOMOUS_DATA_PATH}/.autonomous/logs/` (defaults to `packages/server/.autonomous/logs/` if `AUTONOMOUS_DATA_PATH` is not set)
+- Logs are stored in `{KODIVIAN_DATA_PATH}/.kodivian/logs/` (defaults to `packages/server/.kodivian/logs/` if `KODIVIAN_DATA_PATH` is not set)
 - **System Group**: `logs/system/` (system.json, api.json, security.json)
 - **Other Groups**: `logs/{orgId}/{group}/` (workflows/, services/, storage/, infrastructure/)
 
@@ -229,8 +230,8 @@ This document provides instructions for setting up the `.env` file for the Auton
 
 #### `METRICS_SERVICE_NAME`
 - **Description**: Service name for metrics
-- **Default**: `Autonomous`
-- **Example**: `METRICS_SERVICE_NAME=Autonomous`
+- **Default**: `Kodivian`
+- **Example**: `METRICS_SERVICE_NAME=Kodivian`
 
 #### OpenTelemetry Configuration (if METRICS_PROVIDER=open_telemetry)
 
@@ -281,8 +282,8 @@ This document provides instructions for setting up the `.env` file for the Auton
 
 #### `QUEUE_NAME`
 - **Description**: Queue name for job processing
-- **Default**: `autonomous-queue`
-- **Example**: `QUEUE_NAME=autonomous-queue`
+- **Default**: `kodivian-queue`
+- **Example**: `QUEUE_NAME=kodivian-queue`
 
 #### `REDIS_DB_QUEUE`
 - **Description**: Redis database number for queue
@@ -388,7 +389,7 @@ This document provides instructions for setting up the `.env` file for the Auton
 ##### `MAIN_DB_DATABASE`
 - **Description**: Main database name
 - **Default**: (empty)
-- **Example**: `MAIN_DB_DATABASE=autonomous` (PostgreSQL) or `MAIN_DB_DATABASE=ORCL` (Oracle)
+- **Example**: `MAIN_DB_DATABASE=kodivian` (PostgreSQL) or `MAIN_DB_DATABASE=ORCL` (Oracle)
 - **Required**: Yes
 
 ##### `MAIN_DB_USER`
@@ -434,7 +435,7 @@ This document provides instructions for setting up the `.env` file for the Auton
 
 ---
 
-### Autonomous Server Migration Configuration
+### Kodivian Server Migration Configuration
 
 #### Application Short Codes
 
@@ -478,7 +479,7 @@ This document provides instructions for setting up the `.env` file for the Auton
 ##### `CONTEXT_PATH`
 - **Description**: Base context path for all API routes and static files
 - **Default**: (empty)
-- **Example**: `CONTEXT_PATH=/autonomous`
+- **Example**: `CONTEXT_PATH=/kodivian`
 - **Note**: This is used for:
   - API routes: `${CONTEXT_PATH}/api/v1/...`
   - Static file serving: `${CONTEXT_PATH}/assets/...`
@@ -529,7 +530,7 @@ This document provides instructions for setting up the `.env` file for the Auton
 - **Default**: `false`
 - **Options**: `true` or `false`
 - **Example**: `SKIP_DESIGNER_SERVICE=true`
-- **Note**: Useful for local development without running the full Chainsys infrastructure. When set to `true`, the server will look for `userinput.json` in the server root directory instead of calling the designer service API. The file should contain user session data in the same format returned by the designer service.
+- **Note**: Useful for local development without running the full Kodivian infrastructure. When set to `true`, the server will look for `userinput.json` in the server root directory instead of calling the designer service API. The file should contain user session data in the same format returned by the designer service.
 
 #### License and Encryption Configuration
 
@@ -597,7 +598,7 @@ This document provides instructions for setting up the `.env` file for the Auton
 
 2. **Set minimum required values:**
    - `SERVER_PORT=3030` (or your preferred port)
-   - `AUTONOMOUS_DATA_PATH=` (leave empty to use default)
+   - `KODIVIAN_DATA_PATH=` (leave empty to use default)
    - `MAIN_DB_HOST`, `MAIN_DB_PORT`, `MAIN_DB_DATABASE`, `MAIN_DB_USER`, `MAIN_DB_PASSWORD` (for main database)
    - `LICENSE_CODE` (for password decryption)
    - `SIMPLE_CRYPTO_KEY` (for localStorage encryption)
@@ -622,7 +623,7 @@ This document provides instructions for setting up the `.env` file for the Auton
    - Configure appropriate storage credentials
 
 3. **Data Path:**
-   - Set `AUTONOMOUS_DATA_PATH` to a persistent location
+   - Set `KODIVIAN_DATA_PATH` to a persistent location
    - Ensure the path has proper permissions
 
 4. **Metrics:**
@@ -637,7 +638,7 @@ Based on the current `.env.example` file, here are the key configuration section
 
 ```env
 # Base Configuration
-AUTONOMOUS_DATA_PATH=
+KODIVIAN_DATA_PATH=
 
 # Logging
 LOG_ENABLED=true
@@ -655,18 +656,18 @@ CORS_ORIGINS=
 IFRAME_ORIGINS=
 CHATBOT_IFRAME_ORIGINS=
 SHOW_COMMUNITY_NODES=true
-DISABLE_AUTONOMOUS_TELEMETRY=true
+DISABLE_KODIVIAN_TELEMETRY=true
 NUMBER_OF_PROXIES=0
 
 # Metrics Collection
 ENABLE_METRICS=true
 METRICS_PROVIDER=prometheus
 METRICS_INCLUDE_NODE_METRICS=true
-METRICS_SERVICE_NAME=Autonomous
+METRICS_SERVICE_NAME=Kodivian
 
 # Queue Configuration
 MODE=queue
-QUEUE_NAME=autonomous-queue
+QUEUE_NAME=kodivian-queue
 REDIS_DB_QUEUE=3
 WORKER_CONCURRENCY=20
 REMOVE_ON_AGE=86400
@@ -687,7 +688,7 @@ DB_SSL=
 # Database Table Creation
 # ENABLE_TABLE_CREATION=true
 
-# Autonomous Server Migration
+# Kodivian Server Migration
 APPBUILDER_SHORT_CODE=
 APPDESIGNER_SHORT_CODE=
 APPPUBLISHER_SHORT_CODE=
@@ -760,7 +761,7 @@ LOG_SANITIZE_HEADER_FIELDS=authorization,x-api-key,x-auth-token,cookie
 ## Additional Resources
 
 - For more details, see the main README.md
-- Check server logs in `.autonomous/logs/` for detailed error messages
+- Check server logs in `.kodivian/logs/` for detailed error messages
 - Review the `.env.example` file for all available options
 
 ---

@@ -11,10 +11,10 @@ import DistributionChart from './components/DistributionChart'
 import { formatNumber, formatCurrency, getTimeRange, dateToISO } from './utils'
 
 const Overview = () => {
-    // Get orgId from autonomousStore (encrypted, in-memory) - this is the source of truth
+    // Get orgId from kodivianStore (encrypted, in-memory) - this is the source of truth
     const orgId = useMemo(() => {
         const orgIdValue = AuthUtils.getOrgIdFromStore()
-        console.log('[LLM Usage Overview] orgId from autonomousStore:', orgIdValue)
+        console.log('[LLM Usage Overview] orgId from kodivianStore:', orgIdValue)
         return orgIdValue
     }, [])
 
@@ -65,7 +65,7 @@ const Overview = () => {
 
     const loadStats = async () => {
         if (!orgId) {
-            console.warn('[LLM Usage Overview] No orgId found in autonomousStore')
+            console.warn('[LLM Usage Overview] No orgId found in kodivianStore')
             return
         }
 

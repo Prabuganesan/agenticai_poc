@@ -23,7 +23,7 @@ export class SessionHandlerController {
 
     /**
      * Create session - simplified for single-org
-     * GET /api/v1/sessionhandler?params={base64({orgId, chainsysSessionId})}
+     * GET /api/v1/sessionhandler?params={base64({orgId, kodivianSessionId})}
      */
     async createSession(req: Request, res: Response) {
         try {
@@ -39,7 +39,7 @@ export class SessionHandlerController {
             const formattedUserData = this.sessionService.getUserDataForLocalStorage(userData)
 
             // Create session
-            const autonomousToken = await this.kodivianSessionService.createKodivianSession(
+            const kodivianToken = await this.kodivianSessionService.createKodivianSession(
                 SessionId || 'single-org-session',
                 formattedUserData.userId,
                 orgId,
@@ -53,7 +53,7 @@ export class SessionHandlerController {
             const baseUrl = `${proxyUrl}/${cleanContextPath}/api/v1`
 
             const kodivianStore = {
-                sessionId: autonomousToken,
+                sessionId: kodivianToken,
                 baseUrl: baseUrl,
                 orgId: orgId,
                 userId: formattedUserData.userId,
@@ -74,7 +74,7 @@ export class SessionHandlerController {
                 secure: process.env.NODE_ENV === 'production'
             }
 
-            res.cookie('KODIID', autonomousToken, cookieOptions)
+            res.cookie('KODIID', kodivianToken, cookieOptions)
 
             // Generate redirect HTML
             const homePageUrl = `${proxyUrl}/${cleanContextPath}`
@@ -115,14 +115,14 @@ export class SessionHandlerController {
      */
     async checkSession(req: Request, res: Response) {
         try {
-            const autonomousToken = req.cookies?.KODIID
+            const kodivianToken = req.cookies?.KODIID
 
-            if (!autonomousToken) {
+            if (!kodivianToken) {
                 return res.json({ valid: false, message: 'No session cookie found' })
             }
 
             // Extract orgId from token
-            const parts = autonomousToken.split('$$')
+            const parts = kodivianToken.split('$$')
             const autoPart = parts[parts.length - 1]
 
             if (!autoPart?.startsWith('Kodi')) {
@@ -130,10 +130,10 @@ export class SessionHandlerController {
             }
 
             const orgId = autoPart.substring(4)
-            const sessionData = await this.kodivianSessionService.validateKodivianSession(autonomousToken, orgId)
+            const sessionData = await this.kodivianSessionService.validateKodivianSession(kodivianToken, orgId)
 
             if (sessionData) {
-                await this.kodivianSessionService.extendKodivianSessionWithData(autonomousToken, orgId, sessionData)
+                await this.kodivianSessionService.extendKodivianSessionWithData(kodivianToken, orgId, sessionData)
                 return res.json({ valid: true, message: 'Session valid', orgId })
             }
 

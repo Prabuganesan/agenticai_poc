@@ -1,12 +1,12 @@
 ---
-description: Learn about legacy versions of Autonomous
+description: Learn about legacy versions of Kodivian
 ---
 
 # Migration Guide
 
 ***
 
-Autonomous typically offers backward compatibility, meaning its updates follow a continuous development path. However, sometimes there can be breaking changes.
+Kodivian typically offers backward compatibility, meaning its updates follow a continuous development path. However, sometimes there can be breaking changes.
 
 This section provides guidance when migrating to different breaking versions.
 

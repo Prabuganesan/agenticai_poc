@@ -3,7 +3,7 @@
 * Use TypeORM instead
 
 import { VectorStoreDriver } from './Base'
-import { AUTONOMOUS_CHATID } from '../../../../src'
+import { KODIVIAN_CHATID } from '../../../../src'
 import { DistanceStrategy, PGVectorStore, PGVectorStoreArgs } from '@langchain/community/vectorstores/pgvector'
 import { Document } from '@langchain/core/documents'
 import { PoolConfig } from 'pg'
@@ -71,7 +71,7 @@ export class PGVectorDriver extends VectorStoreDriver {
     }
 
     protected async adaptInstance(instance: PGVectorStore, metadataFilters?: any): Promise<PGVectorStore> {
-        const { [AUTONOMOUS_CHATID]: chatId, ...pgMetadataFilter } = metadataFilters || {}
+        const { [KODIVIAN_CHATID]: chatId, ...pgMetadataFilter } = metadataFilters || {}
 
         const baseSimilaritySearchVectorWithScoreFn = instance.similaritySearchVectorWithScore.bind(instance)
 
@@ -92,19 +92,19 @@ export class PGVectorDriver extends VectorStoreDriver {
 
             // Match chatflow uploaded file and keep filtering on other files
             if (chatId) {
-                parameters.push({ [AUTONOMOUS_CHATID]: chatId })
+                parameters.push({ [KODIVIAN_CHATID]: chatId })
 
                 chatflowOr = `OR metadata @> $${parameters.length}`
             }
 
             if (queryString.match(whereClauseRegex)) {
-                queryString = queryString.replace(whereClauseRegex, `WHERE (($1) AND NOT (metadata ? '${AUTONOMOUS_CHATID}')) ${chatflowOr}`)
+                queryString = queryString.replace(whereClauseRegex, `WHERE (($1) AND NOT (metadata ? '${KODIVIAN_CHATID}')) ${chatflowOr}`)
             } else {
                 const orderByClauseRegex = /ORDER BY (.*)/
                 // Insert WHERE clause before ORDER BY
                 queryString = queryString.replace(
                     orderByClauseRegex,
-                    `WHERE (metadata @> '{}' AND NOT (metadata ? '${AUTONOMOUS_CHATID}')) ${chatflowOr}
+                    `WHERE (metadata @> '{}' AND NOT (metadata ? '${KODIVIAN_CHATID}')) ${chatflowOr}
                 ORDER BY $1
                 `
                 )

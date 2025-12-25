@@ -4,7 +4,7 @@
 
 [**LocalAI** ](https://github.com/go-skynet/LocalAI)is a drop-in replacement REST API that’s compatible with OpenAI API specifications for local inferencing. It allows you to run LLMs (and not only) locally or on-prem with consumer grade hardware, supporting multiple model families that are compatible with the ggml format.
 
-To use ChatLocalAI within Autonomous, follow the steps below:
+To use ChatLocalAI within Kodivian, follow the steps below:
 
 1. ```bash
    git clone https://github.com/go-skynet/LocalAI
@@ -42,7 +42,7 @@ curl http://localhost:8080/v1/models
 # {"object":"list","data":[{"id":"ggml-gpt4all-j.bin","object":"model"}]}
 ```
 
-## Autonomous Setup
+## Kodivian Setup
 
 Drag and drop a new ChatLocalAI component to canvas:
 
@@ -54,7 +54,7 @@ Fill in the fields:
 * **Model Name**: The model you want to use. Note that it must be inside `/models` folder of LocalAI directory. For instance: `ggml-gpt4all-j.bin`
 
 {% hint style="info" %}
-If you are running both Autonomous and LocalAI on Docker, you might need to change the base path to [http://host.docker.internal:8080/v1](http://host.docker.internal:8080/v1). For Linux based systems the default docker gateway should be used since host.docker.internal is not available: [http://172.17.0.1:8080/v1](http://172.17.0.1:8080/v1)
+If you are running both Kodivian and LocalAI on Docker, you might need to change the base path to [http://host.docker.internal:8080/v1](http://host.docker.internal:8080/v1). For Linux based systems the default docker gateway should be used since host.docker.internal is not available: [http://172.17.0.1:8080/v1](http://172.17.0.1:8080/v1)
 {% endhint %}
 
 That's it! For more information, refer to LocalAI [docs](https://localai.io/basics/getting_started/index.html).

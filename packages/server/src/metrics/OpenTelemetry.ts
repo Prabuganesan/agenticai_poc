@@ -45,11 +45,11 @@ export class OpenTelemetry implements IMetricsProvider {
     async initializeCounters(): Promise<void> {
         try {
             // Define the resource with the service name for trace grouping
-            const autonomousVersion = await getVersion()
+            const kodivianVersion = await getVersion()
 
             this.resource = new Resource({
-                [ATTR_SERVICE_NAME]: process.env.METRICS_SERVICE_NAME || 'Autonomous',
-                [ATTR_SERVICE_VERSION]: autonomousVersion.version // Version as a label
+                [ATTR_SERVICE_NAME]: process.env.METRICS_SERVICE_NAME || 'Kodivian',
+                [ATTR_SERVICE_VERSION]: kodivianVersion.version // Version as a label
             })
 
             const metricProtocol = process.env.METRICS_OPEN_TELEMETRY_PROTOCOL || 'http' // Default to 'http'
@@ -104,8 +104,8 @@ export class OpenTelemetry implements IMetricsProvider {
 
             this.meterProvider = new MeterProvider({ resource: this.resource, readers: [this.metricReader] })
 
-            const meter = this.meterProvider.getMeter('autonomous-metrics')
-            // look at the AUTONOMOUS_COUNTER enum in Interface.Metrics.ts and get all values
+            const meter = this.meterProvider.getMeter('kodivian-metrics')
+            // look at the KODIVIAN_COUNTER enum in Interface.Metrics.ts and get all values
             // for each counter in the enum, create a new promClient.Counter and add it to the registry
             const enumEntries = Object.entries(KODIVIAN_METRIC_COUNTERS)
             enumEntries.forEach(([name, value]) => {
@@ -130,14 +130,14 @@ export class OpenTelemetry implements IMetricsProvider {
 
             try {
                 // Add version gauge if not already created
-                if (!createdMetrics.has('autonomous_version')) {
-                    const versionGuage = meter.createGauge('autonomous_version', {
-                        description: 'Autonomous version'
+                if (!createdMetrics.has('kodivian_version')) {
+                    const versionGuage = meter.createGauge('kodivian_version', {
+                        description: 'Kodivian version'
                     })
                     // remove the last dot from the version string, e.g. 2.1.3 -> 2.13 (gauge needs a number - float)
-                    const formattedVersion = autonomousVersion.version.replace(/\.(\d+)$/, '$1')
+                    const formattedVersion = kodivianVersion.version.replace(/\.(\d+)$/, '$1')
                     versionGuage.record(parseFloat(formattedVersion))
-                    createdMetrics.set('autonomous_version', true)
+                    createdMetrics.set('kodivian_version', true)
                 }
             } catch (error) {
                 console.error('Error creating version gauge:', error)

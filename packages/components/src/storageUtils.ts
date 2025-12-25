@@ -204,7 +204,7 @@ export const addSingleFileToStorage = async (
             fileSize: fileSize,
             mimeType: mime,
             storageType: storageType
-        }).catch(() => {})
+        }).catch(() => { })
     } catch (logError) {
         // Silently fail - logging should not break file operations
     }
@@ -240,7 +240,7 @@ export const addSingleFileToStorage = async (
                 storageType: 's3',
                 storagePath: 'FILE-STORAGE::' + sanitizedFilename,
                 totalSizeMB: totalSize / 1024 / 1024
-            }).catch(() => {})
+            }).catch(() => { })
         } catch (logError) {
             // Silently fail
         }
@@ -273,7 +273,7 @@ export const addSingleFileToStorage = async (
                 storageType: 'gcs',
                 storagePath: 'FILE-STORAGE::' + sanitizedFilename,
                 totalSizeMB: totalSize / 1024 / 1024
-            }).catch(() => {})
+            }).catch(() => { })
         } catch (logError) {
             // Silently fail
         }
@@ -301,7 +301,7 @@ export const addSingleFileToStorage = async (
                 storageType: 'local',
                 storagePath: 'FILE-STORAGE::' + sanitizedFilename,
                 totalSizeMB: totalSize / 1024 / 1024
-            }).catch(() => {})
+            }).catch(() => { })
         } catch (logError) {
             // Silently fail
         }
@@ -602,21 +602,24 @@ function getFilePaths(dir: string): FileInfo[] {
  * Prepare storage path
  */
 export const getStoragePath = (): string => {
-    // Import getAutonomousDataPath from utils to avoid circular dependency
+    // Import getKodivianDataPath from utils to avoid circular dependency
     const utils = require('./utils')
-    const getAutonomousDataPath =
-        utils.getAutonomousDataPath ||
+    const getKodivianDataPath =
+        utils.getKodivianDataPath ||
         (() => {
             // Fallback if not available
-            if (process.env.AUTONOMOUS_DATA_PATH) {
-                return path.join(process.env.AUTONOMOUS_DATA_PATH, '.autonomous')
+            if (process.env.KODIVIAN_DATA_PATH) {
+                return path.join(process.env.KODIVIAN_DATA_PATH, '.kodivian')
             }
-            return path.join(getUserHome(), '.autonomous')
+            if (process.env.KODIVIAN_DATA_PATH) {
+                return path.join(process.env.KODIVIAN_DATA_PATH, '.kodivian')
+            }
+            return path.join(getUserHome(), '.kodivian')
         })
 
     const storagePath = process.env.BLOB_STORAGE_PATH
         ? path.join(process.env.BLOB_STORAGE_PATH)
-        : path.join(getAutonomousDataPath(), 'storage')
+        : path.join(getKodivianDataPath(), 'storage')
     if (!fs.existsSync(storagePath)) {
         fs.mkdirSync(storagePath, { recursive: true })
     }

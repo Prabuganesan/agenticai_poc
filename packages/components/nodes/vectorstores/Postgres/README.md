@@ -1,6 +1,6 @@
 # Postgres Vector Store
 
-Postgres Vector Store integration for Autonomous
+Postgres Vector Store integration for Kodivian
 
 ## 🌱 Env Variables
 

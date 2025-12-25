@@ -1,6 +1,6 @@
-# Autonomous Utilities & Advanced Components Reference Guide
+# Kodivian Utilities & Advanced Components Reference Guide
 
-A comprehensive guide to analytics, moderation, graphs, record managers, response synthesizers, utilities, and speech-to-text nodes in the Autonomous platform.
+A comprehensive guide to analytics, moderation, graphs, record managers, response synthesizers, utilities, and speech-to-text nodes in the Kodivian platform.
 
 ---
 

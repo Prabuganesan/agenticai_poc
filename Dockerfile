@@ -27,7 +27,7 @@ ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
 ENV NODE_OPTIONS=--max-old-space-size=8192
 
-WORKDIR /usr/src/autonomous
+WORKDIR /usr/src/kodivian
 
 # Copy app source
 COPY . .

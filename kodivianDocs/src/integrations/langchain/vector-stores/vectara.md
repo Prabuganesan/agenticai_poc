@@ -2,7 +2,7 @@
 
 ## Prerequisite
 
-1. Register an account for [Vectara](https://vectara.com/integrations/Autonomous)
+1. Register an account for [Vectara](https://vectara.com/integrations/Kodivian)
 2. Click **Create Corpus**
 
 <figure><img src="../../.././assets/vectara/1.png" alt=""><figcaption></figcaption></figure>
@@ -24,7 +24,7 @@ Name the corpus to be created and click **Create Corpus** then wait for the corp
 
 <figure><img src="../../.././assets/vectara/4.png" alt=""><figcaption></figcaption></figure>
 
-5. Back to Autonomous canvas, and create your chatflow. Click **Create New** from the Credentials dropdown ane enter your Vectara credentials.
+5. Back to Kodivian canvas, and create your chatflow. Click **Create New** from the Credentials dropdown ane enter your Vectara credentials.
 
 <figure><img src="../../.././assets/vectara/5.png" alt="" width="500"><figcaption></figcaption></figure>
 

@@ -1,4 +1,4 @@
-# Autonomous Frontend - Features & Architecture
+# Kodivian Frontend - Features & Architecture
 
 ## Table of Contents
 1. [Frontend Overview](#frontend-overview)
@@ -16,7 +16,7 @@
 
 ## Frontend Overview
 
-The Autonomous frontend is a modern, single-page application (SPA) built with React 18.2, providing a visual interface for building, managing, and deploying AI agents and LLM workflows. The UI emphasizes usability, real-time feedback, and seamless integration with the backend services.
+The Kodivian frontend is a modern, single-page application (SPA) built with React 18.2, providing a visual interface for building, managing, and deploying AI agents and LLM workflows. The UI emphasizes usability, real-time feedback, and seamless integration with the backend services.
 
 ### Key Characteristics
 - **Framework**: React 18.2 with functional components and hooks
@@ -136,16 +136,16 @@ packages/ui/src/
 ### 1. **Canvas (Visual Workflow Editor)** 📊
 **Path**: `/canvas/:id`
 
-The centerpiece of Autonomous - a drag-and-drop visual editor for building AI workflows.
+The centerpiece of Kodivian - a drag-and-drop visual editor for building AI workflows.
 
 **Components**:
-- [CanvasNode.jsx](file:///Users/chainsys/MyWorks/GitlabClone/agentserver/Newautonomous/agenticai/app_v17_builder/inputs/autonomous/packages/ui/src/views/canvas/CanvasNode.jsx): Individual workflow nodes
-- [CanvasHeader.jsx](file:///Users/chainsys/MyWorks/GitlabClone/agentserver/Newautonomous/agenticai/app_v17_builder/inputs/autonomous/packages/ui/src/views/canvas/CanvasHeader.jsx): Toolbar with save, test, deploy actions
-- [AddNodes.jsx](file:///Users/chainsys/MyWorks/GitlabClone/agentserver/Newautonomous/agenticai/app_v17_builder/inputs/autonomous/packages/ui/src/views/canvas/AddNodes.jsx): Node palette sidebar
+- [CanvasNode.jsx](file:///Users/kodivian/MyWorks/GitlabClone/agentserver/Newkodivian/agenticai/app_v17_builder/inputs/kodivian/packages/ui/src/views/canvas/CanvasNode.jsx): Individual workflow nodes
+- [CanvasHeader.jsx](file:///Users/kodivian/MyWorks/GitlabClone/agentserver/Newkodivian/agenticai/app_v17_builder/inputs/kodivian/packages/ui/src/views/canvas/CanvasHeader.jsx): Toolbar with save, test, deploy actions
+- [AddNodes.jsx](file:///Users/kodivian/MyWorks/GitlabClone/agentserver/Newkodivian/agenticai/app_v17_builder/inputs/kodivian/packages/ui/src/views/canvas/AddNodes.jsx): Node palette sidebar
 - `CanvasContextMenu.jsx`: Right-click context menu
 - `ChatflowConfiguration.jsx`: Flow settings panel
-- [NodeInputHandler.jsx](file:///Users/chainsys/MyWorks/GitlabClone/agentserver/Newautonomous/agenticai/app_v17_builder/inputs/autonomous/packages/ui/src/views/canvas/NodeInputHandler.jsx): Dynamic input handling
-- [NodeOutputHandler.jsx](file:///Users/chainsys/MyWorks/GitlabClone/agentserver/Newautonomous/agenticai/app_v17_builder/inputs/autonomous/packages/ui/src/views/canvas/NodeOutputHandler.jsx): Dynamic output handling
+- [NodeInputHandler.jsx](file:///Users/kodivian/MyWorks/GitlabClone/agentserver/Newkodivian/agenticai/app_v17_builder/inputs/kodivian/packages/ui/src/views/canvas/NodeInputHandler.jsx): Dynamic input handling
+- [NodeOutputHandler.jsx](file:///Users/kodivian/MyWorks/GitlabClone/agentserver/Newkodivian/agenticai/app_v17_builder/inputs/kodivian/packages/ui/src/views/canvas/NodeOutputHandler.jsx): Dynamic output handling
 
 **Features**:
 - 700+ draggable nodes (chat models, agents, tools, etc.)
@@ -260,7 +260,7 @@ View and analyze chat conversations.
 - Analytics (response time, token usage)
 
 **Components**:
-- [ChatMessage.jsx](file:///Users/chainsys/MyWorks/GitlabClone/agentserver/Newautonomous/agenticai/app_v17_builder/inputs/autonomous/packages/ui/src/views/chatmessage/ChatMessage.jsx): Main chat viewer
+- [ChatMessage.jsx](file:///Users/kodivian/MyWorks/GitlabClone/agentserver/Newkodivian/agenticai/app_v17_builder/inputs/kodivian/packages/ui/src/views/chatmessage/ChatMessage.jsx): Main chat viewer
 - `SessionList.jsx`: Session browser
 - `MessageCard.jsx`: Individual message display
 - `FeedbackButton.jsx`: Like/dislike buttons
@@ -299,7 +299,7 @@ Secure storage for API keys and credentials.
 
 **Components**:
 - `CredentialListDialog.jsx`: Select credential
-- [CredentialInputHandler.jsx](file:///Users/chainsys/MyWorks/GitlabClone/agentserver/Newautonomous/agenticai/app_v17_builder/inputs/autonomous/packages/ui/src/views/canvas/CredentialInputHandler.jsx): Dynamic credential fields
+- [CredentialInputHandler.jsx](file:///Users/kodivian/MyWorks/GitlabClone/agentserver/Newkodivian/agenticai/app_v17_builder/inputs/kodivian/packages/ui/src/views/canvas/CredentialInputHandler.jsx): Dynamic credential fields
 - `AddEditCredentialDialog.jsx`: Create/edit form
 
 ### 9. **API Key Management** 🔑
@@ -407,7 +407,7 @@ The primary layout wrapping all authenticated pages.
 
 **Features**:
 - `Sidebar`: Collapsible navigation
-- [Header](file:///Users/chainsys/MyWorks/GitlabClone/agentserver/Newautonomous/agenticai/app_v17_builder/inputs/autonomous/packages/server/src/index.ts#434-451): User menu, notifications, search
+- [Header](file:///Users/kodivian/MyWorks/GitlabClone/agentserver/Newkodivian/agenticai/app_v17_builder/inputs/kodivian/packages/server/src/index.ts#434-451): User menu, notifications, search
 - `Breadcrumbs`: Current page path
 - `Content Area`: View rendering
 - `Customization`: Theme switcher, layout settings
@@ -442,8 +442,8 @@ Used for authentication pages (login, register).
 - `RichTextEditor.jsx`: TipTap wrapper
 
 **Node Components**:
-- [NodeInputHandler.jsx](file:///Users/chainsys/MyWorks/GitlabClone/agentserver/Newautonomous/agenticai/app_v17_builder/inputs/autonomous/packages/ui/src/views/canvas/NodeInputHandler.jsx): Dynamic node inputs
-- [NodeOutputHandler.jsx](file:///Users/chainsys/MyWorks/GitlabClone/agentserver/Newautonomous/agenticai/app_v17_builder/inputs/autonomous/packages/ui/src/views/canvas/NodeOutputHandler.jsx): Dynamic node outputs
+- [NodeInputHandler.jsx](file:///Users/kodivian/MyWorks/GitlabClone/agentserver/Newkodivian/agenticai/app_v17_builder/inputs/kodivian/packages/ui/src/views/canvas/NodeInputHandler.jsx): Dynamic node inputs
+- [NodeOutputHandler.jsx](file:///Users/kodivian/MyWorks/GitlabClone/agentserver/Newkodivian/agenticai/app_v17_builder/inputs/kodivian/packages/ui/src/views/canvas/NodeOutputHandler.jsx): Dynamic node outputs
 - `NodeTooltip.jsx`: Node documentation tooltips
 
 **Dialogs & Modals**:
@@ -772,12 +772,12 @@ pnpm build  # Output: build/ directory
 **Development** (`.env`):
 ```bash
 VITE_PORT=8080
-VITE_BASE_PATH=/autonomous
+VITE_BASE_PATH=/kodivian
 ```
 
 **Production**:
 - Static files served from `build/`
-- Context path: `/autonomous`
+- Context path: `/kodivian`
 - Base URL configured via server
 
 ---

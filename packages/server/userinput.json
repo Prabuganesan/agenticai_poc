@@ -1,7 +1,7 @@
 {
     "Status": "Success",
     "Message": "Session is valid",
-    "ChainsysSessionid": "ZGQ9ulB3bM9K3xa",
+    "KodivianSessionid": "ZGQ9ulB3bM9K3xa",
     "UserInfoDetails": {
         "UserInfo": {
             "personalInfo": {
@@ -9,7 +9,7 @@
                 "userName": "sureshn",
                 "firstName": "suresh",
                 "lastName": "nallakannu",
-                "email": "suresh.nallakannu@chainsys.com",
+                "email": "suresh.nallakannu@kodivian.com",
                 "title": "",
                 "passwordExpiredDate": "21-JAN-2026",
                 "managerId": 10184,

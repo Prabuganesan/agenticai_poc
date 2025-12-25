@@ -1,6 +1,6 @@
-# Autonomous Prompts & Output Parsers Reference Guide
+# Kodivian Prompts & Output Parsers Reference Guide
 
-A comprehensive guide to prompts and output parsers in the Autonomous platform. These components control how you communicate with LLMs and parse their responses.
+A comprehensive guide to prompts and output parsers in the Kodivian platform. These components control how you communicate with LLMs and parse their responses.
 
 ---
 

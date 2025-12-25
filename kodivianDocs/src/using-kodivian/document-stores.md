@@ -1,20 +1,20 @@
 ---
-description: Learn how to use the Autonomous Document Stores, written by @toi500
+description: Learn how to use the Kodivian Document Stores, written by @toi500
 ---
 
 # Document Stores
 
 ***
 
-Autonomous's Document Stores offer a versatile approach to data management, enabling you to upload, split, and prepare your dataset and upsert it in a single location.
+Kodivian's Document Stores offer a versatile approach to data management, enabling you to upload, split, and prepare your dataset and upsert it in a single location.
 
-This centralized approach simplifies data handling and allows for efficient management of various data formats, making it easier to organize and access your data within the Autonomous app.
+This centralized approach simplifies data handling and allows for efficient management of various data formats, making it easier to organize and access your data within the Kodivian app.
 
 ## Setup
 
 In this tutorial, we will set up a [Retrieval Augmented Generation (RAG)](broken-reference/) system to retrieve information about the _LibertyGuard Deluxe Homeowners Policy_, a topic that LLMs are not extensively trained on.
 
-Using the **Autonomous Document Stores**, we'll prepare and upsert data about LibertyGuard and its set of home insurance policies. This will enable our RAG system to accurately answer user queries about LibertyGuard's home insurance offerings.
+Using the **Kodivian Document Stores**, we'll prepare and upsert data about LibertyGuard and its set of home insurance policies. This will enable our RAG system to accurately answer user queries about LibertyGuard's home insurance offerings.
 
 ## 1. Add a Document Store
 
@@ -86,7 +86,7 @@ Note that our custom metadata `company: "liberty"` has been inserted into each c
 
 ### Understanding Chunk Overlap <a href="#understanding-chunk-overlap" id="understanding-chunk-overlap"></a>
 
-In the context of vector-based retrieval and LLM querying, chunk overlap plays an **important role in maintaining contextual continuity** and **improving response accuracy**, especially when dealing with limited retrieval depth or **top K**, which is the parameter that determines the maximum number of most similar chunks that are retrieved from the [Vector Store](https://docs.Autonomousai.com/integrations/langchain/vector-stores) in response to a query.
+In the context of vector-based retrieval and LLM querying, chunk overlap plays an **important role in maintaining contextual continuity** and **improving response accuracy**, especially when dealing with limited retrieval depth or **top K**, which is the parameter that determines the maximum number of most similar chunks that are retrieved from the [Vector Store](https://docs.Kodivianai.com/integrations/langchain/vector-stores) in response to a query.
 
 During query processing, the LLM executes a similarity search against the Vector Store to retrieve the most semantically relevant chunks to the given query. If the retrieval depth, represented by the top K parameter, is set to a small value, 4 for default, the LLM initially uses information only from these 4 chunks to generate its response.
 
@@ -843,7 +843,7 @@ query(formData).then((response) => {
 {% endtab %}
 {% endtabs %}
 
-For other [Document Loaders](https://docs.Autonomousai.com/integrations/langchain/document-loaders) nodes without Upload File functionality, the API body is in **JSON** format:
+For other [Document Loaders](https://docs.Kodivianai.com/integrations/langchain/document-loaders) nodes without Upload File functionality, the API body is in **JSON** format:
 
 {% tabs %}
 {% tab title="Python API" %}

@@ -349,7 +349,7 @@ class Tool_Agentflow implements INode {
                 const possiblePaths = [
                     path.resolve(__dirname, '../../../../server/src/utils/logger/module-methods'),
                     path.resolve(process.cwd(), 'packages/server/src/utils/logger/module-methods'),
-                    path.resolve(process.cwd(), 'autonomous/packages/server/src/utils/logger/module-methods')
+                    path.resolve(process.cwd(), 'kodivian/packages/server/src/utils/logger/module-methods')
                 ]
                 let serverPath: string | null = null
                 for (const p of possiblePaths) {
@@ -399,7 +399,7 @@ class Tool_Agentflow implements INode {
                     const possiblePaths = [
                         path.resolve(__dirname, '../../../../server/src/utils/logger/module-methods'),
                         path.resolve(process.cwd(), 'packages/server/src/utils/logger/module-methods'),
-                        path.resolve(process.cwd(), 'autonomous/packages/server/src/utils/logger/module-methods')
+                        path.resolve(process.cwd(), 'kodivian/packages/server/src/utils/logger/module-methods')
                     ]
                     let serverPath: string | null = null
                     for (const p of possiblePaths) {
@@ -438,7 +438,7 @@ class Tool_Agentflow implements INode {
                     const possiblePaths = [
                         path.resolve(__dirname, '../../../../server/src/utils/logger/module-methods'),
                         path.resolve(process.cwd(), 'packages/server/src/utils/logger/module-methods'),
-                        path.resolve(process.cwd(), 'autonomous/packages/server/src/utils/logger/module-methods')
+                        path.resolve(process.cwd(), 'kodivian/packages/server/src/utils/logger/module-methods')
                     ]
                     let serverPath: string | null = null
                     for (const p of possiblePaths) {

@@ -1,4 +1,4 @@
-# Autonomous Technical Documentation
+# Kodivian Technical Documentation
 
 ## Table of Contents
 
@@ -23,7 +23,7 @@
 
 ### Overview
 
-Autonomous is a multi-tenant, enterprise-grade AI agent platform built with a microservices-oriented architecture. The system consists of three main packages:
+Kodivian is a multi-tenant, enterprise-grade AI agent platform built with a microservices-oriented architecture. The system consists of three main packages:
 
 1. **Server Package** (`packages/server`): Express.js backend with TypeScript
 2. **UI Package** (`packages/ui`): React frontend with Material-UI
@@ -54,7 +54,7 @@ Autonomous is a multi-tenant, enterprise-grade AI agent platform built with a mi
 #### 2. Nodes Pool (`NodesPool` class)
 - **Location**: `packages/server/src/NodesPool.ts`
 - **Responsibilities**:
-  - Dynamic node loading from `autonomous-components` package
+  - Dynamic node loading from `kodivian-components` package
   - Node registration and discovery
   - Credential management
   - Icon path resolution
@@ -135,7 +135,7 @@ Autonomous is a multi-tenant, enterprise-grade AI agent platform built with a mi
 
 ### Database Support
 
-Autonomous supports two database types:
+Kodivian supports two database types:
 - **PostgreSQL**: Primary database (recommended)
 - **Oracle**: Enterprise database support
 
@@ -727,7 +727,7 @@ const apiSecret = scryptSync(apiKey, salt, 64).toString('hex')
 #### 1. Credential Encryption
 
 **Algorithm**: AES-256 (CryptoJS)
-**Key Source**: `encryption.key` file (`.autonomous/encryption.key`)
+**Key Source**: `encryption.key` file (`.kodivian/encryption.key`)
 
 **Flow**:
 1. Credential data encrypted before database storage
@@ -736,7 +736,7 @@ const apiSecret = scryptSync(apiKey, salt, 64).toString('hex')
 4. Key file created automatically on first run
 
 **Key File**:
-- **Location**: `.autonomous/encryption.key` (relative to `AUTONOMOUS_DATA_PATH`)
+- **Location**: `.kodivian/encryption.key` (relative to `KODIVIAN_DATA_PATH`)
 - **Format**: 32-byte random key (hex encoded)
 - **Creation**: Cluster-safe creation with `wx` flag
 - **Permissions**: 600 (owner read/write only)
@@ -888,7 +888,7 @@ class BaseNode {
 ```
 
 **Node Registration**:
-- Nodes loaded dynamically from `autonomous-components` package
+- Nodes loaded dynamically from `kodivian-components` package
 - Registered in `NodesPool.componentNodes`
 - Filtered by:
   - Disabled nodes (`DISABLED_NODES` env var)
@@ -1089,11 +1089,11 @@ class BaseNode {
 
 ### Storage Locations
 
-- **Base Path**: `AUTONOMOUS_DATA_PATH` (default: `.autonomous`)
+- **Base Path**: `KODIVIAN_DATA_PATH` (default: `.kodivian`)
 - **Document Stores**: `{basePath}/docustore/{storeId}/`
 - **Uploads**: `{basePath}/uploads/`
 - **Logs**: `{basePath}/logs/`
-- **Encryption Key**: `{basePath}/.autonomous/encryption.key`
+- **Encryption Key**: `{basePath}/.kodivian/encryption.key`
 
 ### File Handling
 
@@ -1187,7 +1187,7 @@ class BaseNode {
 - `SERVER_PORT`: Server port (default: 3030)
 - `HOST`: Server host (default: localhost)
 - `HTTP_PROTOCOL`: http or https (default: http)
-- `CONTEXT_PATH`: API context path (default: /autonomous)
+- `CONTEXT_PATH`: API context path (default: /kodivian)
 - `MODE`: `MAIN` or `QUEUE` (default: MAIN)
 - `NODE_ENV`: `development` or `production`
 
@@ -1211,7 +1211,7 @@ class BaseNode {
 #### Storage Configuration
 
 - `STORAGE_TYPE`: `local`, `s3`, or `gcs`
-- `AUTONOMOUS_DATA_PATH`: Base data directory
+- `KODIVIAN_DATA_PATH`: Base data directory
 - `SECRETKEY_PATH`: Encryption key path override
 
 **AWS S3**:
@@ -1367,5 +1367,5 @@ packages/
 
 ## Conclusion
 
-This technical documentation provides a comprehensive overview of the Autonomous platform's architecture, APIs, database structure, security, and deployment. For specific implementation details, refer to the source code and inline documentation.
+This technical documentation provides a comprehensive overview of the Kodivian platform's architecture, APIs, database structure, security, and deployment. For specific implementation details, refer to the source code and inline documentation.
 

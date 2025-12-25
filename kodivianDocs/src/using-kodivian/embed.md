@@ -14,15 +14,15 @@ You can easily add the chat widget to your website. Just copy the provided widge
 
 The following video shows how to inject the widget script into any webpage.
 
-{% embed url="https://github.com/AutonomousAI/Autonomous/assets/26460777/c128829a-2d08-4d60-b821-1e41a9e677d0" %}
+{% embed url="https://github.com/KodivianAI/Kodivian/assets/26460777/c128829a-2d08-4d60-b821-1e41a9e677d0" %}
 
 ## Using Specific Version
 
-You can specify the version of Autonomous-embed's `web.js` to use. For full list of versions: [https://www.npmjs.com/package/Autonomous-embed](https://www.npmjs.com/package/Autonomous-embed)
+You can specify the version of Kodivian-embed's `web.js` to use. For full list of versions: [https://www.npmjs.com/package/Kodivian-embed](https://www.npmjs.com/package/Kodivian-embed)
 
 ```html
 <script type="module">
-  import Chatbot from 'https://cdn.jsdelivr.net/npm/Autonomous-embed@<some-version>/dist/web.js';
+  import Chatbot from 'https://cdn.jsdelivr.net/npm/Kodivian-embed@<some-version>/dist/web.js';
   Chatbot.init({
     chatflowid: 'your-chatflowid-here',
     apiHost: 'your-apihost-here',
@@ -31,15 +31,15 @@ You can specify the version of Autonomous-embed's `web.js` to use. For full list
 ```
 
 {% hint style="warning" %}
-In Autonomous **v2.1.0**, we have modified the way streaming works. If your Autonomous version is lower than that, you might find your embedded chatbot not able to receive messages.
+In Kodivian **v2.1.0**, we have modified the way streaming works. If your Kodivian version is lower than that, you might find your embedded chatbot not able to receive messages.
 
-You can either update Autonomous to **v2.1.0** and above
+You can either update Kodivian to **v2.1.0** and above
 
-Or, if for some reason you prefer not to update Autonomous, you can specify the latest **v1.x.x** version of [Autonomous-Embed](https://www.npmjs.com/package/Autonomous-embed?activeTab=versions). Last maintained `web.js` version is **v1.3.14.**
+Or, if for some reason you prefer not to update Kodivian, you can specify the latest **v1.x.x** version of [Kodivian-Embed](https://www.npmjs.com/package/Kodivian-embed?activeTab=versions). Last maintained `web.js` version is **v1.3.14.**
 
 For instance:
 
-`https://cdn.jsdelivr.net/npm/Autonomous-embed@1.3.14/dist/web.js`
+`https://cdn.jsdelivr.net/npm/Kodivian-embed@1.3.14/dist/web.js`
 {% endhint %}
 
 ## Chatflow Config
@@ -48,7 +48,7 @@ You can pass `chatflowConfig` JSON object to override existing configuration. Th
 
 ```html
 <script type="module">
-  import Chatbot from 'https://cdn.jsdelivr.net/npm/Autonomous-embed/dist/web.js';
+  import Chatbot from 'https://cdn.jsdelivr.net/npm/Kodivian-embed/dist/web.js';
   Chatbot.init({
     chatflowid: 'your-chatflowid-here',
     apiHost: 'your-apihost-here',
@@ -66,7 +66,7 @@ This allows you to execute code in parent based upon signal observations within 
 
 ```html
 <script type="module">
-  import Chatbot from 'https://cdn.jsdelivr.net/npm/Autonomous-embed/dist/web.js';
+  import Chatbot from 'https://cdn.jsdelivr.net/npm/Kodivian-embed/dist/web.js';
   Chatbot.init({
     chatflowid: 'your-chatflowid-here',
     apiHost: 'your-apihost-here',
@@ -100,7 +100,7 @@ You can change the full appearance of the embedded chatbot and enable functional
 
 ```html
 <script type="module">
-  import Chatbot from 'https://cdn.jsdelivr.net/npm/Autonomous-embed/dist/web.js';
+  import Chatbot from 'https://cdn.jsdelivr.net/npm/Kodivian-embed/dist/web.js';
   Chatbot.init({
     chatflowid: 'your-chatflowid-here',
     apiHost: 'your-apihost-here',
@@ -128,7 +128,7 @@ You can change the full appearance of the embedded chatbot and enable functional
       },
       disclaimer: {
         title: 'Disclaimer',
-        message: 'By using this chatbot, you agree to the <a target="_blank" href="https://Autonomousai.com/terms">Terms & Condition</a>',
+        message: 'By using this chatbot, you agree to the <a target="_blank" href="https://Kodivianai.com/terms">Terms & Condition</a>',
         textColor: 'black',
         buttonColor: '#3b82f6',
         buttonText: 'Start Chatting',
@@ -140,7 +140,7 @@ You can change the full appearance of the embedded chatbot and enable functional
       chatWindow: {
         showTitle: true,
         showAgentMessages: true,
-        title: 'Autonomous Bot',
+        title: 'Kodivian Bot',
         titleAvatarSrc: 'https://raw.githubusercontent.com/walkxcode/dashboard-icons/main/svg/google-messages.svg',
         titleTextColor: '#ffffff',
         titleBackgroundColor: '#3B81F6',
@@ -191,8 +191,8 @@ You can change the full appearance of the embedded chatbot and enable functional
         footer: {
           textColor: '#303235',
           text: 'Powered by',
-          company: 'Autonomous',
-          companyLink: 'https://Autonomousai.com',
+          company: 'Kodivian',
+          companyLink: 'https://Kodivianai.com',
         },
       },
     },
@@ -200,13 +200,13 @@ You can change the full appearance of the embedded chatbot and enable functional
 </script>
 ```
 
-**Note:** See full [configuration list](https://github.com/AutonomousAI/AutonomousChatEmbed#configuration)
+**Note:** See full [configuration list](https://github.com/KodivianAI/KodivianChatEmbed#configuration)
 
 ## Custom Code Modification
 
 To modify the full source code of embedded chat widget, follow these steps:
 
-1. Fork the [Autonomous Chat Embed](https://github.com/AutonomousAI/AutonomousChatEmbed) repository
+1. Fork the [Kodivian Chat Embed](https://github.com/KodivianAI/KodivianChatEmbed) repository
 2. Run `yarn install` to install the necessary dependencies
 3. Then you can make any code changes
 4. Run `yarn build` to pick up the changes
@@ -228,7 +228,7 @@ Replace `username` to your Github username, and `forked-repo` to your forked rep
 
 ```html
 <script type="module">
-      import Chatbot from "https://cdn.jsdelivr.net/gh/HenryHengZJ/AutonomousChatEmbed-Test/dist/web.js"
+      import Chatbot from "https://cdn.jsdelivr.net/gh/HenryHengZJ/KodivianChatEmbed-Test/dist/web.js"
       Chatbot.init({
           chatflowid: "your-chatflowid-here",
           apiHost: "your-apihost-here",
@@ -239,7 +239,7 @@ Replace `username` to your Github username, and `forked-repo` to your forked rep
 {% hint style="info" %}
 An alternative to jsdelivr is unpkg. Here is an example:
 
-<pre><code><strong>https://unpkg.com/Autonomous-embed/dist/web.js
+<pre><code><strong>https://unpkg.com/Kodivian-embed/dist/web.js
 </strong></code></pre>
 {% endhint %}
 
@@ -254,7 +254,7 @@ You can now directly add custom CSS to style your embedded chat widget, eliminat
 Here's how to use it:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/AutonomousAI/AutonomousChatEmbed@main/dist/web.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/KodivianAI/KodivianChatEmbed@main/dist/web.js"></script>
 <script>
   Chatbot.init({
     chatflowid: "your-chatflowid-here",
@@ -275,7 +275,7 @@ Here's how to use it:
 When using embedded chat widget, there's chance that you might face CORS issue like:
 
 {% hint style="danger" %}
-Access to fetch at 'https://\<your-Autonomous.com>/api/v1/prediction/' from origin 'https://\<your-Autonomous.com>' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+Access to fetch at 'https://\<your-Kodivian.com>/api/v1/prediction/' from origin 'https://\<your-Kodivian.com>' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
 {% endhint %}
 
 To fix it, specify the following environment variables:
@@ -285,13 +285,13 @@ CORS_ORIGINS=*
 IFRAME_ORIGINS=*
 ```
 
-For example, if you are using `npx Autonomous start`
+For example, if you are using `npx Kodivian start`
 
 ```
-npx Autonomous start --CORS_ORIGINS=* --IFRAME_ORIGINS=*
+npx Kodivian start --CORS_ORIGINS=* --IFRAME_ORIGINS=*
 ```
 
-If using Docker, place the env variables inside `Autonomous/docker/.env`
+If using Docker, place the env variables inside `Kodivian/docker/.env`
 
-If using local Git clone, place the env variables inside `Autonomous/packages/server/.env`
+If using local Git clone, place the env variables inside `Kodivian/packages/server/.env`
 

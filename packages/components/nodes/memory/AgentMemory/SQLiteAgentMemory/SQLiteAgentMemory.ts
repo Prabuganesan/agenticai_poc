@@ -32,7 +32,7 @@ class SQLiteAgentMemory_Memory implements INode {
                 label: 'Database File Path',
                 name: 'databaseFilePath',
                 type: 'string',
-                placeholder: 'C:\\Users\\User\\.autonomous\\database.sqlite',
+                placeholder: 'C:\\Users\\User\\.kodivian\\database.sqlite',
                 description: 'Path to the SQLite database file. Leave empty to use default application database',
                 optional: true
             },*/
@@ -64,7 +64,7 @@ class SQLiteAgentMemory_Memory implements INode {
 
         const threadId = options.sessionId || options.chatId
 
-        const database = path.join(process.env.DATABASE_PATH ?? path.join(getUserHome(), '.autonomous'), 'database.sqlite')
+        const database = path.join(process.env.DATABASE_PATH ?? path.join(getUserHome(), '.kodivian'), 'database.sqlite')
 
         let datasourceOptions: ICommonObject = {
             database,

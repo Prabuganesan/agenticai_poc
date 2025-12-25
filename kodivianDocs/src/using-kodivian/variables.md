@@ -1,12 +1,12 @@
 ---
-description: Learn how to use variables in Autonomous
+description: Learn how to use variables in Kodivian
 ---
 
 # Variables
 
 ***
 
-Autonomous allow users to create variables that can be used in the nodes. Variables can be Static or Runtime.
+Kodivian allow users to create variables that can be used in the nodes. Variables can be Static or Runtime.
 
 ### Static
 
@@ -43,7 +43,7 @@ If there is an existing variable created, variable value provided in the API wil
 
 ### Using Variables
 
-Variables can be used by the nodes in Autonomous. For instance, a variable named **`character`** is created:
+Variables can be used by the nodes in Kodivian. For instance, a variable named **`character`** is created:
 
 <figure><img src=".././assets/image (96).png" alt=""><figcaption></figcaption></figure>
 

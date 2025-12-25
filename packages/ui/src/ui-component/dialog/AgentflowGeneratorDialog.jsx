@@ -21,7 +21,7 @@ import useApi from '@/hooks/useApi'
 
 const defaultInstructions = [
     {
-        text: 'An agent that can autonomously search the web and generate report'
+        text: 'An agent that can kodivianly search the web and generate report'
     },
     {
         text: 'Summarize a document'

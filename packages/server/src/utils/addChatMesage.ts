@@ -54,7 +54,7 @@ export const utilAddChatMessage = async (
     }
     
     // Set created_by and created_on
-    // For tool requests (autonomous-tool), userId may be undefined - use 0 (system user)
+    // For tool requests (kodivian-tool), userId may be undefined - use 0 (system user)
     // For authenticated requests, userId should be provided
     // Ensure numeric values are properly converted for Oracle compatibility
     // Oracle is strict about number types and will throw ORA-01722 if strings are passed

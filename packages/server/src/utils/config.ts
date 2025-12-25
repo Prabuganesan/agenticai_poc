@@ -5,21 +5,21 @@ import dotenv from 'dotenv'
 
 dotenv.config({ path: path.join(__dirname, '..', '..', '.env'), override: true })
 
-// Inline getAutonomousDataPath to avoid circular dependency with index.ts
+// Inline getKodivianDataPath to avoid circular dependency with index.ts
 // (index.ts imports logger, logger imports config, so config can't import from index)
-const getAutonomousDataPath = (): string => {
+const getKodivianDataPath = (): string => {
     if (process.env.KODIVIAN_DATA_PATH) {
         return path.join(process.env.KODIVIAN_DATA_PATH, '.kodivian')
     }
-    // Default to .autonomous inside the server package directory
+    // Default to .kodivian inside the server package directory
     // __dirname in compiled code will be dist/utils, so we go up to server root
     const serverRoot = path.resolve(__dirname, '..', '..')
-    return path.join(serverRoot, '.autonomous')
+    return path.join(serverRoot, '.kodivian')
 }
 
 // default config
 const loggingConfig = {
-    dir: path.join(getAutonomousDataPath(), 'logs'),
+    dir: path.join(getKodivianDataPath(), 'logs'),
     // Server logger: General application logs (errors, info, warnings)
     // Uses DailyRotateFile - creates hourly files: server-YYYY-MM-DD-HH.log
     server: {

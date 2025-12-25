@@ -285,7 +285,7 @@
                         "label": "Repo Link",
                         "name": "repoLink",
                         "type": "string",
-                        "placeholder": "https://github.com/autonomous/autonomous",
+                        "placeholder": "https://github.com/kodivian/kodivian",
                         "id": "github_0-input-repoLink-string"
                     },
                     {

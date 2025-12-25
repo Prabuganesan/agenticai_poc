@@ -34,12 +34,12 @@ export class Prometheus implements IMetricsProvider {
     }
 
     async initializeCounters(): Promise<void> {
-        const serviceName: string = process.env.METRICS_SERVICE_NAME || 'Autonomous'
+        const serviceName: string = process.env.METRICS_SERVICE_NAME || 'Kodivian'
         this.register.setDefaultLabels({
             app: serviceName
         })
 
-        // look at the AUTONOMOUS_COUNTER enum in Interface.Metrics.ts and get all values
+        // look at the KODIVIAN_COUNTER enum in Interface.Metrics.ts and get all values
         // for each counter in the enum, create a new promClient.Counter and add it to the registry
         this.counters = new Map<string, promClient.Counter<string> | promClient.Gauge<string> | promClient.Histogram<string>>()
         const enumEntries = Object.entries(KODIVIAN_METRIC_COUNTERS)
@@ -69,20 +69,20 @@ export class Prometheus implements IMetricsProvider {
         // version, http_request_duration_ms, http_requests_total
         try {
             const versionGaugeCounter = new promClient.Gauge({
-                name: 'autonomous_version_info',
-                help: 'Autonomous version info.',
+                name: 'kodivian_version_info',
+                help: 'Kodivian version info.',
                 labelNames: ['version'],
                 registers: [this.register] // Explicitly set the registry
             })
 
             const { version } = await getVersion()
             versionGaugeCounter.set({ version: 'v' + version }, 1)
-            this.counters.set('autonomous_version', versionGaugeCounter)
+            this.counters.set('kodivian_version', versionGaugeCounter)
         } catch (error) {
             // If metric already exists, get it from the registry
-            const existingMetric = this.register.getSingleMetric('autonomous_version')
+            const existingMetric = this.register.getSingleMetric('kodivian_version')
             if (existingMetric) {
-                this.counters.set('autonomous_version', existingMetric as promClient.Gauge<string>)
+                this.counters.set('kodivian_version', existingMetric as promClient.Gauge<string>)
             }
         }
 
@@ -227,7 +227,7 @@ export class Prometheus implements IMetricsProvider {
 
     async setupMetricsEndpoint() {
         // Get context path from environment
-        const apiContextPath = process.env.CONTEXT_PATH || '/autonomous'
+        const apiContextPath = process.env.CONTEXT_PATH || '/kodivian'
 
         // Helper function to aggregate metrics from worker if in queue mode
         const getAggregatedMetrics = async (): Promise<string> => {
@@ -270,7 +270,7 @@ export class Prometheus implements IMetricsProvider {
             res.send(aggregatedMetrics).end()
         })
 
-        // Also mount metrics endpoint at context path for requests coming from /autonomous/api/v1/metrics
+        // Also mount metrics endpoint at context path for requests coming from /kodivian/api/v1/metrics
         if (apiContextPath && apiContextPath !== '/') {
             this.app.use(`${apiContextPath}/api/v1/metrics`, async (req, res) => {
                 res.set('Content-Type', this.register.contentType)
@@ -397,7 +397,7 @@ export class Prometheus implements IMetricsProvider {
             // and ensure they're only registered with our custom registry
             promClient.collectDefaultMetrics({
                 register: this.register,
-                prefix: 'autonomous_' // Add a prefix to avoid conflicts
+                prefix: 'kodivian_' // Add a prefix to avoid conflicts
             })
         }
 

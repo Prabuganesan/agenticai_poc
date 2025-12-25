@@ -35,11 +35,11 @@
 
 <figure><img src="../../.././assets/image (62).png" alt="" width="485"><figcaption></figcaption></figure>
 
-10. On the tabs, switch to **Your App**, and select **Node.js** from the dropdown. Take note/save the `Username`, `Host`, `Password` as you will need these in Autonomous later.
+10. On the tabs, switch to **Your App**, and select **Node.js** from the dropdown. Take note/save the `Username`, `Host`, `Password` as you will need these in Kodivian later.
 
 <figure><img src="../../.././assets/image (63).png" alt="" width="563"><figcaption></figcaption></figure>
 
-11. Back to Autonomous canvas, drag and drop SingleStore nodes. Click **Create New** from the Credentials dropdown:
+11. Back to Kodivian canvas, drag and drop SingleStore nodes. Click **Create New** from the Credentials dropdown:
 
 <figure><img src="../../.././assets/image (4) (1) (2) (1) (1).png" alt="" width="271"><figcaption></figcaption></figure>
 

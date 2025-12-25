@@ -357,7 +357,7 @@ export interface MemoryMethods {
     clearChatMessages(overrideSessionId?: string): Promise<void>
 }
 
-export abstract class AutonomousMemory extends BufferMemory implements MemoryMethods {
+export abstract class KodivianMemory extends BufferMemory implements MemoryMethods {
     abstract getChatMessages(
         overrideSessionId?: string,
         returnBaseMessages?: boolean,
@@ -367,7 +367,7 @@ export abstract class AutonomousMemory extends BufferMemory implements MemoryMet
     abstract clearChatMessages(overrideSessionId?: string): Promise<void>
 }
 
-export abstract class AutonomousWindowMemory extends BufferWindowMemory implements MemoryMethods {
+export abstract class KodivianWindowMemory extends BufferWindowMemory implements MemoryMethods {
     abstract getChatMessages(
         overrideSessionId?: string,
         returnBaseMessages?: boolean,
@@ -377,7 +377,7 @@ export abstract class AutonomousWindowMemory extends BufferWindowMemory implemen
     abstract clearChatMessages(overrideSessionId?: string): Promise<void>
 }
 
-export abstract class AutonomousSummaryMemory extends ConversationSummaryMemory implements MemoryMethods {
+export abstract class KodivianSummaryMemory extends ConversationSummaryMemory implements MemoryMethods {
     abstract getChatMessages(
         overrideSessionId?: string,
         returnBaseMessages?: boolean,
@@ -387,7 +387,7 @@ export abstract class AutonomousSummaryMemory extends ConversationSummaryMemory 
     abstract clearChatMessages(overrideSessionId?: string): Promise<void>
 }
 
-export abstract class AutonomousSummaryBufferMemory extends ConversationSummaryBufferMemory implements MemoryMethods {
+export abstract class KodivianSummaryBufferMemory extends ConversationSummaryBufferMemory implements MemoryMethods {
     abstract getChatMessages(
         overrideSessionId?: string,
         returnBaseMessages?: boolean,

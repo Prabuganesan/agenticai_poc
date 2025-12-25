@@ -25,10 +25,10 @@ import { formatNumber, formatCurrency, formatDate, formatDuration, getTimeRange,
 import { IconChevronDown, IconChevronUp, IconCopy } from '@tabler/icons-react'
 
 const Transactions = () => {
-    // Get orgId from autonomousStore (encrypted, in-memory) - this is the source of truth
+    // Get orgId from kodivianStore (encrypted, in-memory) - this is the source of truth
     const orgId = useMemo(() => {
         const orgIdValue = AuthUtils.getOrgIdFromStore()
-        console.log('[LLM Usage Transactions] orgId from autonomousStore:', orgIdValue)
+        console.log('[LLM Usage Transactions] orgId from kodivianStore:', orgIdValue)
         return orgIdValue
     }, [])
 
@@ -59,7 +59,7 @@ const Transactions = () => {
             loadTransactions()
             loadFilters()
         } else {
-            console.warn('[LLM Usage Transactions] orgId is missing, cannot load transactions. User:', currentUser)
+            console.warn('[LLM Usage Transactions] orgId is missing, cannot load transactions')
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [orgId, timeRange, customDateRange.startDate, customDateRange.endDate, filters.provider, filters.model, filters.feature, filters.success, page])
@@ -80,7 +80,7 @@ const Transactions = () => {
 
     const loadTransactions = async () => {
         if (!orgId) {
-            console.warn('[LLM Usage Transactions] No orgId found in autonomousStore')
+            console.warn('[LLM Usage Transactions] No orgId found in kodivianStore')
             return
         }
 

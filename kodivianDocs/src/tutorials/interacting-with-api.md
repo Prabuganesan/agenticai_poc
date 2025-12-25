@@ -399,7 +399,7 @@ Certainly! Here are some **Example Interactions** for your flow, including sampl
 
 ## OpenAPI Toolkit
 
-The 4 Requests tools work great if you have a couple of APIs, but imagine having tens or hundreds of APIs, this could become hard to maintain. To solve this problem, Autonomous provides an OpenAPI toolkit which is able to take in an OpenAPI YAML file, and parse each API into a tool. The [OpenAPI Specification (OAS)](https://swagger.io/specification/) is a universally accepted standard for describing the details of RESTful APIs in a format that machines can read and interpret.&#x20;
+The 4 Requests tools work great if you have a couple of APIs, but imagine having tens or hundreds of APIs, this could become hard to maintain. To solve this problem, Kodivian provides an OpenAPI toolkit which is able to take in an OpenAPI YAML file, and parse each API into a tool. The [OpenAPI Specification (OAS)](https://swagger.io/specification/) is a universally accepted standard for describing the details of RESTful APIs in a format that machines can read and interpret.&#x20;
 
 Using the Event Management API, we can generate an OpenAPI YAML file:
 
@@ -599,14 +599,14 @@ We can use the same sample queries from previous example to test it out:
 
 ## Calling API Sequentially
 
-From the examples above, we’ve seen how the Agent can dynamically call tools and interact with APIs. In some cases, it may be necessary to call an API sequentially before or after certain actions. For instance, you might fetch a customer list from a CRM and pass it to an Agent. In such cases, you can use the [HTTP node](../using-Autonomous/agentflow.md#id-6.-http-node).
+From the examples above, we’ve seen how the Agent can dynamically call tools and interact with APIs. In some cases, it may be necessary to call an API sequentially before or after certain actions. For instance, you might fetch a customer list from a CRM and pass it to an Agent. In such cases, you can use the [HTTP node](../using-Kodivian/agentflow.md#id-6.-http-node).
 
 <figure><img src=".././assets/image (3) (1) (1) (1) (1) (1) (1) (1) (1).png" alt="" width="563"><figcaption></figcaption></figure>
 
 ## Best Practices
 
 * Interacting with APIs is typically used when you want an agent to fetch the most up-to-date information. For example, an agent might retrieve your calendar availability, project status, or other real-time data.
-* It is often helpful to explicitly include the current time in the system prompt. Autonomous provides a variable called `{{current_date_time}}`, which retrieves the current date and time. This allows the LLM to be aware of the present moment, so if you ask about your availability for today, the model can reference the correct date. Otherwise, it may rely on its last training cutoff date, which would return outdated information. For example:
+* It is often helpful to explicitly include the current time in the system prompt. Kodivian provides a variable called `{{current_date_time}}`, which retrieves the current date and time. This allows the LLM to be aware of the present moment, so if you ask about your availability for today, the model can reference the correct date. Otherwise, it may rely on its last training cutoff date, which would return outdated information. For example:
 
 ```
 You are helpful assistant.

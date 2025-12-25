@@ -1,12 +1,12 @@
-# Running Autonomous behind company proxy
+# Running Kodivian behind company proxy
 
-If you're running Autonomous in an environment that requires a proxy, such as within an organizational network, you can configure Autonomous to route all its backend requests through a proxy of your choice. This feature is powered by the `global-agent` package.
+If you're running Kodivian in an environment that requires a proxy, such as within an organizational network, you can configure Kodivian to route all its backend requests through a proxy of your choice. This feature is powered by the `global-agent` package.
 
 [https://github.com/gajus/global-agent](https://github.com/gajus/global-agent)
 
 ## Configuration
 
-There are 2 environment variables you will need to run Autonomous behind a company proxy:
+There are 2 environment variables you will need to run Kodivian behind a company proxy:
 
 | Variable                   | Purpose                                                                          | Required |
 | -------------------------- | -------------------------------------------------------------------------------- | -------- |
@@ -16,4 +16,4 @@ There are 2 environment variables you will need to run Autonomous behind a compa
 
 ## Outbound Allow-list
 
-For enterprise plan, you must allow several outbound connections for license checking. Please contact support@Autonomousai.com for more information.
+For enterprise plan, you must allow several outbound connections for license checking. Please contact support@Kodivianai.com for more information.

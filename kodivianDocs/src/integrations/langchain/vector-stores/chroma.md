@@ -23,7 +23,7 @@ For Chroma Cloud, you will need to get your tenant ID, and create your database 
 
 ### Additional
 
-If you are running both Autonomous and Chroma on Docker, there are additional steps involved.
+If you are running both Kodivian and Chroma on Docker, there are additional steps involved.
 
 1. Spin up Chroma docker first
 
@@ -31,10 +31,10 @@ If you are running both Autonomous and Chroma on Docker, there are additional st
 docker compose up -d --build
 ```
 
-2. Open `docker-compose.yml` in Autonomous
+2. Open `docker-compose.yml` in Kodivian
 
 ```bash
-cd Autonomous && cd docker
+cd Kodivian && cd docker
 ```
 
 3. Modify the file to:
@@ -43,32 +43,32 @@ cd Autonomous && cd docker
 version: '3.1'
 
 services:
-    Autonomous:
-        image: Autonomousai/Autonomous
+    Kodivian:
+        image: Kodivianai/Kodivian
         restart: always
         environment:
             - PORT=${PORT}
             - DEBUG=${DEBUG}
             - DATABASE_PATH=${DATABASE_PATH}
             - SECRETKEY_PATH=${SECRETKEY_PATH}
-            - Autonomous_SECRETKEY_OVERWRITE=${Autonomous_SECRETKEY_OVERWRITE}
+            - Kodivian_SECRETKEY_OVERWRITE=${Kodivian_SECRETKEY_OVERWRITE}
             - LOG_PATH=${LOG_PATH}
             - LOG_LEVEL=${LOG_LEVEL}
             - EXECUTION_MODE=${EXECUTION_MODE}
         ports:
             - '${PORT}:${PORT}'
         volumes:
-            - ~/.Autonomous:/root/.Autonomous
+            - ~/.Kodivian:/root/.Kodivian
         networks:
-            - Autonomous_net
-        command: /bin/sh -c "sleep 3; Autonomous start"
+            - Kodivian_net
+        command: /bin/sh -c "sleep 3; Kodivian start"
 networks:
-    Autonomous_net:
+    Kodivian_net:
         name: chroma_net
         external: true
 ```
 
-4. Spin up Autonomous docker image
+4. Spin up Kodivian docker image
 
 ```bash
 docker compose up -d

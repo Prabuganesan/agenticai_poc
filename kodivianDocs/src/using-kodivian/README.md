@@ -1,12 +1,12 @@
 ---
-description: Learn about some core functionalities built into Autonomous
+description: Learn about some core functionalities built into Kodivian
 ---
 
-# Using Autonomous
+# Using Kodivian
 
 ***
 
-This section provides in-depth guides on core Autonomous functionalities.
+This section provides in-depth guides on core Kodivian functionalities.
 
 ## Guides
 

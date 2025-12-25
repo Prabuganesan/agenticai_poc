@@ -22,10 +22,10 @@ services:
             - ~/.flowise:/root/.flowise
         environment:
             # --- Base Configuration ---
-            - AUTONOMOUS_DATA_PATH=${AUTONOMOUS_DATA_PATH}
+            - KODIVIAN_DATA_PATH=${KODIVIAN_DATA_PATH}
             - SERVER_PORT=${SERVER_PORT:-3030}
             - SERVER_HOST=${SERVER_HOST}
-            - CONTEXT_PATH=${CONTEXT_PATH:-/autonomous}
+            - CONTEXT_PATH=${CONTEXT_PATH:-/kodivian}
             - PROXY_URL=${PROXY_URL}
             - DATABASE_PATH=${DATABASE_PATH:-/root/.flowise}
             - DATABASE_TYPE=${DATABASE_TYPE}
@@ -83,7 +83,7 @@ services:
             - CORS_ORIGINS=${CORS_ORIGINS}
             - IFRAME_ORIGINS=${IFRAME_ORIGINS}
             - CHATBOT_IFRAME_ORIGINS=${CHATBOT_IFRAME_ORIGINS}
-            - AUTONOMOUS_FILE_SIZE_LIMIT=${AUTONOMOUS_FILE_SIZE_LIMIT}
+            - KODIVIAN_FILE_SIZE_LIMIT=${KODIVIAN_FILE_SIZE_LIMIT}
             - SHOW_COMMUNITY_NODES=${SHOW_COMMUNITY_NODES}
             - DISABLE_FLOWISE_TELEMETRY=${DISABLE_FLOWISE_TELEMETRY}
             - DISABLED_NODES=${DISABLED_NODES}
@@ -135,7 +135,7 @@ services:
 
             # --- Queue Configuration (Main Instance) ---
             - MODE=${MODE:-queue}
-            - QUEUE_NAME=${QUEUE_NAME:-autonomous-queue}
+            - QUEUE_NAME=${QUEUE_NAME:-kodivian-queue}
             - QUEUE_REDIS_EVENT_STREAM_MAX_LEN=${QUEUE_REDIS_EVENT_STREAM_MAX_LEN}
             - WORKER_CONCURRENCY=${WORKER_CONCURRENCY}
             - REMOVE_ON_AGE=${REMOVE_ON_AGE}
@@ -173,7 +173,7 @@ services:
             - DB_SSL=${DB_SSL}
             - ENABLE_TABLE_CREATION=${ENABLE_TABLE_CREATION}
 
-            # AUTONOMOUS SERVER MIGRATION
+            # KODIVIAN SERVER MIGRATION
             - APPBUILDER_SHORT_CODE=${APPBUILDER_SHORT_CODE}
             - APPDESIGNER_SHORT_CODE=${APPDESIGNER_SHORT_CODE}
             - APPPUBLISHER_SHORT_CODE=${APPPUBLISHER_SHORT_CODE}
@@ -210,7 +210,7 @@ services:
             timeout: 5s
             retries: 5
             start_period: 30s
-        entrypoint: /bin/sh -c "sleep 3; autonomous start"
+        entrypoint: /bin/sh -c "sleep 3; kodivian start"
         depends_on:
             - redis
         networks:
@@ -224,10 +224,10 @@ services:
             - ~/.flowise:/root/.flowise
         environment:
             # --- Base Configuration ---
-            - AUTONOMOUS_DATA_PATH=${AUTONOMOUS_DATA_PATH}
+            - KODIVIAN_DATA_PATH=${KODIVIAN_DATA_PATH}
             - WORKER_PORT=${WORKER_PORT:-5566}
             - SERVER_HOST=${SERVER_HOST}
-            - CONTEXT_PATH=${CONTEXT_PATH:-/autonomous}
+            - CONTEXT_PATH=${CONTEXT_PATH:-/kodivian}
             - PROXY_URL=${PROXY_URL}
             - DATABASE_PATH=${DATABASE_PATH:-/root/.flowise}
             - DATABASE_TYPE=${DATABASE_TYPE}
@@ -285,7 +285,7 @@ services:
             - CORS_ORIGINS=${CORS_ORIGINS}
             - IFRAME_ORIGINS=${IFRAME_ORIGINS}
             - CHATBOT_IFRAME_ORIGINS=${CHATBOT_IFRAME_ORIGINS}
-            - AUTONOMOUS_FILE_SIZE_LIMIT=${AUTONOMOUS_FILE_SIZE_LIMIT}
+            - KODIVIAN_FILE_SIZE_LIMIT=${KODIVIAN_FILE_SIZE_LIMIT}
             - SHOW_COMMUNITY_NODES=${SHOW_COMMUNITY_NODES}
             - DISABLE_FLOWISE_TELEMETRY=${DISABLE_FLOWISE_TELEMETRY}
             - DISABLED_NODES=${DISABLED_NODES}
@@ -337,7 +337,7 @@ services:
 
             # --- Queue Configuration (Worker Instance) ---
             - MODE=${MODE:-queue}
-            - QUEUE_NAME=${QUEUE_NAME:-autonomous-queue}
+            - QUEUE_NAME=${QUEUE_NAME:-kodivian-queue}
             - QUEUE_REDIS_EVENT_STREAM_MAX_LEN=${QUEUE_REDIS_EVENT_STREAM_MAX_LEN}
             - WORKER_CONCURRENCY=${WORKER_CONCURRENCY}
             - REMOVE_ON_AGE=${REMOVE_ON_AGE}
@@ -375,7 +375,7 @@ services:
             - DB_SSL=${DB_SSL}
             - ENABLE_TABLE_CREATION=${ENABLE_TABLE_CREATION}
 
-            # AUTONOMOUS SERVER MIGRATION
+            # KODIVIAN SERVER MIGRATION
             - APPBUILDER_SHORT_CODE=${APPBUILDER_SHORT_CODE}
             - APPDESIGNER_SHORT_CODE=${APPDESIGNER_SHORT_CODE}
             - APPPUBLISHER_SHORT_CODE=${APPPUBLISHER_SHORT_CODE}

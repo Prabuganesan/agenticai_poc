@@ -20,7 +20,7 @@ interface NodeFields extends Mem0MemoryInput, Mem0MemoryExtendedInput, BufferMem
     inputKey?: string
     memoryOptions: MemoryOptions | SearchOptions
     searchOnly: boolean
-    useAutonomousChatId: boolean
+    useKodivianChatId: boolean
     input: string
     orgId: string
 }
@@ -59,16 +59,16 @@ class Mem0_Memory implements INode {
                 label: 'User ID',
                 name: 'user_id',
                 type: 'string',
-                description: 'Unique identifier for the user. Required only if "Use Autonomous Chat ID" is OFF.',
-                default: 'autonomous-default-user',
+                description: 'Unique identifier for the user. Required only if "Use Kodivian Chat ID" is OFF.',
+                default: 'kodivian-default-user',
                 optional: true
             },
-            // Added toggle to use Autonomous chat ID
+            // Added toggle to use Kodivian chat ID
             {
-                label: 'Use Autonomous Chat ID',
-                name: 'useAutonomousChatId',
+                label: 'Use Kodivian Chat ID',
+                name: 'useKodivianChatId',
                 type: 'boolean',
-                description: 'Use the Autonomous internal Chat ID as the Mem0 User ID, overriding the "User ID" field above.',
+                description: 'Use the Kodivian internal Chat ID as the Mem0 User ID, overriding the "User ID" field above.',
                 default: false,
                 optional: true
             },
@@ -160,11 +160,11 @@ class Mem0_Memory implements INode {
 
 const initializeMem0 = async (nodeData: INodeData, input: string, options: ICommonObject): Promise<BaseMem0Memory> => {
     const initialUserId = nodeData.inputs?.user_id as string
-    const useAutonomousChatId = nodeData.inputs?.useAutonomousChatId as boolean
+    const useKodivianChatId = nodeData.inputs?.useKodivianChatId as boolean
     const orgId = options.orgId as string
 
-    if (!useAutonomousChatId && !initialUserId) {
-        throw new Error('User ID field cannot be empty when "Use Autonomous Chat ID" is OFF.')
+    if (!useKodivianChatId && !initialUserId) {
+        throw new Error('User ID field cannot be empty when "Use Kodivian Chat ID" is OFF.')
     }
 
     const credentialData = await getCredentialData(nodeData.credential ?? '', options)
@@ -179,7 +179,7 @@ const initializeMem0 = async (nodeData: INodeData, input: string, options: IComm
 
     const memOptionsUserId = initialUserId
 
-    const constructorSessionId = initialUserId || (useAutonomousChatId ? 'autonomous-chat-id-placeholder' : '')
+    const constructorSessionId = initialUserId || (useKodivianChatId ? 'kodivian-chat-id-placeholder' : '')
 
     const memoryOptions: MemoryOptions & SearchOptions = {
         user_id: memOptionsUserId,
@@ -208,7 +208,7 @@ const initializeMem0 = async (nodeData: INodeData, input: string, options: IComm
         databaseEntities: options.databaseEntities as IDatabaseEntity,
         chatflowid: options.chatflowid as string,
         searchOnly: (nodeData.inputs?.searchOnly as boolean) || false,
-        useAutonomousChatId: useAutonomousChatId,
+        useKodivianChatId: useKodivianChatId,
         input: input,
         orgId: orgId
     }
@@ -218,7 +218,7 @@ const initializeMem0 = async (nodeData: INodeData, input: string, options: IComm
 
 interface Mem0MemoryExtendedInput extends Mem0MemoryInput {
     memoryOptions?: MemoryOptions | SearchOptions
-    useAutonomousChatId: boolean
+    useKodivianChatId: boolean
     orgId: string
 }
 
@@ -232,7 +232,7 @@ class Mem0MemoryExtended extends BaseMem0Memory implements MemoryMethods {
     databaseEntities: IDatabaseEntity
     chatflowid: string
     searchOnly: boolean
-    useAutonomousChatId: boolean
+    useKodivianChatId: boolean
     input: string
     memoryOptions: MemoryOptions | SearchOptions
 
@@ -246,21 +246,21 @@ class Mem0MemoryExtended extends BaseMem0Memory implements MemoryMethods {
         this.databaseEntities = fields.databaseEntities
         this.chatflowid = fields.chatflowid
         this.searchOnly = fields.searchOnly
-        this.useAutonomousChatId = fields.useAutonomousChatId
+        this.useKodivianChatId = fields.useKodivianChatId
         this.input = fields.input
         this.orgId = fields.orgId
         this.memoryOptions = fields.memoryOptions
     }
 
-    // Selects Mem0 user_id based on toggle state (Autonomous chat ID or input field)
+    // Selects Mem0 user_id based on toggle state (Kodivian chat ID or input field)
     private getEffectiveUserId(overrideUserId?: string): string {
         let effectiveUserId: string | undefined
 
-        if (this.useAutonomousChatId) {
+        if (this.useKodivianChatId) {
             if (overrideUserId) {
                 effectiveUserId = overrideUserId
             } else {
-                throw new Error('Mem0: "Use Autonomous Chat ID" is ON, but no runtime chat ID (overrideUserId) was provided.')
+                throw new Error('Mem0: "Use Kodivian Chat ID" is ON, but no runtime chat ID (overrideUserId) was provided.')
             }
         } else {
             // If toggle is OFF, ALWAYS use the ID from the input field.
@@ -309,15 +309,15 @@ class Mem0MemoryExtended extends BaseMem0Memory implements MemoryMethods {
         returnBaseMessages = false,
         prependMessages?: IMessage[]
     ): Promise<IMessage[] | BaseMessage[]> {
-        const autonomousSessionId = overrideUserId
-        if (!autonomousSessionId) {
-            console.warn('Mem0: getChatMessages called without overrideUserId (Autonomous Session ID). Cannot fetch DB messages.')
+        const kodivianSessionId = overrideUserId
+        if (!kodivianSessionId) {
+            console.warn('Mem0: getChatMessages called without overrideUserId (Kodivian Session ID). Cannot fetch DB messages.')
             return []
         }
 
         let chatMessage = await this.appDataSource.getRepository(this.databaseEntities['ChatMessage']).find({
             where: {
-                sessionId: autonomousSessionId,
+                sessionId: kodivianSessionId,
                 chatflowid: this.chatflowid
             },
             order: {
@@ -383,13 +383,13 @@ class Mem0MemoryExtended extends BaseMem0Memory implements MemoryMethods {
         const effectiveUserId = this.getEffectiveUserId(overrideUserId)
         await this.clear(effectiveUserId)
 
-        const autonomousSessionId = overrideUserId
-        if (autonomousSessionId) {
+        const kodivianSessionId = overrideUserId
+        if (kodivianSessionId) {
             await this.appDataSource
                 .getRepository(this.databaseEntities['ChatMessage'])
-                .delete({ sessionId: autonomousSessionId, chatflowid: this.chatflowid })
+                .delete({ sessionId: kodivianSessionId, chatflowid: this.chatflowid })
         } else {
-            console.warn('Mem0: clearChatMessages called without overrideUserId (Autonomous Session ID). Cannot clear DB messages.')
+            console.warn('Mem0: clearChatMessages called without overrideUserId (Kodivian Session ID). Cannot clear DB messages.')
         }
     }
 }

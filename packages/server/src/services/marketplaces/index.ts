@@ -51,7 +51,7 @@ const getAllTemplates = async () => {
 
         marketplaceDir = path.join(__dirname, '..', '..', '..', 'marketplaces', 'tools')
         jsonsInDir = fs.readdirSync(marketplaceDir).filter((file) => path.extname(file) === '.json')
-        const contextPath = process.env.CONTEXT_PATH || '/autonomous'
+        const contextPath = process.env.CONTEXT_PATH || '/kodivian'
         jsonsInDir.forEach((file) => {
             const filePath = path.join(__dirname, '..', '..', '..', 'marketplaces', 'tools', file)
             const fileData = fs.readFileSync(filePath)

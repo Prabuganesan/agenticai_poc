@@ -1,7 +1,7 @@
 /**
  * OAuth2 Authorization Code Flow Implementation
  *
- * This module implements a complete OAuth2 authorization code flow for Autonomous credentials.
+ * This module implements a complete OAuth2 authorization code flow for Kodivian credentials.
  * It supports Microsoft Graph and other OAuth2 providers.
  *
  * CREDENTIAL DATA STRUCTURE:
@@ -135,7 +135,7 @@ router.post('/authorize/:credentialId', async (req: Request, res: Response, next
         }
 
         // Include context path in redirect URI
-        const contextPath = process.env.CONTEXT_PATH || '/autonomous'
+        const contextPath = process.env.CONTEXT_PATH || '/kodivian'
         const cleanContextPath = contextPath === '/' ? '' : contextPath
         const defaultRedirectUri = `${req.protocol}://${req.get('host')}${cleanContextPath}/api/v1/oauth2-credential/callback`
         const finalRedirectUri = redirect_uri || defaultRedirectUri
@@ -277,7 +277,7 @@ router.get('/callback', async (req: Request, res: Response) => {
         }
 
         // Include context path in redirect URI
-        const contextPath = process.env.CONTEXT_PATH || '/autonomous'
+        const contextPath = process.env.CONTEXT_PATH || '/kodivian'
         const cleanContextPath = contextPath === '/' ? '' : contextPath
         const defaultRedirectUri = `${req.protocol}://${req.get('host')}${cleanContextPath}/api/v1/oauth2-credential/callback`
         const finalRedirectUri = redirect_uri || defaultRedirectUri

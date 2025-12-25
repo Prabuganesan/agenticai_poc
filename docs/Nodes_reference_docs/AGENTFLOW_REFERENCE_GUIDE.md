@@ -1,6 +1,6 @@
-# Autonomous Agentflow Reference Guide
+# Kodivian Agentflow Reference Guide
 
-A comprehensive guide to Agentflow - the visual multi-agent workflow builder in the Autonomous platform.
+A comprehensive guide to Agentflow - the visual multi-agent workflow builder in the Kodivian platform.
 
 ---
 
@@ -41,7 +41,7 @@ A comprehensive guide to Agentflow - the visual multi-agent workflow builder in 
 |------|----------|---------|
 | **Start** | Flow | Entry point, receives user input |
 | **LLM** | AI | Call language model with prompts |
-| **Agent** | AI | Autonomous tool-using agent |
+| **Agent** | AI | Kodivian tool-using agent |
 | **Condition** | Logic | If/else branching (code-based) |
 | **ConditionAgent** | Logic | AI-powered conditional routing |
 | **Loop** | Logic | Repeat flow section |
@@ -149,7 +149,7 @@ Prompt: "Respond to: {{ $flow.question }}"
 ---
 
 ## 5. Agent Node
-Embeds a full autonomous agent within the flow.
+Embeds a full kodivian agent within the flow.
 
 | Setting | Description |
 |---------|-------------|

@@ -1,20 +1,20 @@
 ---
-description: Learn how to upsert data to Vector Stores with Autonomous
+description: Learn how to upsert data to Vector Stores with Kodivian
 ---
 
 # Upserting Data
 
 ***
 
-There are two fundamental ways to upsert your data into a [Vector Store](../integrations/langchain/vector-stores/) using Autonomous, either via [API calls](broken-reference) or by using a set of dedicated nodes we have ready for this purpose.
+There are two fundamental ways to upsert your data into a [Vector Store](../integrations/langchain/vector-stores/) using Kodivian, either via [API calls](broken-reference) or by using a set of dedicated nodes we have ready for this purpose.
 
-In this guide, even though it is **highly recommended** that you prepare your data using the [Document Stores](../using-Autonomous/document-stores.md) before upserting to a Vector Store, we will go through the entire process by using the specific nodes required for this end, outlining the steps, advantages of this approach, and optimization strategies for efficient data handling.
+In this guide, even though it is **highly recommended** that you prepare your data using the [Document Stores](../using-Kodivian/document-stores.md) before upserting to a Vector Store, we will go through the entire process by using the specific nodes required for this end, outlining the steps, advantages of this approach, and optimization strategies for efficient data handling.
 
 ## Understanding the upserting process
 
 The first thing we need to understand is that the upserting data process to a [Vector Store](../integrations/langchain/vector-stores/) is a fundamental piece for the formation of a [Retrieval Augmented Generation (RAG)](multiple-documents-qna.md) system. However, once this process is finished, the RAG can be executed independently.
 
-In other words, in Autonomous you can upsert data without a full RAG setup, and you can run your RAG without the specific nodes used in the upsert process, meaning that although a well-populated vector store is crucial for RAG to function, the actual retrieval and generation processes don't require continuous upserting.
+In other words, in Kodivian you can upsert data without a full RAG setup, and you can run your RAG without the specific nodes used in the upsert process, meaning that although a well-populated vector store is crucial for RAG to function, the actual retrieval and generation processes don't require continuous upserting.
 
 <figure><img src=".././assets/ud_01.png" alt=""><figcaption><p>Upsert vs. RAG</p></figcaption></figure>
 
@@ -28,7 +28,7 @@ In order to do that, and for illustrating this tutorial, we would need to create
 
 ## 1. Document Loader
 
-The first step is to **upload our PDF data into the Autonomous instance** using a [Document Loader node](../integrations/langchain/document-loaders/). Document Loaders are specialized nodes that handle the ingestion of various document formats, including **PDFs**, **TXT**, **CSV**, Notion pages, and more.
+The first step is to **upload our PDF data into the Kodivian instance** using a [Document Loader node](../integrations/langchain/document-loaders/). Document Loaders are specialized nodes that handle the ingestion of various document formats, including **PDFs**, **TXT**, **CSV**, Notion pages, and more.
 
 It is important to mention that every Document Loader comes with two important **additional parameters** that allow us to add and omit metadata from our dataset at will.
 
@@ -47,7 +47,7 @@ Once we have uploaded our PDF or datset, we need to **split it into smaller piec
 
 ### Nodes
 
-In Autonomous, this splitting process is accomplished using the [Text Splitter nodes](../integrations/langchain/text-splitters/). Those nodes provide a range of text segmentation strategies, including:
+In Kodivian, this splitting process is accomplished using the [Text Splitter nodes](../integrations/langchain/text-splitters/). Those nodes provide a range of text segmentation strategies, including:
 
 * **Character Text Splitting:** Dividing the text into chunks of a fixed number of characters. This method is straightforward but may split words or phrases across chunks, potentially disrupting context.
 * **Token Text Splitting:** Segmenting the text based on word boundaries or tokenization schemes specific to the chosen embedding model. This approach often leads to more semantically coherent chunks, as it preserves word boundaries and considers the underlying linguistic structure of the text.
@@ -117,7 +117,7 @@ It's important to note that the **relationship between dimensions and meaning ca
 
 ## 4. Vector Store
 
-The [Vector Store node](../integrations/langchain/vector-stores/) is the **end node of our upserting flow**. It acts as the bridge between our Autonomous instance and our vector database, enabling us to send the generated embeddings, along with any associated metadata, to our target Vector Store index for persistent storage and subsequent retrieval.
+The [Vector Store node](../integrations/langchain/vector-stores/) is the **end node of our upserting flow**. It acts as the bridge between our Kodivian instance and our vector database, enabling us to send the generated embeddings, along with any associated metadata, to our target Vector Store index for persistent storage and subsequent retrieval.
 
 It is in this node where we can set parameters like "**top K**", which, as we said previously, is the parameter that determines the maximum number of most similar chunks that are retrieved from the Vector Store in response to a query.
 
@@ -142,14 +142,14 @@ Finally, let's examine each stage, from initial document loading to the final ve
 <figure><img src=".././assets/UD_06.png" alt=""><figcaption></figcaption></figure>
 
 1. **Document Ingestion**:
-   * We begin by feeding our raw data into Autonomous using the appropriate **Document Loader node** for your data format.
+   * We begin by feeding our raw data into Kodivian using the appropriate **Document Loader node** for your data format.
 2. **Strategic Splitting**
    * Next, the **Text Splitter node** divides our document into smaller, more manageable chunks. This is crucial for efficient retrieval and cost control.
    * We have flexibility in how this splitting happens by selecting the appropriate text splitter node and, importantly, by fine-tuning chunk size and chunk overlap to balance context preservation with efficiency.
 3. **Meaningful Embeddings**
    * Now, just before our data is going to be recorded in the Vector Store, the **Embedding node** steps in. It transforms each text chunk and its meaning into a numerical representation that our LLM can understand.
 4. **Vector Store Index**
-   * Finally, the **Vector Store node** acts as the bridge between Autonomous and our database. It sends our embeddings, along with any associated metadata, to the designated Vector Store index.
+   * Finally, the **Vector Store node** acts as the bridge between Kodivian and our database. It sends our embeddings, along with any associated metadata, to the designated Vector Store index.
    * Here, in this node, we can control the retrieval behavior by setting the **top K** parameter, which influences how many chunks are considered when answering a query.
 5. **Data Ready**
    * Once upserted, our data is now represented as vectors within the Vector Store, ready for similarity search and retrieval.

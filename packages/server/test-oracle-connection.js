@@ -5,7 +5,7 @@ const os = require('os')
 
 // Oracle connection details
 const ORACLE_CONFIG = {
-    host: 'dxchoracledb1.chainsys.com',
+    host: 'dxchoracledb1.kodivian.com',
     port: 1596,
     database: 'csdev',
     username: 'CSP_DEV_META',

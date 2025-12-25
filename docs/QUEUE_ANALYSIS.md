@@ -1,7 +1,7 @@
-# Queue System Analysis - Autonomous Server
+# Queue System Analysis - Kodivian Server
 
 ## Overview
-The autonomous server implements a distributed queue system using **BullMQ** and **Redis** for processing chatflow predictions and vector store upsertions asynchronously. This enables horizontal scaling by separating the API server from worker processes.
+The kodivian server implements a distributed queue system using **BullMQ** and **Redis** for processing chatflow predictions and vector store upsertions asynchronously. This enables horizontal scaling by separating the API server from worker processes.
 
 ## Architecture
 
@@ -110,13 +110,13 @@ The autonomous server implements a distributed queue system using **BullMQ** and
 ## Queue Types
 
 ### 1. Prediction Queue
-- **Name:** `{QUEUE_NAME}-prediction` (default: `autonomous-queue-prediction`)
+- **Name:** `{QUEUE_NAME}-prediction` (default: `kodivian-queue-prediction`)
 - **Purpose:** Chatflow/agentflow execution
 - **Worker:** Created in separate worker process
 - **Events:** Abort support via QueueEvents
 
 ### 2. Upsert Queue
-- **Name:** `{QUEUE_NAME}-upsertion` (default: `autonomous-queue-upsertion`)
+- **Name:** `{QUEUE_NAME}-upsertion` (default: `kodivian-queue-upsertion`)
 - **Purpose:** Vector store and document operations
 - **Worker:** Created in separate worker process
 
@@ -167,7 +167,7 @@ if (process.env.MODE === MODE.QUEUE) {
 - `REDIS_URL` or `REDIS_HOST`/`REDIS_PORT` - Redis connection
 
 ### Optional Configuration
-- `QUEUE_NAME` - Queue name prefix (default: `autonomous-queue`)
+- `QUEUE_NAME` - Queue name prefix (default: `kodivian-queue`)
 - `WORKER_CONCURRENCY` - Max concurrent jobs per worker (default: 100000)
 - `QUEUE_REDIS_EVENT_STREAM_MAX_LEN` - Event stream size (default: 10000)
 - `REMOVE_ON_AGE` - Job retention age in seconds (-1 = disabled)
@@ -392,5 +392,5 @@ The queue system provides:
 - ✅ **Abort Support** - Graceful cancellation
 - ✅ **Flexibility** - Configurable concurrency and retention
 
-This architecture enables the autonomous server to handle high loads by distributing work across multiple worker processes while maintaining real-time communication with clients.
+This architecture enables the kodivian server to handle high loads by distributing work across multiple worker processes while maintaining real-time communication with clients.
 

@@ -3,7 +3,7 @@ import client from './client'
 // Legacy method (keep for backward compatibility)
 const getLogs = (startDate, endDate) => client.get(`/logs?startDate=${startDate}&endDate=${endDate}`)
 
-// New dashboard API methods (POST to match autonomous_old pattern)
+// New dashboard API methods (POST to match kodivian_old pattern)
 const queryLogs = (filters) => client.post('/logs/query', filters)
 
 const getLogStats = (orgId) => client.post('/logs/stats', { orgId })

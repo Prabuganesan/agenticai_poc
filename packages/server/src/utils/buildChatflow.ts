@@ -1149,7 +1149,7 @@ export const utilBuildChatflow = async (req: Request, isInternal: boolean = fals
     let chatId = incomingInput.chatId ?? incomingInput.overrideConfig?.sessionId
     const files = (req.files as Express.Multer.File[]) || []
     const abortControllerId = `${chatflow.guid}_${chatId || 'temp'}`
-    const isTool = req.get('autonomous-tool') === 'true'
+    const isTool = req.get('kodivian-tool') === 'true'
 
     try {
         // Validate API Key if its external API request

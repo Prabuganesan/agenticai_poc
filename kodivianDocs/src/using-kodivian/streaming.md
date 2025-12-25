@@ -1,5 +1,5 @@
 ---
-description: Learn how Autonomous streaming works
+description: Learn how Kodivian streaming works
 ---
 
 # Streaming
@@ -8,18 +8,18 @@ If streaming is set when making prediction, tokens will be sent as data-only [se
 
 ### Using Python/TS Library
 
-Autonomous provides 2 libraries:
+Kodivian provides 2 libraries:
 
-* [Python](https://pypi.org/project/Autonomous/): `pip install Autonomous`
-* [Typescript](https://www.npmjs.com/package/Autonomous-sdk): `npm install Autonomous-sdk`
+* [Python](https://pypi.org/project/Kodivian/): `pip install Kodivian`
+* [Typescript](https://www.npmjs.com/package/Kodivian-sdk): `npm install Kodivian-sdk`
 
 {% tabs %}
 {% tab title="Python" %}
 ```python
-from Autonomous import Autonomous, PredictionData
+from Kodivian import Kodivian, PredictionData
 
 def test_streaming():
-    client = Autonomous()
+    client = Kodivian()
 
     # Test streaming prediction
     completion = client.create_prediction(
@@ -44,10 +44,10 @@ if __name__ == "__main__":
 
 {% tab title="Typescript" %}
 ```javascript
-import { AutonomousClient } from 'Autonomous-sdk'
+import { KodivianClient } from 'Kodivian-sdk'
 
 async function test_streaming() {
-  const client = new AutonomousClient({ baseUrl: 'http://localhost:3000' });
+  const client = new KodivianClient({ baseUrl: 'http://localhost:3000' });
 
   try {
     // For streaming prediction
@@ -103,4 +103,4 @@ A prediction's event stream consists of the following event types:
 
 ### Streamlit App
 
-[https://github.com/HenryHengZJ/Autonomous-streamlit](https://github.com/HenryHengZJ/Autonomous-streamlit)
+[https://github.com/HenryHengZJ/Kodivian-streamlit](https://github.com/HenryHengZJ/Kodivian-streamlit)

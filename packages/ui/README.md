@@ -1,16 +1,16 @@
 <!-- markdownlint-disable MD030 -->
 
-# Autonomous UI
+# Kodivian UI
 
 
-React frontend ui for Autonomous.
+React frontend ui for Kodivian.
 
-![Autonomous](https://github.com/autonomous/autonomous/blob/main/images/autonomous_agentflow.gif?raw=true)
+![Kodivian](https://github.com/kodivian/kodivian/blob/main/images/kodivian_agentflow.gif?raw=true)
 
 Install:
 
 ```bash
-npm i autonomous-ui
+npm i kodivian-ui
 ```
 
 ## License

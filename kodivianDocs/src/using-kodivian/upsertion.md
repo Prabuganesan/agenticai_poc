@@ -43,7 +43,7 @@ The upsert process can also be carried out via API:
 
 ## Base URL and Authentication
 
-**Base URL**: `http://localhost:3000` (or your Autonomous instance URL)
+**Base URL**: `http://localhost:3000` (or your Kodivian instance URL)
 
 **Endpoint**: `POST /api/v1/vector/upsert/:id`
 

@@ -44,7 +44,7 @@ Current conversation:
 
 ### UI & Embedded Chat
 
-By default, UI and Embedded Chat will automatically separate different users conversations. This is done by generating a unique **`chatId`** for each new interaction. That logic is handled under the hood by Autonomous.
+By default, UI and Embedded Chat will automatically separate different users conversations. This is done by generating a unique **`chatId`** for each new interaction. That logic is handled under the hood by Kodivian.
 
 ### Prediction API
 

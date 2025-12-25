@@ -13,18 +13,18 @@ pnpm user
 Or if using npm
 
 ```bash
-npx Autonomous user
+npx Kodivian user
 ```
 
 ### Docker Usage
 
-If you're running Autonomous in a Docker container, use the following command:
+If you're running Kodivian in a Docker container, use the following command:
 
 ```bash
-docker exec -it Autonomous_CONTAINER_NAME pnpm user
+docker exec -it Kodivian_CONTAINER_NAME pnpm user
 ```
 
-Replace `Autonomous_CONTAINER_NAME` with your actual Autonomous container name.
+Replace `Kodivian_CONTAINER_NAME` with your actual Kodivian container name.
 
 ## Reset User Password
 
@@ -39,18 +39,18 @@ pnpm user --email "admin@admin.com" --password "myPassword1!"
 Or if using npm
 
 ```
-npx Autonomous user --email "admin@admin.com" --password "myPassword1!"
+npx Kodivian user --email "admin@admin.com" --password "myPassword1!"
 ```
 
 ### Docker Usage
 
-If you're running Autonomous in a Docker container, use the following command:
+If you're running Kodivian in a Docker container, use the following command:
 
 ```bash
-docker exec -it Autonomous_CONTAINER_NAME pnpm user --email "admin@admin.com" --password "myPassword1!"
+docker exec -it Kodivian_CONTAINER_NAME pnpm user --email "admin@admin.com" --password "myPassword1!"
 ```
 
-Replace `Autonomous_CONTAINER_NAME` with your actual Autonomous container name.
+Replace `Kodivian_CONTAINER_NAME` with your actual Kodivian container name.
 
 ### Parameters
 

@@ -1,4 +1,4 @@
-# Autonomous Server - Q&A for Management Presentation
+# Kodivian Server - Q&A for Management Presentation
 
 **Prepared for**: Management Team (Mixed Technical Backgrounds)  
 **Date**: December 2025  
@@ -33,19 +33,19 @@
 
 ## Basic Concept Questions
 
-### Q1: What is the Autonomous Server in simple terms?
+### Q1: What is the Kodivian Server in simple terms?
 
-**Answer**: The Autonomous Server is an **AI-powered platform that helps build business applications visually, without writing code**. Think of it like this:
+**Answer**: The Kodivian Server is an **AI-powered platform that helps build business applications visually, without writing code**. Think of it like this:
 - **Traditional way**: Developers write thousands of lines of code to create a purchase order system
-- **Autonomous way**: Business users drag-and-drop components, and AI handles the complex logic automatically
+- **Kodivian way**: Business users drag-and-drop components, and AI handles the complex logic automatically
 
 It's like having an AI assistant that understands your business processes and builds applications for you.
 
 ---
 
-### Q2: What does "autonomous" mean in this context?
+### Q2: What does "kodivian" mean in this context?
 
-**Answer**: "Autonomous" means the system can **make intelligent decisions and take actions automatically** without constant human intervention. For example:
+**Answer**: "Kodivian" means the system can **make intelligent decisions and take actions automatically** without constant human intervention. For example:
 - **Auto-approves** purchase orders under $1,000
 - **Automatically routes** invoices to the right approver
 - **Predicts** when inventory needs replenishment
@@ -80,7 +80,7 @@ It's like having a smart assistant that knows your business rules and executes t
 
 **Answer**: 
 
-| Aspect | Current Systems | Autonomous Server |
+| Aspect | Current Systems | Kodivian Server |
 |--------|----------------|-------------------|
 | **Development Time** | Weeks to months | Hours to days |
 | **Who Builds** | Only developers | Business users + developers |
@@ -162,7 +162,7 @@ The AI converts your visual design into working code automatically.
 
 **Answer**: **Invoice Processing Example**:
 
-**Before Autonomous**:
+**Before Kodivian**:
 1. Employee receives invoice → 5 min
 2. Manually match to purchase order → 15 min
 3. Check for discrepancies → 20 min
@@ -170,7 +170,7 @@ The AI converts your visual design into working code automatically.
 5. Follow up if issues → 30 min
 **Total: 80 minutes per invoice**
 
-**With Autonomous**:
+**With Kodivian**:
 1. Upload invoice → AI extracts data → 10 seconds
 2. Auto-matches to PO → 5 seconds
 3. Detects discrepancies → 3 seconds
@@ -187,15 +187,15 @@ The AI converts your visual design into working code automatically.
 
 1. **Handle More Volume Without More Staff**
    - Current: 1 person processes 50 invoices/day
-   - With Autonomous: Same person handles 500/day
+   - With Kodivian: Same person handles 500/day
 
 2. **Faster Response to Market Changes**
    - Current: 3 months to launch new product workflow
-   - With Autonomous: 3 days
+   - With Kodivian: 3 days
 
 3. **Self-Service for Business Units**
    - Current: Wait 6 weeks for IT to build a report
-   - With Autonomous: Build it yourself in 1 hour
+   - With Kodivian: Build it yourself in 1 hour
 
 ---
 
@@ -213,7 +213,7 @@ The AI converts your visual design into working code automatically.
 
 3. **Scaling Costs**
    - Need to hire 20+ more staff to handle growth
-   - Autonomous does the work of 50 people
+   - Kodivian does the work of 50 people
 
 4. **Data Blindness**
    - Can't make data-driven decisions fast enough
@@ -239,7 +239,7 @@ The AI converts your visual design into working code automatically.
 - Logs everything for audit
 
 **Layer 3: AI Engine (The brain)**
-- Autonomous execution engine: Executes AI workflows
+- Kodivian execution engine: Executes AI workflows
 - Processes natural language questions
 - Connects to data sources
 - Makes intelligent decisions
@@ -364,7 +364,7 @@ User asks: "Show me pending purchase orders over $5,000"
 - Need custom code to translate between them
 - Breaks when systems update
 
-**Autonomous Approach** (Simple):
+**Kodivian Approach** (Simple):
 - Pre-built "connectors" for each system
 - Visual drag-and-drop to link data
 - Automatically handles format conversions
@@ -484,7 +484,7 @@ User asks: "Show me pending purchase orders over $5,000"
 
 **Phase 4: Cutover (Week 9)**
 - Final sync
-- Switch to Autonomous as primary
+- Switch to Kodivian as primary
 - Keep old systems as backup for 30 days
 
 **Tools provided**:
@@ -506,7 +506,7 @@ User asks: "Show me pending purchase orders over $5,000"
 - Can understand context and nuance
 - Generates human-like responses
 
-**What it does in Autonomous**:
+**What it does in Kodivian**:
 - Understands your questions in plain English
 - Converts business logic into code
 - Generates reports and summaries
@@ -571,7 +571,7 @@ User asks: "Show me pending purchase orders over $5,000"
 **Cost Comparison**:
 - **Option A**: Hire 2 analysts to answer queries
   - Cost: $120,000/year
-- **Option B**: Use Autonomous AI
+- **Option B**: Use Kodivian AI
   - Cost: $36,000/year
   - **Savings: $84,000/year**
 
@@ -868,7 +868,7 @@ User asks: "Show me pending purchase orders over $5,000"
 
 **Answer**: **Build vs. Buy comparison**:
 
-| Aspect | Build Custom | Buy Autonomous |
+| Aspect | Build Custom | Buy Kodivian |
 |--------|-------------|----------------|
 | **Initial Development** | $500K - $1M | $65K (setup) |
 | **Time to Launch** | 12-18 months | 4-8 weeks |
@@ -879,7 +879,7 @@ User asks: "Show me pending purchase orders over $5,000"
 | **Risk** | High (may fail) | Low (proven) |
 | **Updates** | Manual coding | Automatic |
 
-**Break-even**: Autonomous pays for itself in **6 months** vs. custom build
+**Break-even**: Kodivian pays for itself in **6 months** vs. custom build
 
 ---
 
@@ -1185,7 +1185,7 @@ User asks: "Show me pending purchase orders over $5,000"
 
 **Answer**: **Purchase Order Automation Example**:
 
-**Before Autonomous**:
+**Before Kodivian**:
 1. Employee needs to order supplies
 2. Fills out paper form (10 min)
 3. Manually looks up approved vendors (15 min)
@@ -1196,8 +1196,8 @@ User asks: "Show me pending purchase orders over $5,000"
 8. Sends PO to vendor via email (5 min)
 **Total: 90 minutes, multiple people**
 
-**With Autonomous**:
-1. Employee opens Autonomous chat
+**With Kodivian**:
+1. Employee opens Kodivian chat
 2. Types: "Order 100 units of Item X from best vendor"
 3. AI:
    - Finds Item X details
@@ -1221,7 +1221,7 @@ User asks: "Show me pending purchase orders over $5,000"
 
 **Scenario**: Vendor sends invoice that doesn't match PO
 
-**Autonomous handles it**:
+**Kodivian handles it**:
 
 ```
 1. Invoice arrives (PDF via email)
@@ -1363,39 +1363,39 @@ User asks: "Show me pending purchase orders over $5,000"
 
 **Think of it this way**:
 - **ERP**: The system of record (where data lives)
-- **Autonomous**: The intelligent layer on top (how you interact with data)
+- **Kodivian**: The intelligent layer on top (how you interact with data)
 
-**What Autonomous adds to your ERP**:
+**What Kodivian adds to your ERP**:
 
 **1. Natural Language Interface**
 - ERP: Navigate 15 menus to find report
-- Autonomous: "Show me top 10 customers by revenue"
+- Kodivian: "Show me top 10 customers by revenue"
 
 **2. Cross-System Intelligence**
 - ERP: Data locked in silos
-- Autonomous: Combines ERP + CRM + Inventory + Finance
+- Kodivian: Combines ERP + CRM + Inventory + Finance
 
 **3. Automation**
 - ERP: Manual data entry
-- Autonomous: Auto-populate from emails, PDFs, etc.
+- Kodivian: Auto-populate from emails, PDFs, etc.
 
 **4. Predictive Analytics**
 - ERP: Historical reports
-- Autonomous: "Predict which customers will churn"
+- Kodivian: "Predict which customers will churn"
 
 **5. Workflow Automation**
 - ERP: Rigid workflows
-- Autonomous: Flexible, AI-powered workflows
+- Kodivian: Flexible, AI-powered workflows
 
 **Architecture**:
 ```
-Users → Autonomous (AI Layer) → Your ERP (Data Layer)
+Users → Kodivian (AI Layer) → Your ERP (Data Layer)
 ```
 
 **Example**:
-- User asks Autonomous: "Create PO for Vendor X"
-- Autonomous: Gathers data, makes decisions
-- Autonomous: Writes PO to your ERP via API
+- User asks Kodivian: "Create PO for Vendor X"
+- Kodivian: Gathers data, makes decisions
+- Kodivian: Writes PO to your ERP via API
 - ERP: Remains source of truth
 
 **Benefits**:
@@ -1411,7 +1411,7 @@ Users → Autonomous (AI Layer) → Your ERP (Data Layer)
 
 **Answer**: **Key differences**:
 
-| Aspect | ChatGPT | Autonomous |
+| Aspect | ChatGPT | Kodivian |
 |--------|---------|------------|
 | **Purpose** | General conversation | Business process automation |
 | **Data** | Public internet data | Your private business data |
@@ -1424,11 +1424,11 @@ Users → Autonomous (AI Layer) → Your ERP (Data Layer)
 
 **Simple analogy**:
 - **ChatGPT**: Like asking a smart friend for advice
-- **Autonomous**: Like having a smart employee who can actually do the work
+- **Kodivian**: Like having a smart employee who can actually do the work
 
 **Example**:
 - **ChatGPT**: "You should probably check with Vendor A for better pricing"
-- **Autonomous**: *Automatically queries 5 vendors, compares prices, creates PO with best vendor, routes for approval*
+- **Kodivian**: *Automatically queries 5 vendors, compares prices, creates PO with best vendor, routes for approval*
 
 ---
 
@@ -1436,7 +1436,7 @@ Users → Autonomous (AI Layer) → Your ERP (Data Layer)
 
 **Answer**: **Comparison with workflow tools**:
 
-| Feature | Power Automate/Zapier | Autonomous |
+| Feature | Power Automate/Zapier | Kodivian |
 |---------|----------------------|------------|
 | **Workflow Automation** | ✅ Yes | ✅ Yes |
 | **AI Decision Making** | ❌ Limited | ✅ Advanced |
@@ -1452,21 +1452,21 @@ Users → Autonomous (AI Layer) → Your ERP (Data Layer)
 - Consumer apps (Gmail → Slack)
 - Budget-conscious
 
-**When to use Autonomous**:
+**When to use Kodivian**:
 - Complex business logic
 - AI-powered decisions
 - Enterprise data integration
 - Natural language interaction
 
 **Can they coexist?** Yes! Use both:
-- Autonomous: Core business processes
+- Kodivian: Core business processes
 - Zapier: Simple personal productivity
 
 ---
 
 ### Q48: How does this compare to hiring more staff?
 
-**Answer**: **Staff vs. Autonomous comparison**:
+**Answer**: **Staff vs. Kodivian comparison**:
 
 **Scenario**: Need to handle 50% more purchase orders
 
@@ -1479,7 +1479,7 @@ Users → Autonomous (AI Layer) → Your ERP (Data Layer)
 - **Scalability**: Need to hire more if volume increases
 - **Total Year 1**: $120K + $30K (recruiting/training) = $150K
 
-**Option B: Deploy Autonomous**
+**Option B: Deploy Kodivian**
 - **Cost**: $36K/year (AI usage for this volume)
 - **Time to deploy**: 2 weeks
 - **Ramp-up**: Immediate
@@ -1491,12 +1491,12 @@ Users → Autonomous (AI Layer) → Your ERP (Data Layer)
 **Savings**: $114K/year
 
 **But wait, humans are still needed!**
-- Autonomous handles routine 80%
+- Kodivian handles routine 80%
 - Humans handle complex 20%
 - Humans focus on strategic work, not data entry
 - **Result**: Same staff, 3x output
 
-**Best approach**: Autonomous + upskilled staff = Maximum productivity
+**Best approach**: Kodivian + upskilled staff = Maximum productivity
 
 ---
 
@@ -1528,7 +1528,7 @@ Users → Autonomous (AI Layer) → Your ERP (Data Layer)
 
 **Total 3-year cost**: $2.8M + risk
 
-**Buying Autonomous**:
+**Buying Kodivian**:
 - Year 1: $344K
 - Year 2: $279K
 - Year 3: $279K
@@ -1572,7 +1572,7 @@ Users → Autonomous (AI Layer) → Your ERP (Data Layer)
 - Best practice workflows
 
 **Q1 2026: AI Agents**
-- Autonomous agents that work independently
+- Kodivian agents that work independently
 - "Monitor inventory and auto-order when low"
 - Proactive recommendations
 
@@ -1896,7 +1896,7 @@ Users → Autonomous (AI Layer) → Your ERP (Data Layer)
 
 **3. Make It Easier Than Current Way**
 - **Current**: Fill out Excel, email, wait for IT
-- **Autonomous**: Ask question in plain English, get instant answer
+- **Kodivian**: Ask question in plain English, get instant answer
 - **Result**: Natural adoption (people prefer easier way)
 
 **4. Incentives**
@@ -1921,7 +1921,7 @@ Users → Autonomous (AI Layer) → Your ERP (Data Layer)
 - Track usage metrics
 - Share success stories
 - "Time saved" dashboard
-- **Example**: "Team saved 200 hours this month using Autonomous"
+- **Example**: "Team saved 200 hours this month using Kodivian"
 
 **Success rate**: 85% of companies achieve 80%+ adoption within 6 months
 
@@ -2213,7 +2213,7 @@ Users → Autonomous (AI Layer) → Your ERP (Data Layer)
 
 **4. White-Labeling** (Enterprise tier)
 - **Branding**: Your logo, colors, fonts
-- **Domain**: Your domain (autonomous.yourcompany.com)
+- **Domain**: Your domain (kodivian.yourcompany.com)
 - **Customization**: Match your brand guidelines
 - **Result**: Looks like your internal system
 
@@ -2296,7 +2296,7 @@ Users → Autonomous (AI Layer) → Your ERP (Data Layer)
 
 **1. Speed to Market**
 - **Competitors**: 3-6 months to launch new product/feature
-- **You**: 1-2 weeks with Autonomous
+- **You**: 1-2 weeks with Kodivian
 - **Result**: First to market, capture market share
 
 **2. Cost Efficiency**
@@ -2329,7 +2329,7 @@ Users → Autonomous (AI Layer) → Your ERP (Data Layer)
 - **You**: Scale without proportional headcount increase
 - **Result**: Grow faster, more profitably
 
-**Real Example**: E-commerce company using Autonomous:
+**Real Example**: E-commerce company using Kodivian:
 - **Before**: 2-week order processing time
 - **After**: 2-hour order processing time
 - **Result**: 40% increase in orders (faster = more sales)
@@ -2372,7 +2372,7 @@ Users → Autonomous (AI Layer) → Your ERP (Data Layer)
 
 **Analogy**: 
 - **Having Excel**: Everyone has Excel, but some companies use it better
-- **Having Autonomous**: Everyone can have it, but you'll use it better (faster, deeper, more customized)
+- **Having Kodivian**: Everyone can have it, but you'll use it better (faster, deeper, more customized)
 
 **Key**: Competitive advantage = Implementation + Customization + Continuous Innovation
 
@@ -2814,7 +2814,7 @@ Users → Autonomous (AI Layer) → Your ERP (Data Layer)
 - **Scalability**: Scale without proportional cost increase
 - **Result**: Operational excellence
 
-**Strategic Fit**: Autonomous is not just a tool, it's a strategic platform that enables your entire digital transformation
+**Strategic Fit**: Kodivian is not just a tool, it's a strategic platform that enables your entire digital transformation
 
 ---
 
@@ -2869,7 +2869,7 @@ Users → Autonomous (AI Layer) → Your ERP (Data Layer)
 - **2029**: Essential infrastructure (like email, cloud storage)
 - **Result**: Becomes essential, not optional
 
-**Your Investment**: Investment in Autonomous is investment in future of work - will be more valuable in 5 years, not less
+**Your Investment**: Investment in Kodivian is investment in future of work - will be more valuable in 5 years, not less
 
 ---
 
@@ -2913,7 +2913,7 @@ This comprehensive Q&A document covers **78 questions** across all audience type
 
 ### Key Takeaways
 
-1. **Autonomous is an AI-powered platform** that automates business processes visually
+1. **Kodivian is an AI-powered platform** that automates business processes visually
 2. **Expected ROI**: 6-month payback, $1.2M+ annual savings
 3. **Deployment**: 8 weeks to production
 4. **Risk**: Low to medium with proper planning and change management
@@ -2938,4 +2938,4 @@ This comprehensive Q&A document covers **78 questions** across all audience type
 - **Follow-up**: Share document with stakeholders for reference
 - **Customization**: Adapt answers to your specific industry/context
 
-**Total Questions**: 78 comprehensive Q&As covering all aspects of Autonomous Server
+**Total Questions**: 78 comprehensive Q&As covering all aspects of Kodivian Server

@@ -124,7 +124,7 @@ class GoogleVertexAI_ChatModels implements INode {
                 name: 'allowImageUploads',
                 type: 'boolean',
                 description:
-                    'Allow image input. Refer to the <a href="[AUTONOMOUS_DOCS]/using-autonomous/uploads#image" target="_blank">docs</a> for more details.',
+                    'Allow image input. Refer to the <a href="[KODIVIAN_DOCS]/using-kodivian/uploads#image" target="_blank">docs</a> for more details.',
                 default: false,
                 optional: true
             },

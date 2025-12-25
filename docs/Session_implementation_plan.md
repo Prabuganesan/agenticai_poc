@@ -1,44 +1,44 @@
 # Session Architecture Changes - Unified SABID Cookie Implementation
 
 ## Goal
-Unify session management between **Deployment Server** and **Autonomous Server** by sharing a single `SABID` cookie at root path `/`. Both servers can create sessions and both must store session in DB via Designer call.
+Unify session management between **Deployment Server** and **Kodivian Server** by sharing a single `SABID` cookie at root path `/`. Both servers can create sessions and both must store session in DB via Designer call.
 
 ## Current Architecture
 
 | Server | Cookie Name | Path | Redis Key Format | Stored in DB |
 |--------|-------------|------|------------------|--------------|
-| **Deployment Server** | SABID | `/apps` | `{sessionId}$${chainsysSessionId}$${userId}$$Sails{orgId}` | ✅ Yes |
-| **Autonomous Server** | AUTOID | `/` | `AUTONOMOUS_SESSION_{token}` | ❌ No |
+| **Deployment Server** | SABID | `/apps` | `{sessionId}$${kodivianSessionId}$${userId}$$Sails{orgId}` | ✅ Yes |
+| **Kodivian Server** | AUTOID | `/` | `KODIVIAN_SESSION_{token}` | ❌ No |
 
 ## Target Architecture
 
 | Server | Cookie Name | Path | Redis Key Format | Stored in DB |
 |--------|-------------|------|------------------|--------------|
-| **Deployment Server** | SABID | `/` | `{sessionId}$${chainsysSessionId}$${userId}$$Sails{orgId}` | ✅ Yes |
-| **Autonomous Server** | SABID | `/` | Same format as Deployment Server | ✅ Yes |
+| **Deployment Server** | SABID | `/` | `{sessionId}$${kodivianSessionId}$${userId}$$Sails{orgId}` | ✅ Yes |
+| **Kodivian Server** | SABID | `/` | Same format as Deployment Server | ✅ Yes |
 
 ---
 
 ## Decisions Confirmed
 
 > [!NOTE]
-> **Cookie Secret**: Both servers use the same secret (`a665d1c89dd7049ecb3e2dddce727281` from [session.js](file:///Users/chainsys/MyWorks/GitlabClone/agentserver/Newautonomous/agenticai/app_v17_builder/inputs/browserapp/config/session.js)).
+> **Cookie Secret**: Both servers use the same secret (`a665d1c89dd7049ecb3e2dddce727281` from [session.js](file:///Users/kodivian/MyWorks/GitlabClone/agentserver/Newkodivian/agenticai/app_v17_builder/inputs/browserapp/config/session.js)).
 
 > [!NOTE]
 > **Session Migration**: With 15-minute TTL, sessions expire naturally after deployment. No migration needed.
 
 > [!NOTE]
-> **Bidirectional Session Creation**: Both servers can create SABID sessions. Both must store session in DB via Designer call ([updateCoreLoginDetails](file:///Users/chainsys/MyWorks/GitlabClone/agentserver/Newautonomous/agenticai/app_v17_builder/inputs/browserapp/api/services/appStartupService.js#233-268)).
+> **Bidirectional Session Creation**: Both servers can create SABID sessions. Both must store session in DB via Designer call ([updateCoreLoginDetails](file:///Users/kodivian/MyWorks/GitlabClone/agentserver/Newkodivian/agenticai/app_v17_builder/inputs/browserapp/api/services/appStartupService.js#233-268)).
 
 ---
 
 ## Proposed Changes
 
-### Deployment Server ([/app_v17_builder/inputs/browserapp/](file:///Users/chainsys/MyWorks/GitlabClone/agentserver/Newautonomous/agenticai/app_v17_builder/inputs/browserapp))
+### Deployment Server ([/app_v17_builder/inputs/browserapp/](file:///Users/kodivian/MyWorks/GitlabClone/agentserver/Newkodivian/agenticai/app_v17_builder/inputs/browserapp))
 
 ---
 
-#### [MODIFY] [AuthController.js](file:///Users/chainsys/MyWorks/GitlabClone/agentserver/Newautonomous/agenticai/app_v17_builder/inputs/browserapp/api/controllers/AuthController.js)
+#### [MODIFY] [AuthController.js](file:///Users/kodivian/MyWorks/GitlabClone/agentserver/Newkodivian/agenticai/app_v17_builder/inputs/browserapp/api/controllers/AuthController.js)
 
 **Change SABID cookie path from `/apps` to `/` in 5 locations:**
 
@@ -78,7 +78,7 @@ res.clearCookie('SABID', { path: '/' });      // Changed from '/apps'
 
 ---
 
-#### [MODIFY] [AuthCheck.js](file:///Users/chainsys/MyWorks/GitlabClone/agentserver/Newautonomous/agenticai/app_v17_builder/inputs/browserapp/api/policies/AuthCheck.js)
+#### [MODIFY] [AuthCheck.js](file:///Users/kodivian/MyWorks/GitlabClone/agentserver/Newkodivian/agenticai/app_v17_builder/inputs/browserapp/api/policies/AuthCheck.js)
 
 **Change cookie refresh path (lines 21-26):**
 
@@ -93,7 +93,7 @@ res.cookie('SABID', sab_id, {
 
 ---
 
-#### [MODIFY] [session.js](file:///Users/chainsys/MyWorks/GitlabClone/agentserver/Newautonomous/agenticai/app_v17_builder/inputs/browserapp/config/session.js)
+#### [MODIFY] [session.js](file:///Users/kodivian/MyWorks/GitlabClone/agentserver/Newkodivian/agenticai/app_v17_builder/inputs/browserapp/config/session.js)
 
 **Change default session cookie path (lines 25-28):**
 
@@ -106,11 +106,11 @@ cookie: {
 
 ---
 
-### Autonomous Server (`/app_v17_builder/inputs/autonomous/packages/server/src/`)
+### Kodivian Server (`/app_v17_builder/inputs/kodivian/packages/server/src/`)
 
 ---
 
-#### [MODIFY] [cookie.ts](file:///Users/chainsys/MyWorks/GitlabClone/agentserver/Newautonomous/agenticai/app_v17_builder/inputs/autonomous/packages/server/src/utils/cookie.ts)
+#### [MODIFY] [cookie.ts](file:///Users/kodivian/MyWorks/GitlabClone/agentserver/Newkodivian/agenticai/app_v17_builder/inputs/kodivian/packages/server/src/utils/cookie.ts)
 
 **Add cookie secret constant:**
 
@@ -161,7 +161,7 @@ export function getSABIDCookieOptions(maxAge: number = 900000): any {
 
 ---
 
-#### [MODIFY] [index.ts](file:///Users/chainsys/MyWorks/GitlabClone/agentserver/Newautonomous/agenticai/app_v17_builder/inputs/autonomous/packages/server/src/index.ts)
+#### [MODIFY] [index.ts](file:///Users/kodivian/MyWorks/GitlabClone/agentserver/Newkodivian/agenticai/app_v17_builder/inputs/kodivian/packages/server/src/index.ts)
 
 **Configure cookie-parser with signing secret:**
 
@@ -176,38 +176,38 @@ app.use(cookieParser(COOKIE_SECRET))  // Add secret for signed cookies
 
 ---
 
-#### [MODIFY] [autonomous-session.service.ts](file:///Users/chainsys/MyWorks/GitlabClone/agentserver/Newautonomous/agenticai/app_v17_builder/inputs/autonomous/packages/server/src/services/autonomous-session.service.ts)
+#### [MODIFY] [kodivian-session.service.ts](file:///Users/kodivian/MyWorks/GitlabClone/agentserver/Newkodivian/agenticai/app_v17_builder/inputs/kodivian/packages/server/src/services/kodivian-session.service.ts)
 
 **Add new methods for SABID session management (matching Deployment Server pattern):**
 
 ```typescript
 import { v4 as uuidv4 } from 'uuid'
 
-// Add these new methods to AutonomousSessionService class:
+// Add these new methods to KodivianSessionService class:
 
 /**
  * Create SABID session - EXACT same format as Deployment Server
- * Token format: {sessionId}$${chainsysSessionId}$${userId}$$Sails{orgId}
+ * Token format: {sessionId}$${kodivianSessionId}$${userId}$$Sails{orgId}
  * 
  * This matches Deployment Server's AuthController.js login function
  */
 async createSABIDSession(
-    chainsysSessionId: string, 
+    kodivianSessionId: string, 
     userId: string, 
     orgId: string, 
     userData: any
 ): Promise<string> {
     const sessionId = uuidv4()
     // EXACT format from Deployment Server (AuthController.js line 325-326):
-    // const SABID = `${ChainsysSessionid}$$${userId}$$Sails${orgId}`
+    // const SABID = `${KodivianSessionid}$$${userId}$$Sails${orgId}`
     // const redisKey = `${req.sessionID}$$${SABID}`
-    const SABID = `${chainsysSessionId}$$${userId}$$Sails${orgId}`
+    const SABID = `${kodivianSessionId}$$${userId}$$Sails${orgId}`
     const sabidToken = `${sessionId}$$${SABID}`
     
     // Store session data in Redis (same structure as Deployment Server)
     const sessionData = {
         UserInfoDetails: userData.UserInfoDetails,
-        ChainsysSessionid: chainsysSessionId,
+        KodivianSessionid: kodivianSessionId,
         isPublicUser: userData.isPublicUser || false,
         // Include all fields that Deployment Server stores
     }
@@ -223,7 +223,7 @@ async createSABIDSession(
 
 /**
  * Validate SABID session from Redis
- * Key format: {sessionId}$${chainsysSessionId}$${userId}$$Sails{orgId}
+ * Key format: {sessionId}$${kodivianSessionId}$${userId}$$Sails{orgId}
  */
 async validateSABIDSession(sabidToken: string, orgId: string): Promise<any> {
     try {
@@ -264,7 +264,7 @@ async extendSABIDSession(sabidToken: string, orgId: string): Promise<boolean> {
 
 /**
  * Parse SABID token to extract orgId
- * Token format: {sessionId}$${chainsysSessionId}$${userId}$$Sails{orgId}
+ * Token format: {sessionId}$${kodivianSessionId}$${userId}$$Sails{orgId}
  */
 static parseOrgIdFromSABID(sabidToken: string): string | null {
     const parts = sabidToken.split('$$')
@@ -279,7 +279,7 @@ static parseOrgIdFromSABID(sabidToken: string): string | null {
 /**
  * Parse SABID token to extract all components
  */
-static parseSABIDToken(sabidToken: string): { sessionId: string, chainsysSessionId: string, userId: string, orgId: string } | null {
+static parseSABIDToken(sabidToken: string): { sessionId: string, kodivianSessionId: string, userId: string, orgId: string } | null {
     const parts = sabidToken.split('$$')
     if (parts.length < 4) return null
     
@@ -288,7 +288,7 @@ static parseSABIDToken(sabidToken: string): { sessionId: string, chainsysSession
     
     return {
         sessionId: parts[0],
-        chainsysSessionId: parts[1],
+        kodivianSessionId: parts[1],
         userId: parts[2],
         orgId: sailsOrgPart.substring(5)
     }
@@ -297,9 +297,9 @@ static parseSABIDToken(sabidToken: string): { sessionId: string, chainsysSession
 
 ---
 
-#### [NEW] [session-db.service.ts](file:///Users/chainsys/MyWorks/GitlabClone/agentserver/Newautonomous/agenticai/app_v17_builder/inputs/autonomous/packages/server/src/services/session-db.service.ts)
+#### [NEW] [session-db.service.ts](file:///Users/kodivian/MyWorks/GitlabClone/agentserver/Newkodivian/agenticai/app_v17_builder/inputs/kodivian/packages/server/src/services/session-db.service.ts)
 
-**Create new service to store session in DB (matching Deployment Server's [updateSailsSessionIdInDB](file:///Users/chainsys/MyWorks/GitlabClone/agentserver/Newautonomous/agenticai/app_v17_builder/inputs/browserapp/api/controllers/AdditionalInfoController.js#23-62)):**
+**Create new service to store session in DB (matching Deployment Server's [updateSailsSessionIdInDB](file:///Users/kodivian/MyWorks/GitlabClone/agentserver/Newkodivian/agenticai/app_v17_builder/inputs/browserapp/api/controllers/AdditionalInfoController.js#23-62)):**
 
 ```typescript
 import { logInfo, logError } from '../utils/logger/system-helper'
@@ -308,7 +308,7 @@ interface SessionDBParams {
     sessionId: string
     sessionType: string  // 'NODEJS'
     logOutMode: string
-    sessionGuid: string  // chainsysSessionId
+    sessionGuid: string  // kodivianSessionId
     sessionStatus: string  // 'ACTIVE' or 'INACTIVE'
     userId: string
     loginMode: string  // 'BROWSER'
@@ -320,7 +320,7 @@ interface SessionDBParams {
  * Matches Deployment Server's updateSailsSessionIdInDB + updateCoreLoginDetails
  */
 export async function updateSessionInDB(
-    chainsysSessionId: string,
+    kodivianSessionId: string,
     sailsSessionId: string, 
     userId: string,
     orgId: string,
@@ -332,7 +332,7 @@ export async function updateSessionInDB(
             sessionId: sailsSessionId,
             sessionType: 'NODEJS',
             logOutMode: logoutMode,
-            sessionGuid: chainsysSessionId,
+            sessionGuid: kodivianSessionId,
             sessionStatus: status,
             userId: userId,
             loginMode: 'BROWSER',
@@ -372,7 +372,7 @@ export async function updateSessionInDB(
 
 ---
 
-#### [MODIFY] [session-handler.controller.ts](file:///Users/chainsys/MyWorks/GitlabClone/agentserver/Newautonomous/agenticai/app_v17_builder/inputs/autonomous/packages/server/src/controllers/session-handler.controller.ts)
+#### [MODIFY] [session-handler.controller.ts](file:///Users/kodivian/MyWorks/GitlabClone/agentserver/Newkodivian/agenticai/app_v17_builder/inputs/kodivian/packages/server/src/controllers/session-handler.controller.ts)
 
 **Complete rewrite of createSession method to use SABID and store in DB:**
 
@@ -380,7 +380,7 @@ export async function updateSessionInDB(
 import { Request, Response } from 'express'
 import { OrganizationConfigService } from '../services/org-config.service'
 import { SessionService } from '../services/session.service'
-import { AutonomousSessionService } from '../services/autonomous-session.service'
+import { KodivianSessionService } from '../services/kodivian-session.service'
 import { updateSessionInDB } from '../services/session-db.service'
 import { getSABIDCookieOptions } from '../utils/cookie'
 import { logInfo, logWarn, logError, logDebug } from '../utils/logger/system-helper'
@@ -392,14 +392,14 @@ export class SessionHandlerController {
     constructor(
         private orgConfigService: OrganizationConfigService,
         private sessionService: SessionService,
-        private autonomousSessionService: AutonomousSessionService
+        private kodivianSessionService: KodivianSessionService
     ) {
         this.simpleCrypto = new SimpleCrypto(process.env.SIMPLE_CRYPTO_KEY || '$mrT@pP-6!dr')
     }
 
     /**
      * Create session from main server
-     * GET /api/v1/sessionhandler?params={base64({orgId, chainsysSessionId})}
+     * GET /api/v1/sessionhandler?params={base64({orgId, kodivianSessionId})}
      */
     async createSession(req: Request, res: Response) {
         try {
@@ -415,7 +415,7 @@ export class SessionHandlerController {
                 params = params.slice(1, -1)
             }
 
-            let decodedParams: { orgId: string; chainsysSessionId: string }
+            let decodedParams: { orgId: string; kodivianSessionId: string }
             try {
                 const decodedString = Buffer.from(params, 'base64').toString('utf-8')
                 decodedParams = JSON.parse(decodedString)
@@ -424,7 +424,7 @@ export class SessionHandlerController {
             }
 
             const orgId = decodedParams.orgId
-            const chainsysSessionId = decodedParams.chainsysSessionId
+            const kodivianSessionId = decodedParams.kodivianSessionId
 
             // Validate org
             if (!this.orgConfigService.hasOrg(parseInt(orgId))) {
@@ -435,15 +435,15 @@ export class SessionHandlerController {
             const existingSABID = req.signedCookies?.SABID
             if (existingSABID) {
                 // Parse orgId from SABID token
-                const parsedOrgId = AutonomousSessionService.parseOrgIdFromSABID(existingSABID)
+                const parsedOrgId = KodivianSessionService.parseOrgIdFromSABID(existingSABID)
                 if (parsedOrgId === orgId) {
-                    const existingSession = await this.autonomousSessionService.validateSABIDSession(existingSABID, orgId)
+                    const existingSession = await this.kodivianSessionService.validateSABIDSession(existingSABID, orgId)
                     if (existingSession) {
                         // Extend TTL and redirect
-                        await this.autonomousSessionService.extendSABIDSession(existingSABID, orgId)
+                        await this.kodivianSessionService.extendSABIDSession(existingSABID, orgId)
                         
                         const proxyUrl = process.env.PROXY_URL || ''
-                        const contextPath = this.orgConfigService.getContextPath(parseInt(orgId)) || '/autonomous'
+                        const contextPath = this.orgConfigService.getContextPath(parseInt(orgId)) || '/kodivian'
                         const cleanContextPath = contextPath.startsWith('/') ? contextPath.substring(1) : contextPath
                         const homePageUrl = `${proxyUrl}/${cleanContextPath}`
                         
@@ -454,10 +454,10 @@ export class SessionHandlerController {
                 res.clearCookie('SABID', { path: '/' })
             }
 
-            // Validate chainsysSessionId and fetch user data
+            // Validate kodivianSessionId and fetch user data
             let userData: any
             try {
-                userData = await this.sessionService.validateChainsysSession(orgId, chainsysSessionId)
+                userData = await this.sessionService.validateKodivianSession(orgId, kodivianSessionId)
             } catch (sessionError) {
                 return res.status(500).json({ error: `Failed to validate session` })
             }
@@ -467,8 +467,8 @@ export class SessionHandlerController {
             // CREATE SABID session (same format as Deployment Server)
             let sabidToken: string
             try {
-                sabidToken = await this.autonomousSessionService.createSABIDSession(
-                    chainsysSessionId,
+                sabidToken = await this.kodivianSessionService.createSABIDSession(
+                    kodivianSessionId,
                     formattedUserData.userId,
                     orgId,
                     userData
@@ -479,7 +479,7 @@ export class SessionHandlerController {
 
             // STORE SESSION IN DB (matching Deployment Server)
             const dbResult = await updateSessionInDB(
-                chainsysSessionId,
+                kodivianSessionId,
                 sabidToken,
                 formattedUserData.userId,
                 orgId,
@@ -493,11 +493,11 @@ export class SessionHandlerController {
 
             // Prepare localStorage data
             const proxyUrl = process.env.PROXY_URL || ''
-            const contextPath = this.orgConfigService.getContextPath(parseInt(orgId)) || '/autonomous'
+            const contextPath = this.orgConfigService.getContextPath(parseInt(orgId)) || '/kodivian'
             const cleanContextPath = contextPath.startsWith('/') ? contextPath.substring(1) : contextPath
             const baseUrl = `${proxyUrl}/${cleanContextPath}/api/v1`
 
-            const autonomousStore = {
+            const kodivianStore = {
                 sessionId: sabidToken,
                 baseUrl: baseUrl,
                 orgId: orgId,
@@ -507,7 +507,7 @@ export class SessionHandlerController {
             }
 
             const encryptionResult = {
-                autonomousStore: JSON.stringify(this.simpleCrypto.encryptObject(autonomousStore))
+                kodivianStore: JSON.stringify(this.simpleCrypto.encryptObject(kodivianStore))
             }
 
             // SET SABID COOKIE (same format as Deployment Server)
@@ -528,7 +528,7 @@ export class SessionHandlerController {
     </div>
     <script>
         try {
-            localStorage.setItem('autonomousStore', '${encryptionResult.autonomousStore.replace(/'/g, "\\'")}');
+            localStorage.setItem('kodivianStore', '${encryptionResult.kodivianStore.replace(/'/g, "\\'")}');
             window.location.href = '${homePageUrl}';
         } catch (error) {
             console.error('Error setting up localStorage:', error);
@@ -555,15 +555,15 @@ export class SessionHandlerController {
                 return res.json({ valid: false, message: 'No session cookie found' })
             }
 
-            const orgId = AutonomousSessionService.parseOrgIdFromSABID(sabidToken)
+            const orgId = KodivianSessionService.parseOrgIdFromSABID(sabidToken)
             if (!orgId) {
                 return res.json({ valid: false, message: 'Invalid token format' })
             }
 
-            const sessionData = await this.autonomousSessionService.validateSABIDSession(sabidToken, orgId)
+            const sessionData = await this.kodivianSessionService.validateSABIDSession(sabidToken, orgId)
 
             if (sessionData) {
-                await this.autonomousSessionService.extendSABIDSession(sabidToken, orgId)
+                await this.kodivianSessionService.extendSABIDSession(sabidToken, orgId)
                 return res.json({ valid: true, message: 'Session is valid', orgId })
             } else {
                 return res.json({ valid: false, message: 'Session expired' })
@@ -577,13 +577,13 @@ export class SessionHandlerController {
 
 ---
 
-#### [MODIFY] [session-validation.middleware.ts](file:///Users/chainsys/MyWorks/GitlabClone/agentserver/Newautonomous/agenticai/app_v17_builder/inputs/autonomous/packages/server/src/middlewares/session-validation.middleware.ts)
+#### [MODIFY] [session-validation.middleware.ts](file:///Users/kodivian/MyWorks/GitlabClone/agentserver/Newkodivian/agenticai/app_v17_builder/inputs/kodivian/packages/server/src/middlewares/session-validation.middleware.ts)
 
 **Update to use SABID cookie instead of AUTOID:**
 
 ```typescript
 import { Request, Response, NextFunction } from 'express'
-import { AutonomousSessionService } from '../services/autonomous-session.service'
+import { KodivianSessionService } from '../services/kodivian-session.service'
 import { OrganizationConfigService } from '../services/org-config.service'
 import { getSABIDCookieOptions } from '../utils/cookie'
 import { logError, logWarn } from '../utils/logger/system-helper'
@@ -601,7 +601,7 @@ export interface AuthenticatedRequest extends Omit<Request, 'user'> {
 }
 
 export function createSessionValidationMiddleware(
-    autonomousSessionService: AutonomousSessionService,
+    kodivianSessionService: KodivianSessionService,
     orgConfigService: OrganizationConfigService
 ) {
     return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
@@ -614,15 +614,15 @@ export function createSessionValidationMiddleware(
             }
 
             // Parse orgId from SABID token
-            // Format: {sessionId}$${chainsysSessionId}$${userId}$$Sails{orgId}
-            const orgId = AutonomousSessionService.parseOrgIdFromSABID(sabidToken)
+            // Format: {sessionId}$${kodivianSessionId}$${userId}$$Sails{orgId}
+            const orgId = KodivianSessionService.parseOrgIdFromSABID(sabidToken)
             
             if (!orgId) {
                 return res.status(401).json({ error: 'Invalid token format' })
             }
 
             // Validate session
-            const session = await autonomousSessionService.validateSABIDSession(sabidToken, orgId)
+            const session = await kodivianSessionService.validateSABIDSession(sabidToken, orgId)
 
             if (!session) {
                 logWarn(`SABID session not found or expired`).catch(() => {})
@@ -631,7 +631,7 @@ export function createSessionValidationMiddleware(
 
             // Extend session TTL and refresh cookie
             try {
-                const extended = await autonomousSessionService.extendSABIDSession(sabidToken, orgId)
+                const extended = await kodivianSessionService.extendSABIDSession(sabidToken, orgId)
                 if (extended) {
                     const exTime = parseInt(process.env.SESSION_COOKIE_MAX_AGE || '900') * 1000
                     res.cookie('SABID', sabidToken, getSABIDCookieOptions(exTime))
@@ -641,7 +641,7 @@ export function createSessionValidationMiddleware(
             }
 
             // Attach user info to request
-            const parsedToken = AutonomousSessionService.parseSABIDToken(sabidToken)
+            const parsedToken = KodivianSessionService.parseSABIDToken(sabidToken)
             req.user = {
                 userId: parsedToken?.userId || session.userId || '',
                 userName: session.UserInfoDetails?.UserInfo?.personalInfo?.userName || '',
@@ -694,24 +694,24 @@ export function createSessionValidationMiddleware(
 1. Clear cookies → Login via Deployment Server
 2. **Verify**: SABID cookie has `Path: /`
 
-**Test 2: Deployment First → Autonomous**
+**Test 2: Deployment First → Kodivian**
 1. Login via Deployment Server
-2. Navigate to Autonomous Server
+2. Navigate to Kodivian Server
 3. **Verify**: Same SABID cookie used, no new cookie created
 
-**Test 3: Autonomous First → Deployment**
-1. Clear cookies → Navigate to Autonomous Server
+**Test 3: Kodivian First → Deployment**
+1. Clear cookies → Navigate to Kodivian Server
 2. **Verify**: SABID cookie created with `Path: /`
 3. Navigate to Deployment Server app
 4. **Verify**: Same SABID cookie works
 
 **Test 4: Session in DB**
-1. Create session via Autonomous Server
+1. Create session via Kodivian Server
 2. Check `cor_login_details` table
 3. **Verify**: Session record exists with `sessionType: NODEJS`
 
 **Test 5: Session Sync**
-1. Login → Wait 10 min active in Autonomous
+1. Login → Wait 10 min active in Kodivian
 2. **Verify**: Session not expired in either server
 
 ---
@@ -720,12 +720,12 @@ export function createSessionValidationMiddleware(
 
 | File | Action | Description |
 |------|--------|-------------|
-| [AuthController.js](file:///Users/chainsys/MyWorks/GitlabClone/agentserver/Newautonomous/agenticai/app_v17_builder/inputs/browserapp/api/controllers/AuthController.js) | MODIFY | Change path from `/apps` to `/` (5 locations) |
-| [AuthCheck.js](file:///Users/chainsys/MyWorks/GitlabClone/agentserver/Newautonomous/agenticai/app_v17_builder/inputs/browserapp/api/policies/AuthCheck.js) | MODIFY | Change path from `/apps` to `/` |
-| [session.js](file:///Users/chainsys/MyWorks/GitlabClone/agentserver/Newautonomous/agenticai/app_v17_builder/inputs/browserapp/config/session.js) | MODIFY | Change path from `/apps` to `/` |
-| [cookie.ts](file:///Users/chainsys/MyWorks/GitlabClone/agentserver/Newautonomous/agenticai/app_v17_builder/inputs/autonomous/packages/server/src/utils/cookie.ts) | MODIFY | Add COOKIE_SECRET and getSABIDCookieOptions |
-| [index.ts](file:///Users/chainsys/MyWorks/GitlabClone/agentserver/Newautonomous/agenticai/app_v17_builder/inputs/autonomous/packages/server/src/index.ts) | MODIFY | Configure cookie-parser with secret |
-| [autonomous-session.service.ts](file:///Users/chainsys/MyWorks/GitlabClone/agentserver/Newautonomous/agenticai/app_v17_builder/inputs/autonomous/packages/server/src/services/autonomous-session.service.ts) | MODIFY | Add SABID methods (create, validate, extend, parse) |
+| [AuthController.js](file:///Users/kodivian/MyWorks/GitlabClone/agentserver/Newkodivian/agenticai/app_v17_builder/inputs/browserapp/api/controllers/AuthController.js) | MODIFY | Change path from `/apps` to `/` (5 locations) |
+| [AuthCheck.js](file:///Users/kodivian/MyWorks/GitlabClone/agentserver/Newkodivian/agenticai/app_v17_builder/inputs/browserapp/api/policies/AuthCheck.js) | MODIFY | Change path from `/apps` to `/` |
+| [session.js](file:///Users/kodivian/MyWorks/GitlabClone/agentserver/Newkodivian/agenticai/app_v17_builder/inputs/browserapp/config/session.js) | MODIFY | Change path from `/apps` to `/` |
+| [cookie.ts](file:///Users/kodivian/MyWorks/GitlabClone/agentserver/Newkodivian/agenticai/app_v17_builder/inputs/kodivian/packages/server/src/utils/cookie.ts) | MODIFY | Add COOKIE_SECRET and getSABIDCookieOptions |
+| [index.ts](file:///Users/kodivian/MyWorks/GitlabClone/agentserver/Newkodivian/agenticai/app_v17_builder/inputs/kodivian/packages/server/src/index.ts) | MODIFY | Configure cookie-parser with secret |
+| [kodivian-session.service.ts](file:///Users/kodivian/MyWorks/GitlabClone/agentserver/Newkodivian/agenticai/app_v17_builder/inputs/kodivian/packages/server/src/services/kodivian-session.service.ts) | MODIFY | Add SABID methods (create, validate, extend, parse) |
 | `session-db.service.ts` | NEW | Store session in DB via Designer |
-| [session-handler.controller.ts](file:///Users/chainsys/MyWorks/GitlabClone/agentserver/Newautonomous/agenticai/app_v17_builder/inputs/autonomous/packages/server/src/controllers/session-handler.controller.ts) | MODIFY | Use SABID instead of AUTOID, store in DB |
-| [session-validation.middleware.ts](file:///Users/chainsys/MyWorks/GitlabClone/agentserver/Newautonomous/agenticai/app_v17_builder/inputs/autonomous/packages/server/src/middlewares/session-validation.middleware.ts) | MODIFY | Use SABID instead of AUTOID |
+| [session-handler.controller.ts](file:///Users/kodivian/MyWorks/GitlabClone/agentserver/Newkodivian/agenticai/app_v17_builder/inputs/kodivian/packages/server/src/controllers/session-handler.controller.ts) | MODIFY | Use SABID instead of AUTOID, store in DB |
+| [session-validation.middleware.ts](file:///Users/kodivian/MyWorks/GitlabClone/agentserver/Newkodivian/agenticai/app_v17_builder/inputs/kodivian/packages/server/src/middlewares/session-validation.middleware.ts) | MODIFY | Use SABID instead of AUTOID |

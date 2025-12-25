@@ -8,7 +8,7 @@ description: Agent used to to answer queries on Airtable table.
 
 ## Airtable Agent Functionality
 
-The Airtable Agent is designed to facilitate interactions between Autonomous AI and Airtable tables, enabling users to query Airtable data in a conversational manner. By using this agent, users can ask questions about the contents of their Airtable base and receive relevant responses based on the stored data. This can be particularly useful for quickly extracting specific pieces of information, automating workflows, or generating summaries from the data stored in Airtable.
+The Airtable Agent is designed to facilitate interactions between Kodivian AI and Airtable tables, enabling users to query Airtable data in a conversational manner. By using this agent, users can ask questions about the contents of their Airtable base and receive relevant responses based on the stored data. This can be particularly useful for quickly extracting specific pieces of information, automating workflows, or generating summaries from the data stored in Airtable.
 
 For example, the Airtable Agent can be used to answer questions like:
 

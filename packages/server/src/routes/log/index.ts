@@ -6,11 +6,11 @@ const router = express.Router()
 // READ (legacy)
 router.get('/', logController.getLogs)
 
-// Flag management (POST to match autonomous_old pattern)
+// Flag management (POST to match kodivian_old pattern)
 router.post('/flags', logController.getFlags)
 router.post('/flags/refresh', logController.refreshFlagStatus)
 
-// New dashboard endpoints (POST to match autonomous_old pattern)
+// New dashboard endpoints (POST to match kodivian_old pattern)
 router.post('/query', logController.queryLogs)
 router.post('/stats', logController.getLogStats)
 router.post('/filters', logController.getAllFilters)

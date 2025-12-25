@@ -1,7 +1,7 @@
 import { ChatPerplexity as LangchainChatPerplexity, type PerplexityChatInput } from '@langchain/community/chat_models/perplexity'
 import { IMultiModalOption, IVisionChatModal } from '../../../src'
 
-// Extend the Langchain ChatPerplexity class to include Autonomous-specific properties and methods
+// Extend the Langchain ChatPerplexity class to include Kodivian-specific properties and methods
 export class ChatPerplexity extends LangchainChatPerplexity implements IVisionChatModal {
     configuredModel: string
     configuredMaxToken?: number

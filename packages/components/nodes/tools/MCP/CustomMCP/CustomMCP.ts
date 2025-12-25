@@ -75,7 +75,7 @@ class Custom_MCP implements INode {
                 placeholder: mcpServerConfig,
                 warning:
                     process.env.CUSTOM_MCP_PROTOCOL === 'sse'
-                        ? 'Only Remote MCP with url is supported. Read more <a href="[AUTONOMOUS_DOCS]/tutorials/tools-and-mcp#streamable-http-recommended" target="_blank">here</a>'
+                        ? 'Only Remote MCP with url is supported. Read more <a href="[KODIVIAN_DOCS]/tutorials/tools-and-mcp#streamable-http-recommended" target="_blank">here</a>'
                         : undefined
             },
             {

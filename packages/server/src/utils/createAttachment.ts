@@ -131,7 +131,7 @@ export const createFileAttachment = async (req: Request) => {
 
             const fileBuffer = await getFileFromUpload(file.path ?? file.key)
 
-            const maxFileSizeBytes = parseFileSizeLimit(process.env.AUTONOMOUS_FILE_SIZE_LIMIT || '50mb')
+            const maxFileSizeBytes = parseFileSizeLimit(process.env.KODIVIAN_FILE_SIZE_LIMIT || '50mb')
             validateFileSize(fileBuffer.length, maxFileSizeBytes)
 
             try {

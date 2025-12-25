@@ -1,13 +1,13 @@
 import type { PyodideInterface } from 'pyodide'
 import * as path from 'path'
-import { getAutonomousDataPath } from '../../../src/utils'
+import { getKodivianDataPath } from '../../../src/utils'
 
 let pyodideInstance: PyodideInterface | undefined
 
 export async function LoadPyodide(): Promise<PyodideInterface> {
     if (pyodideInstance === undefined) {
         const { loadPyodide } = await import('pyodide')
-        const pyodideCacheDir = path.join(getAutonomousDataPath(), 'pyodideCacheDir')
+        const pyodideCacheDir = path.join(getKodivianDataPath(), 'pyodideCacheDir')
         // Ensure directory exists
         const fs = await import('fs')
         if (!fs.existsSync(pyodideCacheDir)) {

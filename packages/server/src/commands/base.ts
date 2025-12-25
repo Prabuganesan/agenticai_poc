@@ -14,7 +14,7 @@ export abstract class BaseCommand extends Command {
     static flags = {
         // Data Path
         KODIVIAN_DATA_PATH: Flags.string({
-            description: 'Base path for all kodivian server data (database, uploads, logs, etc.). Defaults to server folder/.autonomous'
+            description: 'Base path for all kodivian server data (database, uploads, logs, etc.). Defaults to server folder/.kodivian'
         }),
 
         // Encryption
@@ -113,7 +113,7 @@ export abstract class BaseCommand extends Command {
         REMOVE_ON_COUNT: Flags.string(),
         ENABLE_BULLMQ_DASHBOARD: Flags.string(),
 
-        // Autonomous-specific
+        // Kodivian-specific
         APPBUILDER_SHORT_CODE: Flags.string(),
         APPDESIGNER_SHORT_CODE: Flags.string(),
         APPPUBLISHER_SHORT_CODE: Flags.string(),
@@ -199,7 +199,7 @@ export abstract class BaseCommand extends Command {
 
         const { flags } = await this.parse(this.constructor as any)
 
-        // Set environment variables from flags using loop (simplified approach from Autonomous)
+        // Set environment variables from flags using loop (simplified approach from Kodivian)
         Object.keys(flags).forEach((key) => {
             if (Object.prototype.hasOwnProperty.call(flags, key) && flags[key]) {
                 process.env[key] = flags[key]

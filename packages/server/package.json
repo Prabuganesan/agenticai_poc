@@ -50,10 +50,10 @@
     "test": "jest --runInBand --detectOpenHandles --forceExit"
   },
   "keywords": [],
-  "homepage": "https://chainsys.com",
+  "homepage": "https://kodivian.com",
   "author": {
     "name": "Kodivian",
-    "email": "kodivian@chainsys.com"
+    "email": "kodivian@kodivian.com"
   },
   "engines": {
     "node": "22.21.1"

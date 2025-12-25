@@ -1,22 +1,22 @@
 # Mem0 Memory
 
-[Mem0](https://github.com/mem0ai/mem0) (pronounced "mem-zero") enhances AI assistants and agents with an intelligent memory layer, enabling personalized AI interactions. It remembers user preferences, adapts to individual needs, and continuously improves over time. This makes it ideal for applications such as customer support chatbots, AI assistants, and autonomous AI agents.
+[Mem0](https://github.com/mem0ai/mem0) (pronounced "mem-zero") enhances AI assistants and agents with an intelligent memory layer, enabling personalized AI interactions. It remembers user preferences, adapts to individual needs, and continuously improves over time. This makes it ideal for applications such as customer support chatbots, AI assistants, and kodivian AI agents.
 
 Mem0 offers a comprehensive suite of memory management features, allowing seamless integration into various AI-driven applications.
 
 ---
 
-## Using Mem0 with Autonomous
+## Using Mem0 with Kodivian
 
-Follow these steps to integrate Mem0 with Autonomous:
+Follow these steps to integrate Mem0 with Kodivian:
 
-### 1. Set Up Autonomous
+### 1. Set Up Kodivian
 
-1. Open the Autonomous application and create a new canvas, or select a template from the Autonomous marketplace.
+1. Open the Kodivian application and create a new canvas, or select a template from the Kodivian marketplace.
 2. In this example, we use the **Conversation Chain** template.
 3. Replace the default **Buffer Memory** with **Mem0 Memory**.
 
-<figure><img src="../../.././assets/mem0/Autonomous-flow.png" alt="Autonomous Memory Integration"><figcaption>Autonomous Integration with Mem0</figcaption></figure>
+<figure><img src="../../.././assets/mem0/Kodivian-flow.png" alt="Kodivian Memory Integration"><figcaption>Kodivian Integration with Mem0</figcaption></figure>
 
 ### 2. Obtain Your Mem0 API Key
 
@@ -25,7 +25,7 @@ Follow these steps to integrate Mem0 with Autonomous:
 
 <figure><img src="../../.././assets/mem0/api-key.png" alt="Mem0 API Key"><figcaption>Retrieve API Key from Mem0</figcaption></figure>
 
-### 3. Configure Mem0 Credentials in Autonomous
+### 3. Configure Mem0 Credentials in Kodivian
 
 1. Enter the **Mem0 API Key** in the Mem0 Credentials section.
 
@@ -33,23 +33,23 @@ Follow these steps to integrate Mem0 with Autonomous:
 
 ### 4. Save and Test the Chatflow
 
-1. Save your Autonomous configuration.
+1. Save your Kodivian configuration.
 2. Run a test chat and store some information.
 
-<figure><img src="../../.././assets/mem0/Autonomous-chat-1.png" alt="Autonomous Test Chat"><figcaption>Testing Memory Storage</figcaption></figure>
+<figure><img src="../../.././assets/mem0/Kodivian-chat-1.png" alt="Kodivian Test Chat"><figcaption>Testing Memory Storage</figcaption></figure>
 
 ### 5. Verify Stored Memories in Mem0 Dashboard
 
 1. Visit the [Mem0 Dashboard](https://app.mem0.ai/dashboard/requests) to review stored memories.
 
-<figure><img src="../../.././assets/mem0/Autonomous-memory.png" alt="Mem0 Stored Memories"><figcaption>Reviewing Stored Memories</figcaption></figure>
+<figure><img src="../../.././assets/mem0/Kodivian-memory.png" alt="Mem0 Stored Memories"><figcaption>Reviewing Stored Memories</figcaption></figure>
 
 ### 6. Validate Memory Retention
 
-1. Clear the chat history in Autonomous.
+1. Clear the chat history in Kodivian.
 2. Ask a question based on previously stored information to confirm retention.
 
-<figure><img src="../../.././assets/mem0/Autonomous-chat-2.png" alt="Testing Memory Retention"><figcaption>Confirming Memory Persistence</figcaption></figure>
+<figure><img src="../../.././assets/mem0/Kodivian-chat-2.png" alt="Testing Memory Retention"><figcaption>Confirming Memory Persistence</figcaption></figure>
 
 ---
 
@@ -77,17 +77,17 @@ Additional configurations are available under [Mem0 Project Settings](https://ap
 
 ---
 
-## Configuring Mem0 Credentials in Autonomous
+## Configuring Mem0 Credentials in Kodivian
 
-To add credentials in Autonomous:
+To add credentials in Kodivian:
 
 1. Navigate to the credential settings.
 2. Add a new credential entry for Mem0.
 3. Paste your [Mem0 API Key](https://app.mem0.ai/dashboard/api-keys) in the API Key field.
 
-<figure><img src="../../.././assets/mem0/api-key.png" alt="Adding API Key in Autonomous"><figcaption>Entering API Key in Autonomous</figcaption></figure>
+<figure><img src="../../.././assets/mem0/api-key.png" alt="Adding API Key in Kodivian"><figcaption>Entering API Key in Kodivian</figcaption></figure>
 
 ---
 
-With these configurations, your Autonomous setup will integrate seamlessly with Mem0, providing enhanced memory retention and personalized AI interactions.
+With these configurations, your Kodivian setup will integrate seamlessly with Mem0, providing enhanced memory retention and personalized AI interactions.
 

@@ -1,12 +1,12 @@
 # Monitoring
 
-Autonomous has native support for Prometheus with Grafana and OpenTelemetry. However, only high-level metrics such as API requests, counts of flows/predictions are tracked. Refer [here](https://github.com/AutonomousAI/Autonomous/blob/main/packages/server/src/Interface.Metrics.ts#L13) for the lists of counter metrics. For details node by node observability, we recommend using [Analytic](broken-reference).
+Kodivian has native support for Prometheus with Grafana and OpenTelemetry. However, only high-level metrics such as API requests, counts of flows/predictions are tracked. Refer [here](https://github.com/KodivianAI/Kodivian/blob/main/packages/server/src/Interface.Metrics.ts#L13) for the lists of counter metrics. For details node by node observability, we recommend using [Analytic](broken-reference).
 
 ## Prometheus
 
 [Prometheus](https://prometheus.io/) is an open-source monitoring and alerting solution.
 
-Before setting up Prometheus, configure the following env variables in Autonomous:
+Before setting up Prometheus, configure the following env variables in Kodivian:
 
 ```properties
 ENABLE_METRICS=true
@@ -14,9 +14,9 @@ METRICS_PROVIDER=prometheus
 METRICS_INCLUDE_NODE_METRICS=true
 ```
 
-After Prometheus is installed, run it using a configuration file. Autonomous provides a default configuration file that can be found [here](https://github.com/AutonomousAI/Autonomous/blob/main/metrics/prometheus/prometheus.config.yml).
+After Prometheus is installed, run it using a configuration file. Kodivian provides a default configuration file that can be found [here](https://github.com/KodivianAI/Kodivian/blob/main/metrics/prometheus/prometheus.config.yml).
 
-Remember to have Autonomous instance also running. You can open browser and navigate to port 9090. From the dashboard, you should be able to see the metric endpoint - `/api/v1/metrics` is now live.
+Remember to have Kodivian instance also running. You can open browser and navigate to port 9090. From the dashboard, you should be able to see the metric endpoint - `/api/v1/metrics` is now live.
 
 <figure><img src=".././assets/image (178).png" alt=""><figcaption></figcaption></figure>
 
@@ -52,10 +52,10 @@ Take note of the data source ID shown in the toolbar, we'll need this for creati
 
 Now that connection is added successfully, we can start adding dashboard. From the left side bar, click Dashboards, and Create Dashboard.
 
-Autonomous provides 2 template dashboards:
+Kodivian provides 2 template dashboards:
 
-* [grafana.dashboard.app.json.txt](https://github.com/AutonomousAI/Autonomous/blob/main/metrics/grafana/grafana.dashboard.app.json.txt): API metrics such as number of chatflows/agentflows, predictions count, tools, assistant, upserted vectors, etc.
-* [grafana.dashboard.server.json.txt](https://github.com/AutonomousAI/Autonomous/blob/main/metrics/grafana/grafana.dashboard.server.json.txt): metrics of the Autonomous node.js instance such as heap, CPU, RAM usage
+* [grafana.dashboard.app.json.txt](https://github.com/KodivianAI/Kodivian/blob/main/metrics/grafana/grafana.dashboard.app.json.txt): API metrics such as number of chatflows/agentflows, predictions count, tools, assistant, upserted vectors, etc.
+* [grafana.dashboard.server.json.txt](https://github.com/KodivianAI/Kodivian/blob/main/metrics/grafana/grafana.dashboard.server.json.txt): metrics of the Kodivian node.js instance such as heap, CPU, RAM usage
 
 If you are using templates above, find and replace all occurence of `cds4j1ybfuhogb` with the data source ID you created and saved earlier.
 
@@ -65,7 +65,7 @@ You can also choose to import first then edit the JSON later:
 
 <figure><img src=".././assets/image (185).png" alt=""><figcaption></figcaption></figure>
 
-Now, try to perform some actions on the Autonomous, you should be able to see the metrics displayed:
+Now, try to perform some actions on the Kodivian, you should be able to see the metrics displayed:
 
 <figure><img src=".././assets/image (186).png" alt=""><figcaption></figcaption></figure>
 
@@ -73,7 +73,7 @@ Now, try to perform some actions on the Autonomous, you should be able to see th
 
 ## OpenTelemetry
 
-[OpenTelemetry](https://opentelemetry.io/) is an open source framework for creating and managing telemetry data. To enable OTel, configure the following env variables in Autonomous:
+[OpenTelemetry](https://opentelemetry.io/) is an open source framework for creating and managing telemetry data. To enable OTel, configure the following env variables in Kodivian:
 
 ```properties
 ENABLE_METRICS=true
@@ -84,14 +84,14 @@ METRICS_OPEN_TELEMETRY_PROTOCOL=http # http | grpc | proto (default is http)
 METRICS_OPEN_TELEMETRY_DEBUG=true
 ```
 
-Next, we need OpenTelemetry Collector to receive, process and export telemetry data. Autonomous provides a [docker compose file](https://github.com/AutonomousAI/Autonomous/blob/main/metrics/otel/compose.yaml) which can be used to start the collector container.
+Next, we need OpenTelemetry Collector to receive, process and export telemetry data. Kodivian provides a [docker compose file](https://github.com/KodivianAI/Kodivian/blob/main/metrics/otel/compose.yaml) which can be used to start the collector container.
 
 ```bash
-cd Autonomous
+cd Kodivian
 cd metrics && cd otel
 docker compose up -d
 ```
 
-The collector will be using the [otel.config.yml](https://github.com/AutonomousAI/Autonomous/blob/main/metrics/otel/otel.config.yml) file under the same directory for configurations. Currently only [Datadog](https://www.datadoghq.com/) and Prometheus are supported, refer to the [Open Telemetry](https://opentelemetry.io/) documentation to configure different APM tools such as Zipkin, Jeager, New Relic, Splunk and others.
+The collector will be using the [otel.config.yml](https://github.com/KodivianAI/Kodivian/blob/main/metrics/otel/otel.config.yml) file under the same directory for configurations. Currently only [Datadog](https://www.datadoghq.com/) and Prometheus are supported, refer to the [Open Telemetry](https://opentelemetry.io/) documentation to configure different APM tools such as Zipkin, Jeager, New Relic, Splunk and others.
 
 Make sure to replace with the necessary API key for the exporters within the yml file.

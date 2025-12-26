@@ -1633,14 +1633,12 @@ export const isFlowValidForStream = (reactFlowNodes: IReactFlowNode[], endingNod
             'chatOllama',
             'awsChatBedrock',
             'chatMistralAI',
-            'chatAlibabaTongyi',
             'groqChat',
             'chatCohere',
             'chatGoogleGenerativeAI',
             'chatTogetherAI',
             'chatFireworks',
             'ChatSambanova',
-            'chatBaiduWenxin',
             'chatCometAPI'
         ],
         LLMs: ['azureOpenAI', 'openAI', 'ollama']

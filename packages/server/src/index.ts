@@ -959,7 +959,12 @@ export function getInstance(): App | any {
     if (workerInstance) {
         return workerInstance
     }
+
     return serverApp
+}
+
+export function setInstance(app: App): void {
+    serverApp = app
 }
 
 export function setWorkerInstance(instance: any): void {

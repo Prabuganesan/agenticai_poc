@@ -13,22 +13,26 @@ import { ApiKey } from './ApiKey'
 import { CustomTemplate } from './CustomTemplate'
 import { Execution } from './Execution'
 import { LlmUsage } from './LlmUsage'
+import { Schedule } from './Schedule'
+import { ScheduleRun } from './ScheduleRun'
 // Enterprise entities removed for kodivian server
 
-export const entities = {
+export const entities = [
+    Assistant,
     ChatFlow,
     ChatMessage,
     ChatMessageFeedback,
-    ChatSession,
     Credential,
     Tool,
-    Assistant,
     Variable,
-    UpsertHistory,
+    CustomTemplate,
+    ApiKey,
+    Execution,
     DocumentStore,
     DocumentStoreFileChunk,
-    ApiKey,
-    CustomTemplate,
-    Execution,
-    LlmUsage
-}
+    UpsertHistory,
+    ChatSession,
+    LlmUsage,
+    Schedule,
+    ScheduleRun
+]

@@ -48,10 +48,27 @@ export class OrganizationConfigService {
                     minPoolSize: 2,
                     dbType: 'POSTGRES'
                 },
-                contextPath: process.env.CONTEXT_PATH || '/kodivian'
+                contextPath: process.env.CONTEXT_PATH || '/kodivian',
+                // Redis config from env variables for queue/cache/scheduling
+                // This enables MODE=queue to work with single-org setup
+                redis: process.env.REDIS_HOST ? {
+                    host: process.env.REDIS_HOST || 'localhost',
+                    port: parseInt(process.env.REDIS_PORT || '6379'),
+                    password: process.env.REDIS_PASSWORD && process.env.REDIS_PASSWORD.trim().length > 0
+                        ? process.env.REDIS_PASSWORD.trim()
+                        : undefined,
+                    username: process.env.REDIS_USER && process.env.REDIS_USER.trim().length > 0
+                        ? process.env.REDIS_USER.trim()
+                        : undefined
+                } : undefined
             }
 
             logInfo('✅ Single-org configuration initialized (org 1)').catch(() => { })
+            if (this.orgConfig.redis) {
+                logInfo(`🔴 Redis config loaded from env: ${this.orgConfig.redis.host}:${this.orgConfig.redis.port}`).catch(() => { })
+            } else {
+                logInfo('⚠️ No Redis config (REDIS_HOST not set) - MODE=queue will not work').catch(() => { })
+            }
         } catch (error) {
             logError('Failed to initialize org config', error).catch(() => { })
             throw error

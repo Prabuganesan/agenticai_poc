@@ -52,7 +52,7 @@ export class PredictionQueue extends BaseQueue {
         // Connect to Redis for this org (async, don't block)
         if (options.orgConfigService) {
             this.redisPublisher.connect(orgId).catch((error) => {
-                logError(`[PredictionQueue] Failed to connect RedisEventPublisher for orgId ${orgId}:`, error).catch(() => {})
+                logError(`[PredictionQueue] Failed to connect RedisEventPublisher for orgId ${orgId}:`, error).catch(() => { })
             })
         }
     }
@@ -82,7 +82,7 @@ export class PredictionQueue extends BaseQueue {
         if (this.redisPublisher) data.sseStreamer = this.redisPublisher
 
         if (Object.prototype.hasOwnProperty.call(data, 'isAgentFlowGenerator')) {
-            logInfo(`Generating Agentflow...`).catch(() => {})
+            logInfo(`Generating Agentflow...`).catch(() => { })
             const { prompt, componentNodes, toolNodes, selectedChatModel, question } = data as IGenerateAgentflowv2Params
             const options: Record<string, any> = {
                 appDataSource: appDataSource,
@@ -94,7 +94,7 @@ export class PredictionQueue extends BaseQueue {
 
         if (Object.prototype.hasOwnProperty.call(data, 'isExecuteCustomFunction')) {
             const executeCustomFunctionData = data as any
-            logInfo(`[${executeCustomFunctionData.orgId}]: Executing Custom Function...`).catch(() => {})
+            logInfo(`[${executeCustomFunctionData.orgId}]: Executing Custom Function...`).catch(() => { })
             return await executeCustomNodeFunction({
                 appDataSource: appDataSource,
                 componentNodes: this.componentNodes,

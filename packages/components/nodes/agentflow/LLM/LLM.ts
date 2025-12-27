@@ -854,7 +854,13 @@ class LLM_Agentflow implements INode {
                     if (jsonSchema) {
                         try {
                             // Parse the JSON schema
-                            const schemaObj = JSON.parse(jsonSchema)
+                            let schemaObj = JSON.parse(jsonSchema)
+
+                            // Handle wrapped schema format: { type: "object", properties: {...} }
+                            // Extract properties if the schema is a type:object wrapper
+                            if (schemaObj.type === 'object' && schemaObj.properties) {
+                                schemaObj = schemaObj.properties
+                            }
 
                             // Create a Zod schema from the JSON schema
                             const itemSchema = this.createZodSchemaFromJSON(schemaObj)

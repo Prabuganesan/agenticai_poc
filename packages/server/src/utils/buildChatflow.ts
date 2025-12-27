@@ -500,6 +500,7 @@ export const executeFlow = async ({
     const nodes = parsedFlowData.nodes
     const edges = parsedFlowData.edges
 
+
     // Apply parent credentials to child flow nodes if available (for multi-agent flows via ExecuteFlow)
     if (overrideConfig._parentCredentials && typeof overrideConfig._parentCredentials === 'object') {
         const parentCredentials = overrideConfig._parentCredentials as Record<string, string>
@@ -1233,8 +1234,20 @@ export const utilBuildChatflow = async (req: Request, isInternal: boolean = fals
             const job = await predictionQueue.addJob(omit(executeData, OMIT_QUEUE_JOB_DATA))
             logDebug(`[server]: [${orgId}/${chatflow.guid}/${chatId}]: Job added to queue: ${job.id}`).catch(() => { })
 
+            // Ensure QueueEvents is connected to Redis before waiting
+            await predictionQueue.ensureQueueEventsReady()
             const queueEvents = predictionQueue.getQueueEvents()
-            const result = await job.waitUntilFinished(queueEvents)
+
+            // Add timeout to prevent infinite waiting
+            const timeoutMs = 300000 // 5 minutes timeout
+            const timeoutPromise = new Promise<never>((_, reject) => {
+                setTimeout(() => reject(new Error(`Job ${job.id} timed out after ${timeoutMs}ms`)), timeoutMs)
+            })
+
+            const result = await Promise.race([
+                job.waitUntilFinished(queueEvents),
+                timeoutPromise
+            ])
             appServer.abortControllerPool.remove(abortControllerId)
             if (!result) {
                 throw new Error('Job execution failed')

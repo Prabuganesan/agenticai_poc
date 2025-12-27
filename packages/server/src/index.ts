@@ -40,6 +40,7 @@ import { QueueManager } from './queue/QueueManager'
 import { RedisEventSubscriber } from './queue/RedisEventSubscriber'
 import 'global-agent/bootstrap'
 import { UsageCacheManager } from './UsageCacheManager'
+import { getGlobalRedis } from './GlobalRedisPool'
 import { ExpressAdapter } from '@bull-board/express'
 import { OrganizationConfigService } from './services/org-config.service'
 import { KodivianSessionService } from './services/kodivian-session.service'
@@ -732,6 +733,11 @@ export class App {
             if (this.queueManager) {
                 removePromises.push(this.redisSubscriber.disconnect())
             }
+            // Close global Redis pool
+            const globalRedis = getGlobalRedis()
+            if (globalRedis.isReady()) {
+                removePromises.push(globalRedis.disconnect())
+            }
             // Close all per-org DataSource connections
             if (this.dataSourceManager) {
                 removePromises.push(this.dataSourceManager.closeAll())
@@ -811,7 +817,19 @@ export async function start(): Promise<void> {
         serverApp.kodivianSessionService = new KodivianSessionService(serverApp.orgConfigService)
         logInfo('✅ [server]: Kodivian session service created').catch(() => { })
 
-        // Step 5: Initialize Redis pools for all organizations (matching kodivian server pattern)
+        // Step 5a: Initialize Global Redis Pool (from env variables)
+        // This is for scheduling, caching, and other global operations
+        logInfo('🔴 [server]: Initializing global Redis connection pool from env...').catch(() => { })
+        const globalRedis = getGlobalRedis()
+        const redisConnected = await globalRedis.initialize()
+        if (redisConnected) {
+            const status = globalRedis.getStatus()
+            logInfo(`✅ [server]: Global Redis pool connected to ${status.host}:${status.port}`).catch(() => { })
+        } else {
+            logWarn('⚠️ [server]: Global Redis pool not configured or failed to connect').catch(() => { })
+        }
+
+        // Step 5b: Initialize Redis pools for all organizations (matching kodivian server pattern)
         // This must happen AFTER loadAllOrganizations() so Redis configs are available
         // EXACT PATTERN from kodivian server: createOrgRedisPools() called after fetchRedisDetails()
         logInfo('🔴 [server]: Initializing session pools for all organizations...').catch(() => { })

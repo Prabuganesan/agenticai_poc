@@ -24,6 +24,19 @@ export abstract class BaseQueue {
             streams: { events: { maxLen: QUEUE_REDIS_EVENT_STREAM_MAX_LEN } }
         })
         this.queueEvents = new QueueEvents(queueName, { connection: this.connection })
+
+        // Add error handler for QueueEvents
+        this.queueEvents.on('error', (err) => {
+            logError(`[BaseQueue] QueueEvents error for "${queueName}":`, err).catch(() => { })
+        })
+    }
+
+    /**
+     * Wait for QueueEvents to be ready (connected to Redis)
+     * Call this before using waitUntilFinished for proper event reception
+     */
+    public async ensureQueueEventsReady(): Promise<void> {
+        await this.queueEvents.waitUntilReady()
     }
 
     abstract processJob(data: any): Promise<any>
@@ -67,7 +80,7 @@ export abstract class BaseQueue {
                 queueName: this.queue.name,
                 jobId: job.id || jobId,
                 jobType: jobData?.type || 'unknown'
-            }).catch(() => {})
+            }).catch(() => { })
         } catch (logError) {
             // Silently fail - logging should not break queue operations
         }
@@ -81,7 +94,7 @@ export abstract class BaseQueue {
                 this.queue.name,
                 async (job: Job) => {
                     const start = new Date().getTime()
-                    logInfo(`[BaseQueue] Processing job ${job.id} in ${this.queue.name} at ${new Date().toISOString()}`).catch(() => {})
+                    logInfo(`[BaseQueue] Processing job ${job.id} in ${this.queue.name} at ${new Date().toISOString()}`).catch(() => { })
 
                     // Log queue operation - job started
                     try {
@@ -92,7 +105,7 @@ export abstract class BaseQueue {
                             orgId: orgId,
                             queueName: this.queue.name,
                             jobId: job.id || 'unknown'
-                        }).catch(() => {})
+                        }).catch(() => { })
                     } catch (logError) {
                         // Silently fail
                     }
@@ -103,7 +116,7 @@ export abstract class BaseQueue {
                         const duration = end - start
                         logInfo(
                             `[BaseQueue] Completed job ${job.id} in ${this.queue.name} at ${new Date().toISOString()} (${duration}ms)`
-                        ).catch(() => {})
+                        ).catch(() => { })
 
                         // Log queue operation - job completed
                         try {
@@ -115,7 +128,7 @@ export abstract class BaseQueue {
                                 queueName: this.queue.name,
                                 jobId: job.id || 'unknown',
                                 durationMs: duration
-                            }).catch(() => {})
+                            }).catch(() => { })
                         } catch (logError) {
                             // Silently fail
                         }
@@ -127,7 +140,7 @@ export abstract class BaseQueue {
                         logError(
                             `[BaseQueue] Job ${job.id} failed in ${this.queue.name} at ${new Date().toISOString()} (${duration}ms):`,
                             error
-                        ).catch(() => {})
+                        ).catch(() => { })
 
                         // Log queue operation - job failed
                         try {
@@ -140,7 +153,7 @@ export abstract class BaseQueue {
                                 jobId: job.id || 'unknown',
                                 durationMs: duration,
                                 error: error instanceof Error ? error.message : String(error)
-                            }).catch(() => {})
+                            }).catch(() => { })
                         } catch (logError) {
                             // Silently fail
                         }
@@ -156,21 +169,21 @@ export abstract class BaseQueue {
 
             // Add error listeners to the worker
             this.worker.on('error', (err) => {
-                logError(`[BaseQueue] Worker error for queue "${this.queue.name}":`, err).catch(() => {})
+                logError(`[BaseQueue] Worker error for queue "${this.queue.name}":`, err).catch(() => { })
             })
 
             this.worker.on('closed', () => {
-                logInfo(`[BaseQueue] Worker closed for queue "${this.queue.name}"`).catch(() => {})
+                logInfo(`[BaseQueue] Worker closed for queue "${this.queue.name}"`).catch(() => { })
             })
 
             this.worker.on('failed', (job, err) => {
-                logError(`[BaseQueue] Worker job ${job?.id} failed in queue "${this.queue.name}":`, err).catch(() => {})
+                logError(`[BaseQueue] Worker job ${job?.id} failed in queue "${this.queue.name}":`, err).catch(() => { })
             })
 
-            logInfo(`[BaseQueue] Worker created successfully for queue "${this.queue.name}"`).catch(() => {})
+            logInfo(`[BaseQueue] Worker created successfully for queue "${this.queue.name}"`).catch(() => { })
             return this.worker
         } catch (error) {
-            logError(`[BaseQueue] Failed to create worker for queue "${this.queue.name}":`, error).catch(() => {})
+            logError(`[BaseQueue] Failed to create worker for queue "${this.queue.name}":`, error).catch(() => { })
             throw error
         }
     }

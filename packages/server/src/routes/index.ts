@@ -123,8 +123,11 @@ router.use('/share-chatbot', shareChatBot)
 router.use('/docs', docsApiRouter)
 router.use('/back', backRouter)
 
+import schedulesRouter from './schedules'
+
 // Audit route removed for kodivian server
 router.use('/logs', logsRouter)
 router.use('/files', filesRouter)
+router.use('/schedules', schedulesRouter)
 
 export default router

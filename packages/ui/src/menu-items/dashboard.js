@@ -178,6 +178,14 @@ const dashboard = {
                     permission: 'logs:view'
                 },
                 {
+                    id: 'schedules',
+                    title: 'Schedules',
+                    type: 'item',
+                    url: '/schedules',
+                    icon: icons.IconActivity,
+                    breadcrumbs: true
+                },
+                {
                     id: 'queues',
                     title: 'Queues',
                     type: 'item',

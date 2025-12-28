@@ -102,7 +102,7 @@
     "content-disposition": "0.5.4",
     "cookie-parser": "1.4.6",
     "cors": "2.8.5",
-    "cron-parser": "5.4.0",
+    "cron-parser": "4.9.0",
     "crypto-js": "4.2.0",
     "csv-parser": "3.0.0",
     "dotenv": "16.4.5",

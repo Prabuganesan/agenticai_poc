@@ -1,4 +1,4 @@
-import parseExpression from 'cron-parser'
+import parser from 'cron-parser'
 import { Schedule, ScheduleType } from '../database/entities/Schedule'
 import { logError } from '../utils/logger/system-helper'
 
@@ -12,6 +12,7 @@ export class ScheduleEvaluator {
         try {
             switch (schedule.scheduleType) {
                 case ScheduleType.ONE_TIME:
+                case 'once' as any: // Fallback for legacy/UI mismatch
                     // One-time schedules don't have next run after completion
                     return null
 
@@ -20,15 +21,16 @@ export class ScheduleEvaluator {
                         throw new Error('Interval schedule missing intervalMs')
                     }
                     // Calculate next run from now
-                    return new Date(Date.now() + schedule.intervalMs)
+                    // intervalMs might be a string (from bigint column), so parse it
+                    const ms = parseInt(String(schedule.intervalMs))
+                    return new Date(Date.now() + ms)
 
                 case ScheduleType.CRON:
                     if (!schedule.cronExpression) {
                         throw new Error('Cron schedule missing cronExpression')
                     }
                     // Parse cron expression with timezone support
-                    // Using parseExpression as CronExpressionParser callable
-                    const interval = (parseExpression as any)(schedule.cronExpression, {
+                    const interval = parser.parseExpression(schedule.cronExpression, {
                         tz: schedule.timezone || 'UTC',
                         currentDate: new Date()
                     })

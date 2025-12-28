@@ -321,7 +321,7 @@ export const executeFlow = async ({
         ; (incomingInput as any).userId = userId
     }
 
-    let question = incomingInput.question || '' // Ensure question is never undefined
+    let question = incomingInput.question || 'Hi' // Ensure question is never undefined
     let overrideConfig = incomingInput.overrideConfig ?? {}
     const uploads = incomingInput.uploads
     const prependMessages = incomingInput.history ?? []

@@ -31,112 +31,138 @@ export class ScheduleExecutor {
         try {
             // Create schedule run record
             runId = await this.createScheduleRun(schedule)
-            const now = new Date()
 
             await logInfo(`[ScheduleExecutor] Executing schedule ${schedule.guid} (run: ${runId})`)
 
-            // Load chatflow (use frozen version if available)
-            const chatflow = await this.loadChatflow(schedule)
+            // Create a timeout promise to prevent infinite hangs
+            // Increased to 5 minutes for complex multi-agent flows
+            const timeoutMs = 300000
+            const timeoutPromise = new Promise<string>((_, reject) => {
+                setTimeout(() => {
+                    reject(new Error(`Schedule execution timed out after ${timeoutMs}ms`))
+                }, timeoutMs)
+            })
 
-            const chatId = `schedule-${schedule.guid}-${runId}`
-            const incomingInput = schedule.inputPayload ? JSON.parse(schedule.inputPayload) : {}
+            // Run execution logic with race against timeout
+            return await Promise.race([
+                this.executeInternal(schedule, runId),
+                timeoutPromise
+            ])
 
-            // Add schedule metadata
-            const scheduleMeta = {
-                scheduleId: schedule.guid,
-                runId: runId,
-                scheduledAt: now.toISOString()
-            }
-
-            // Determine orgId from schedule (you'll need to add orgId to Schedule entity)
-            // For now, defaulting to 1 (single-org mode)
-            const orgId = 1
-
-            // Check if queue mode is enabled
-            if (process.env.MODE === MODE.QUEUE) {
-                // Queue Mode: Enqueue to BullMQ
-                await logDebug(`[ScheduleExecutor] Using queue mode for schedule ${schedule.guid}`)
-
-                const predictionQueue = this.queueManager.getQueue(orgId, 'prediction')
-
-                const jobData = {
-                    chatflow,
-                    chatId,
-                    incomingInput,
-                    orgId,
-                    isInternal: true,
-                    _scheduleMeta: scheduleMeta
-                }
-
-                const job = await predictionQueue.addJob(jobData)
-
-                // Update schedule run with job ID
-                await this.updateScheduleRun(runId, {
-                    jobId: job.id?.toString(),
-                    status: ScheduleRunStatus.PENDING,
-                    startedAt: now
-                })
-
-                await logInfo(`[ScheduleExecutor] Enqueued job ${job.id} for schedule ${schedule.guid}`)
-            } else {
-                // Direct Mode: Execute immediately
-                await logDebug(`[ScheduleExecutor] Using direct execution mode for schedule ${schedule.guid}`)
-
-                const appDataSource = getDataSource(orgId)
-
-                const executeData = {
-                    chatflow,
-                    chatId,
-                    incomingInput,
-                    appDataSource,
-                    componentNodes: this.componentNodes,
-                    cachePool: this.cachePool,
-                    usageCacheManager: this.usageCacheManager,
-                    sseStreamer: undefined as any, // Scheduler doesn't use SSE streaming
-                    baseURL: process.env.BASE_URL || 'http://localhost:3000',
-                    isInternal: true,
-                    orgId: orgId.toString(),
-                    productId: '1',
-                    _scheduleMeta: scheduleMeta
-                }
-
-                // Update status to running
-                await this.updateScheduleRun(runId, {
-                    status: ScheduleRunStatus.RUNNING,
-                    startedAt: now
-                })
-
-                // Execute directly
-                const result = await executeFlow(executeData)
-
-                const completedAt = new Date()
-                const durationMs = completedAt.getTime() - now.getTime()
-
-                // Update with result
-                await this.updateScheduleRun(runId, {
-                    status: ScheduleRunStatus.COMPLETED,
-                    completedAt,
-                    durationMs,
-                    result: JSON.stringify(result)
-                })
-
-                await logInfo(`[ScheduleExecutor] Completed direct execution for schedule ${schedule.guid} in ${durationMs}ms`)
-            }
-
-            return runId
         } catch (error: any) {
             await logError(`[ScheduleExecutor] Error executing schedule ${schedule.guid}:`, error)
 
             // Update schedule run with error
-            const completedAt = new Date()
-            await this.updateScheduleRun(runId, {
-                status: ScheduleRunStatus.FAILED,
-                completedAt,
-                errorMessage: error.message || String(error)
-            })
+            if (runId) {
+                const completedAt = new Date()
+                await this.updateScheduleRun(runId, {
+                    status: ScheduleRunStatus.FAILED,
+                    completedAt,
+                    errorMessage: error.message || String(error)
+                })
+            }
 
             throw error
         }
+    }
+
+    /**
+     * Internal execution logic separated for cleaner timeout handling
+     */
+    private async executeInternal(schedule: Schedule, runId: string): Promise<string> {
+        const now = new Date()
+
+        // Load chatflow (use frozen version if available)
+        const chatflow = await this.loadChatflow(schedule)
+
+        const chatId = `schedule-${schedule.guid}-${runId}`
+        const incomingInput = schedule.inputPayload ? JSON.parse(schedule.inputPayload) : {}
+
+        // Add schedule metadata
+        const scheduleMeta = {
+            scheduleId: schedule.guid,
+            runId: runId,
+            scheduledAt: now.toISOString()
+        }
+
+        // Determine orgId from schedule (you'll need to add orgId to Schedule entity)
+        // For now, defaulting to 1 (single-org mode)
+        const orgId = 1
+
+        // Check if queue mode is enabled
+        if (process.env.MODE === MODE.QUEUE) {
+            // Queue Mode: Enqueue to BullMQ
+            await logDebug(`[ScheduleExecutor] Using queue mode for schedule ${schedule.guid}`)
+
+            const predictionQueue = this.queueManager.getQueue(orgId, 'prediction')
+
+            const jobData = {
+                chatflow,
+                chatId,
+                incomingInput,
+                orgId,
+                isInternal: true,
+                _scheduleMeta: scheduleMeta,
+                userId: schedule.created_by ? schedule.created_by.toString() : '0'
+            }
+
+            const job = await predictionQueue.addJob(jobData)
+
+            // Update schedule run with job ID
+            await this.updateScheduleRun(runId, {
+                jobId: job.id?.toString(),
+                status: ScheduleRunStatus.PENDING,
+                startedAt: now
+            })
+
+            await logInfo(`[ScheduleExecutor] Enqueued job ${job.id} for schedule ${schedule.guid}`)
+        } else {
+            // Direct Mode: Execute immediately
+            await logDebug(`[ScheduleExecutor] Using direct execution mode for schedule ${schedule.guid}`)
+
+            const appDataSource = getDataSource(orgId)
+
+            const executeData = {
+                chatflow,
+                chatId,
+                incomingInput,
+                appDataSource,
+                componentNodes: this.componentNodes,
+                cachePool: this.cachePool,
+                usageCacheManager: this.usageCacheManager,
+                sseStreamer: undefined as any, // Scheduler doesn't use SSE streaming
+                baseURL: process.env.BASE_URL || 'http://localhost:3000',
+                isInternal: true,
+                orgId: orgId.toString(),
+                productId: '1',
+                _scheduleMeta: scheduleMeta,
+                userId: schedule.created_by ? schedule.created_by.toString() : '0'
+            }
+
+            // Update status to running
+            await this.updateScheduleRun(runId, {
+                status: ScheduleRunStatus.RUNNING,
+                startedAt: now
+            })
+
+            // Execute directly
+            const result = await executeFlow(executeData)
+
+            const completedAt = new Date()
+            const durationMs = completedAt.getTime() - now.getTime()
+
+            // Update with result
+            await this.updateScheduleRun(runId, {
+                status: ScheduleRunStatus.COMPLETED,
+                completedAt,
+                durationMs,
+                result: JSON.stringify(result)
+            })
+
+            await logInfo(`[ScheduleExecutor] Completed direct execution for schedule ${schedule.guid} in ${durationMs}ms`)
+        }
+
+        return runId
     }
 
     private async loadChatflow(schedule: Schedule): Promise<ChatFlow> {

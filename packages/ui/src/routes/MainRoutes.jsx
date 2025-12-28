@@ -58,6 +58,9 @@ const Queues = Loadable(lazy(() => import('@/views/queues')))
 // llm usage routing
 const LlmUsage = Loadable(lazy(() => import('@/views/llmUsage')))
 
+// schedules routing
+const Schedules = Loadable(lazy(() => import('@/views/schedules')))
+
 // home routing
 const Home = Loadable(lazy(() => import('@/views/home')))
 // back routing
@@ -263,6 +266,14 @@ const MainRoutes = {
             element: (
                 <RequireAuth>
                     <LlmUsage />
+                </RequireAuth>
+            )
+        },
+        {
+            path: '/schedules',
+            element: (
+                <RequireAuth>
+                    <Schedules />
                 </RequireAuth>
             )
         },

@@ -128,7 +128,7 @@ class IfElseFunction_Utilities implements INode {
             }
         }
 
-        const sandbox = createCodeExecutionSandbox(input, variables, flow, additionalSandbox)
+        const sandbox = createCodeExecutionSandbox(input, variables, flow, additionalSandbox, options)
 
         try {
             const responseTrue = await executeJavaScriptCode(ifFunction, sandbox)

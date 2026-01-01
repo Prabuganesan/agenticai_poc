@@ -14,6 +14,7 @@ import { DataSource } from 'typeorm'
 import { BaseMessageLike } from '@langchain/core/messages'
 import { updateFlowState } from '../utils'
 import { sanitizeErrorMessage } from '../../../src/error'
+import { get } from 'lodash'
 
 class ExecuteFlow_Agentflow implements INode {
     label: string
@@ -57,6 +58,15 @@ class ExecuteFlow_Agentflow implements INode {
                 name: 'executeFlowInput',
                 type: 'string',
                 rows: 4,
+                acceptVariable: true
+            },
+            {
+                label: 'Uploads',
+                name: 'executeFlowUploads',
+                type: 'string',
+                description: 'File uploads to pass to the child agent (use state variable like $flow.state.formatted_uploads)',
+                placeholder: '$flow.state.formatted_uploads',
+                optional: true,
                 acceptVariable: true
             },
             {
@@ -267,6 +277,61 @@ class ExecuteFlow_Agentflow implements INode {
                 !!enhancedOverrideConfig._parentCredentials
             )
 
+            // Parse uploads if provided
+            let uploads = undefined
+            let uploadsInput = nodeData.inputs?.executeFlowUploads
+
+            // Resolve state variable if uploads is a reference like $flow.state.formatted_uploads
+            if (typeof uploadsInput === 'string') {
+                // Remove HTML tags that might wrap the variable
+                uploadsInput = uploadsInput.replace(/<[^>]*>/g, '').trim()
+
+                // Match {{ $flow.state.xxx }} or plain $flow.state.xxx
+                const flowStateRegex = /\{{0,2}\s*\$flow\.state\.([a-zA-Z0-9_.\[\]]+)\s*\}{0,2}/g
+
+                // If the entire input is just one state variable, return the object directly to preserve type (like attachments)
+                const singleMatch = uploadsInput.match(/^\{{0,2}\s*\$flow\.state\.([a-zA-Z0-9_.\[\]]+)\s*\}{0,2}$/)
+                if (singleMatch && state) {
+                    const path = singleMatch[1].replace(/\[(\d+)\]/g, '.$1')
+                    const resolved = get(state, path)
+                    if (resolved !== undefined) uploadsInput = resolved
+                } else if (state) {
+                    // Otherwise do string replacement
+                    uploadsInput = uploadsInput.replace(flowStateRegex, (match: string, path: string) => {
+                        const lodashPath = path.replace(/\[(\d+)\]/g, '.$1')
+                        const resolved = get(state, lodashPath)
+                        if (resolved === undefined) return match
+                        return typeof resolved === 'object' ? JSON.stringify(resolved) : String(resolved)
+                    })
+                }
+            }
+
+            if (uploadsInput) {
+                if (typeof uploadsInput === 'string') {
+                    try {
+                        uploads = JSON.parse(uploadsInput)
+                    } catch {
+                        // If not valid JSON, wrap as array
+                        uploads = [uploadsInput]
+                    }
+                } else if (Array.isArray(uploadsInput)) {
+                    uploads = uploadsInput
+                } else if (typeof uploadsInput === 'object') {
+                    uploads = [uploadsInput]
+                }
+
+                // Normalization and type preservation for internal agent execution
+                if (Array.isArray(uploads)) {
+                    uploads = uploads.map((u: any, i: number) => {
+                        if (typeof u === 'object' && u.data && (!u.type || u.type === 'file' || u.type === 'file:full')) {
+                            const name = u.name || u.filename || `attachment_${i}`
+                            return { ...u, name, type: 'file:raw-payload' }
+                        }
+                        return u
+                    })
+                }
+            }
+
             const finalUrl = `${baseURL}/api/v1/prediction/${selectedFlowId}`
             const requestConfig: AxiosRequestConfig = {
                 method: 'POST',
@@ -275,6 +340,7 @@ class ExecuteFlow_Agentflow implements INode {
                 data: {
                     question: flowInput,
                     chatId: options.chatId,
+                    uploads: uploads,
                     overrideConfig: enhancedOverrideConfig
                 }
             }

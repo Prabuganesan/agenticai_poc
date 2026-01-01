@@ -129,7 +129,7 @@ class CustomFunction_Utilities implements INode {
             }
         }
 
-        const sandbox = createCodeExecutionSandbox(input, variables, flow, additionalSandbox)
+        const sandbox = createCodeExecutionSandbox(input, variables, flow, additionalSandbox, options)
 
         try {
             const response = await executeJavaScriptCode(javascriptFunction, sandbox)

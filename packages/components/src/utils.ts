@@ -775,87 +775,41 @@ export const getKodivianDataPath = (): string => {
     if (process.env.KODIVIAN_DATA_PATH) {
         return path.join(process.env.KODIVIAN_DATA_PATH, '.kodivian')
     }
-    // Fallback for backward compatibility if KODIVIAN_DATA_PATH is not set
+    // Fallback for backward compatibility
     if (process.env.KODIVIAN_DATA_PATH) {
         return path.join(process.env.KODIVIAN_DATA_PATH, '.kodivian')
     }
-    // Default to .kodivian inside the server package directory
-    // When running from server, process.cwd() might be packages/server/bin, so we need to handle that
-    const cwd = process.cwd()
 
-    // Helper function to check if a directory is the server package root
-    const isServerRoot = (dir: string): boolean => {
-        const packageJsonPath = path.join(dir, 'package.json')
-        if (!fs.existsSync(packageJsonPath)) {
-            return false
+    // Robust detection of server root from CWD
+    const findRoot = (start: string): string => {
+        let current = start
+        // 1. If inside bin or dist, go up
+        if (current.endsWith(path.sep + 'bin') || current.endsWith(path.sep + 'dist')) {
+            current = path.join(current, '..');
         }
-        try {
-            const packageJsonContent = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
-            return (packageJsonContent.name === 'kodivian' || packageJsonContent.name === 'kodivian') && !!packageJsonContent.oclif
-        } catch {
-            return false
-        }
-    }
 
-    // Check if current directory is the server package
-    if (isServerRoot(cwd)) {
-        return path.join(cwd, '.kodivian')
-    }
-
-    // Check if we're in a bin subdirectory (common when running from bin/run)
-    if (path.basename(cwd) === 'bin') {
-        const parentDir = path.dirname(cwd)
-        if (isServerRoot(parentDir)) {
-            return path.join(parentDir, '.kodivian')
-        }
-    }
-
-    // Try to find server directory by checking common locations
-    const possibleServerRoots = [
-        path.resolve(cwd, '..'), // Go up one level from cwd (in case we're in bin)
-        path.resolve(cwd, 'packages', 'server'), // From workspace root
-        path.resolve(cwd, '..', 'packages', 'server'), // From bin, go up then to packages/server
-        // If we're in node_modules, try to find server
-        (() => {
-            let current = __dirname
-            // Find node_modules/kodivian-components
-            while (current && current !== path.dirname(current)) {
-                if (current.includes('node_modules' + path.sep + 'kodivian-components')) {
-                    // Go up from node_modules to find server
-                    const parts = current.split('node_modules' + path.sep + 'kodivian-components')
-                    if (parts[0]) {
-                        const nodeModulesDir = path.join(parts[0], 'node_modules')
-                        const potentialServer = path.dirname(nodeModulesDir)
-                        if (isServerRoot(potentialServer)) {
-                            return potentialServer
-                        }
-                    }
-                }
-                current = path.dirname(current)
+        for (let i = 0; i < 5; i++) {
+            if (fs.existsSync(path.join(current, 'package.json'))) {
+                try {
+                    const pkg = JSON.parse(fs.readFileSync(path.join(current, 'package.json'), 'utf8'))
+                    if (pkg.name === 'kodivian' || pkg.name === 'server') return current
+                } catch (e) { }
             }
-            return null
-        })()
-    ].filter((p): p is string => p !== null && p !== undefined && p !== cwd && fs.existsSync(p) && isServerRoot(p))
-
-    // Use the first valid server root found
-    if (possibleServerRoots.length > 0) {
-        return path.join(possibleServerRoots[0], '.kodivian')
-    }
-
-    // Fallback: try to find server by going up from cwd until we find a package.json with oclif
-    let searchDir = cwd
-    for (let i = 0; i < 5; i++) {
-        if (isServerRoot(searchDir)) {
-            return path.join(searchDir, '.kodivian')
+            if (fs.existsSync(path.join(current, 'packages', 'server'))) {
+                return path.join(current, 'packages', 'server')
+            }
+            const parent = path.dirname(current)
+            if (parent === current) break
+            current = parent
         }
-        const parent = path.dirname(searchDir)
-        if (parent === searchDir) break // Reached filesystem root
-        searchDir = parent
+        return start
     }
 
-    // Last resort: use current working directory
-    return path.join(cwd, '.kodivian')
+    const serverRoot = findRoot(process.cwd())
+    return path.join(serverRoot, '.kodivian')
 }
+
+
 
 /**
  * Map ChatMessage to BaseMessage
@@ -1842,11 +1796,81 @@ export const executeJavaScriptCode = async (
  * @param {ICommonObject} additionalSandbox - Additional sandbox variables
  * @returns {ICommonObject} - The sandbox object
  */
+/**
+ * Commonized upload repair logic to recover stripped file data from context
+ * @param {any[]} uploads - The uploads array to repair
+ * @param {string} uploadedFilesContent - The content containing <doc> tags
+ * @returns {any[]} - Repaired uploads
+ */
+export const repairUploads = (uploads: any[], uploadedFilesContent: string): any[] => {
+    if (!uploads || !Array.isArray(uploads) || !uploadedFilesContent) return uploads
+    return uploads.map((upload: any) => {
+        if (typeof upload === 'object' && !upload.data) {
+            // Priority 1: Match by name or filename
+            const name = upload.name || upload.filename
+            console.log(`[repairUploads] Attempting repair for ${name}. Content Length: ${uploadedFilesContent.length}`)
+            if (name) {
+                // Escape special characters in filename for regex
+                const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const regex = new RegExp(`<doc name='${escapedName}'>([\\s\\S]*?)</doc>`)
+
+                // Log the regex source for debugging
+                console.log(`[repairUploads] Regex: ${regex.source}`)
+
+                const match = uploadedFilesContent.match(regex)
+                if (match) {
+                    console.log(`[repairUploads] SUCCESS: Found match for ${name}, data length: ${match[1].length}`)
+                    return { ...upload, data: match[1] }
+                } else {
+                    console.log(`[repairUploads] FAIL: No match found for regex`)
+                    // Debug: Check if the content contains the name at all
+                    if (uploadedFilesContent.includes(name)) {
+                        console.log(`[repairUploads] WARNING: Content contains '${name}' but regex failed. Possible quoting/formatting issue.`)
+                        // Dump a small snippet around the name
+                        const idx = uploadedFilesContent.indexOf(name)
+                        const snippet = uploadedFilesContent.substring(Math.max(0, idx - 20), Math.min(uploadedFilesContent.length, idx + 20 + name.length))
+                        console.log(`[repairUploads] Snippet around name: "...${snippet}..."`)
+                    }
+                }
+            } // Priority 2: If only one <doc> exists, fallback to it
+            const allDocs = uploadedFilesContent.match(/<doc name='.*?'>([\s\S]*?)<\/doc>/g)
+            if (allDocs && allDocs.length === 1) {
+                const match = uploadedFilesContent.match(/<doc name='.*?'>([\s\S]*?)<\/doc>/)
+                if (match) return { ...upload, data: match[1] }
+            }
+
+            // Priority 3: Try parsing the content as a direct JSON file object (Tool Output like Gmail)
+            try {
+                // Only try this if it looks like a JSON object
+                if (uploadedFilesContent.trim().startsWith('{')) {
+                    const jsonContent = JSON.parse(uploadedFilesContent)
+                    if (jsonContent && jsonContent.data) {
+                        return { ...upload, data: jsonContent.data }
+                    }
+                }
+            } catch (e) {
+                // Ignore parsing errors, it wasn't valid JSON
+            }
+        }
+        return upload
+    })
+}
+
+/**
+ * Commonized codebase execution sandbox creation
+ * @param {string} input - The input string
+ * @param {IVariable[]} variables - Variables from getVars
+ * @param {ICommonObject} flow - Flow object with chatflowId, sessionId, etc.
+ * @param {ICommonObject} additionalSandbox - Additional sandbox variables
+ * @param {ICommonObject} options - Node execution options for automatic upload handling
+ * @returns {ICommonObject} - The sandbox object
+ */
 export const createCodeExecutionSandbox = (
     input: string,
     variables: IVariable[],
     flow: ICommonObject,
-    additionalSandbox: ICommonObject = {}
+    additionalSandbox: ICommonObject = {},
+    options: ICommonObject = {}
 ): ICommonObject => {
     const sandbox: ICommonObject = {
         $input: input,
@@ -1860,6 +1884,26 @@ export const createCodeExecutionSandbox = (
 
     sandbox['$vars'] = prepareSandboxVars(variables)
     sandbox['$flow'] = flow
+
+    // Platform-wide automatic upload handling
+    let uploads = options.uploads ? [...options.uploads] : []
+
+    // Recovery context can come from options (best) or directly from input string (fallback)
+    const recoveryContext = options.uploadedFilesContent || input || ''
+
+    // Repair uploads if data is missing but content is available in either source
+    if (uploads.length && recoveryContext && recoveryContext.includes('<doc')) {
+        uploads = repairUploads(uploads, recoveryContext)
+    }
+
+    // Automatically inject repaired uploads as $uploads if not already provided or if invalid
+    // If $uploads is present but not an array (e.g. unresolved string variable "{{uploads}}"), we overwrite it
+    if ((!sandbox['$uploads'] || !Array.isArray(sandbox['$uploads'])) && uploads.length) {
+        sandbox['$uploads'] = uploads
+    } else if (sandbox['$uploads'] && Array.isArray(sandbox['$uploads']) && recoveryContext.includes('<doc')) {
+        // Also repair manually provided $uploads if it is a valid array
+        sandbox['$uploads'] = repairUploads(sandbox['$uploads'], recoveryContext)
+    }
 
     return sandbox
 }

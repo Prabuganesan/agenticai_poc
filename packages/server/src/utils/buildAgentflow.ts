@@ -476,8 +476,8 @@ export const resolveVariables = async (
                 }
             }
 
-            // Check if the variable is an output reference like `nodeId.output.path`
-            const outputMatch = variableFullPath.match(/^(.*?)\.output\.(.+)$/)
+            // Check if the variable is an output reference like `nodeId.output.path` or just `nodeId.output`
+            const outputMatch = variableFullPath.match(/^(.*?)\.output(?:\.(.+))?$/)
             if (outputMatch && agentFlowExecutedData) {
                 // Extract nodeId and outputPath from the match
                 const [, nodeIdPart, outputPath] = outputMatch
@@ -487,8 +487,20 @@ export const resolveVariables = async (
                 // Find the last (most recent) matching node data instead of the first one
                 const nodeData = [...agentFlowExecutedData].reverse().find((d) => d.nodeId === cleanNodeId)
 
-                if (nodeData?.data?.output && outputPath.trim()) {
-                    const variableValue = get(nodeData.data.output, outputPath)
+                if (nodeData?.data?.output) {
+                    let variableValue = outputPath ? get(nodeData.data.output, outputPath) : undefined
+
+                    // If outputPath is missing or value not found, try common output fields or whole object
+                    if (variableValue === undefined) {
+                        if (!outputPath || outputPath === 'content') {
+                            variableValue = nodeData.data.output.content ?? nodeData.data.output
+                        } else if (outputPath === 'http') {
+                            variableValue = nodeData.data.output.http?.data ?? nodeData.data.output
+                        } else if (!outputPath) {
+                            variableValue = nodeData.data.output
+                        }
+                    }
+
                     if (variableValue !== undefined) {
                         // Replace the reference with actual value
                         const formattedValue =
@@ -768,13 +780,13 @@ function setupNodeDependencies(nodeId: string, edges: IReactFlowEdge[], nodes: I
         const conditionParent = findConditionParent(connection.source, edges, nodes)
 
         if (conditionParent) {
-            logDebug(`  📌 Found conditional input from ${connection.source} (condition: ${conditionParent})`).catch(() => {})
+            logDebug(`  📌 Found conditional input from ${connection.source} (condition: ${conditionParent})`).catch(() => { })
             waitingNode.isConditional = true
             const group = inputsByCondition.get(conditionParent) || []
             group.push(connection.source)
             inputsByCondition.set(conditionParent, group)
         } else {
-            logDebug(`  📌 Found required input from ${connection.source}`).catch(() => {})
+            logDebug(`  📌 Found required input from ${connection.source}`).catch(() => { })
             waitingNode.expectedInputs.add(connection.source)
         }
     }
@@ -782,7 +794,7 @@ function setupNodeDependencies(nodeId: string, edges: IReactFlowEdge[], nodes: I
     // Set up conditional groups
     inputsByCondition.forEach((sources, conditionId) => {
         if (conditionId) {
-            logDebug(`  📋 Conditional group ${conditionId}: [${sources.join(', ')}]`).catch(() => {})
+            logDebug(`  📋 Conditional group ${conditionId}: [${sources.join(', ')}]`).catch(() => { })
             waitingNode.conditionalGroups.set(conditionId, sources)
         }
     })
@@ -845,12 +857,12 @@ function findConditionParent(nodeId: string, edges: IReactFlowEdge[], nodes: IRe
  * Checks if a node has received all required inputs
  */
 function hasReceivedRequiredInputs(waitingNode: IWaitingNode): boolean {
-    logDebug(`\n✨ Checking inputs for node: ${waitingNode.nodeId}`).catch(() => {})
+    logDebug(`\n✨ Checking inputs for node: ${waitingNode.nodeId}`).catch(() => { })
 
     // Check non-conditional required inputs
     for (const required of waitingNode.expectedInputs) {
         const hasInput = waitingNode.receivedInputs.has(required)
-        logDebug(`  📊 Required input ${required}: ${hasInput ? '✅' : '❌'}`).catch(() => {})
+        logDebug(`  📊 Required input ${required}: ${hasInput ? '✅' : '❌'}`).catch(() => { })
         if (!hasInput) return false
     }
 
@@ -858,7 +870,7 @@ function hasReceivedRequiredInputs(waitingNode: IWaitingNode): boolean {
     for (const [groupId, possibleSources] of waitingNode.conditionalGroups) {
         // Need at least one input from each conditional group
         const hasInputFromGroup = possibleSources.some((source) => waitingNode.receivedInputs.has(source))
-        logDebug(`  📊 Conditional group ${groupId}: ${hasInputFromGroup ? '✅' : '❌'}`).catch(() => {})
+        logDebug(`  📊 Conditional group ${groupId}: ${hasInputFromGroup ? '✅' : '❌'}`).catch(() => { })
         if (!hasInputFromGroup) return false
     }
 
@@ -927,12 +939,12 @@ async function processNodeOutputs({
     sseStreamer,
     chatId
 }: IProcessNodeOutputsParams): Promise<{ humanInput?: IHumanInput }> {
-    logDebug(`\n🔄 Processing outputs from node: ${nodeId}`).catch(() => {})
+    logDebug(`\n🔄 Processing outputs from node: ${nodeId}`).catch(() => { })
 
     let updatedHumanInput = humanInput
 
     const childNodeIds = graph[nodeId] || []
-    logDebug(`  👉 Child nodes: [${childNodeIds.join(', ')}]`).catch(() => {})
+    logDebug(`  👉 Child nodes: [${childNodeIds.join(', ')}]`).catch(() => { })
 
     const currentNode = nodes.find((n) => n.id === nodeId)
     if (!currentNode) return { humanInput: updatedHumanInput }
@@ -940,31 +952,41 @@ async function processNodeOutputs({
     // Get nodes to ignore based on conditions
     const ignoreNodeIds = await determineNodesToIgnore(currentNode, result, edges, nodeId)
     if (ignoreNodeIds.length) {
-        logDebug(`  ⏭️  Skipping nodes: [${ignoreNodeIds.join(', ')}]`).catch(() => {})
+        logDebug(`  ⏭️  Skipping nodes: [${ignoreNodeIds.join(', ')}]`).catch(() => { })
     }
 
+    logDebug(`  👉 Processing ${childNodeIds.length} children of ${nodeId}: [${childNodeIds.join(', ')}]`).catch(() => { })
+
+
+
     for (const childId of childNodeIds) {
-        if (ignoreNodeIds.includes(childId)) continue
+        if (ignoreNodeIds.includes(childId)) {
+            logDebug(`  🚫 Child ${childId} is ignored`).catch(() => { })
+            continue
+        }
 
         const childNode = nodes.find((n) => n.id === childId)
         if (!childNode) continue
 
-        logDebug(`  📝 Processing child node: ${childId}`).catch(() => {})
+        logDebug(`  📝 Processing child node: ${childId}`).catch(() => { })
+
+
 
         let waitingNode = waitingNodes.get(childId)
 
         if (!waitingNode) {
-            logDebug(`    🆕 First time seeing node ${childId} - analyzing dependencies`).catch(() => {})
+            logDebug(`    🆕 First time seeing node ${childId} - analyzing dependencies`).catch(() => { })
             waitingNode = setupNodeDependencies(childId, edges, nodes)
             waitingNodes.set(childId, waitingNode)
         }
 
         waitingNode.receivedInputs.set(nodeId, result)
-        logDebug(`    ➕ Added input from ${nodeId}`).catch(() => {})
+        waitingNode.receivedInputs.set(nodeId, result)
+        logDebug(`    ➕ Added input from ${nodeId}. Received inputs size: ${waitingNode.receivedInputs.size}`).catch(() => { })
 
         // Check if node is ready to execute
         if (hasReceivedRequiredInputs(waitingNode)) {
-            logDebug(`    ✅ Node ${childId} ready for execution!`).catch(() => {})
+            logDebug(`    ✅ Node ${childId} ready for execution!`).catch(() => { })
             waitingNodes.delete(childId)
             nodeExecutionQueue.push({
                 nodeId: childId,
@@ -972,13 +994,10 @@ async function processNodeOutputs({
                 inputs: Object.fromEntries(waitingNode.receivedInputs)
             })
         } else {
-            logDebug(`    ⏳ Node ${childId} still waiting for inputs`).catch(() => {})
-            logDebug(`      Has: [${Array.from(waitingNode.receivedInputs.keys()).join(', ')}]`).catch(() => {})
-            logDebug(`      Needs: [${Array.from(waitingNode.expectedInputs).join(', ')}]`).catch(() => {})
+            logDebug(`    ⏳ Node ${childId} WAITING. Received: ${Array.from(waitingNode.receivedInputs.keys())}. ConditionalGroups: ${Array.from(waitingNode.conditionalGroups.keys())}. Expected: ${Array.from(waitingNode.expectedInputs)}`).catch(() => { })
             if (waitingNode.conditionalGroups.size > 0) {
-                logDebug('      Conditional groups:').catch(() => {})
                 waitingNode.conditionalGroups.forEach((sources, groupId) => {
-                    logDebug(`        ${groupId}: [${sources.join(', ')}]`).catch(() => {})
+                    logDebug(`        Group ${groupId}: [${sources.join(', ')}]`).catch(() => { })
                 })
             }
         }
@@ -1326,7 +1345,8 @@ const executeNode = async ({
             humanInputAction,
             iterationContext,
             incomingInput, // Pass incomingInput so nodes can access userId and other context
-            reactFlowNodes: nodes // Pass nodes array so ExecuteFlow can access parent flow nodes for credential extraction
+            reactFlowNodes: nodes, // Pass nodes array so ExecuteFlow can access parent flow nodes for credential extraction
+            uploadedFilesContent
         }
 
         // Inject UsageTrackingCallbackHandler

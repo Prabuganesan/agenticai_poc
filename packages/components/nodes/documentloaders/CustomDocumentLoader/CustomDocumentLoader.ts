@@ -115,11 +115,11 @@ class CustomDocumentLoader_DocumentLoaders implements INode {
             }
         }
 
-        const sandbox = createCodeExecutionSandbox(input, variables, flow, additionalSandbox)
+        const sandbox = createCodeExecutionSandbox(input, variables, flow, additionalSandbox, options)
 
         try {
             const response = await executeJavaScriptCode(javascriptFunction, sandbox, {
-                libraries: ['axios']
+                libraries: ['axios', 'pdf-parse', 'mammoth', 'cheerio', 'pdfjs-dist']
             })
 
             if (output === 'document' && Array.isArray(response)) {
@@ -139,7 +139,7 @@ class CustomDocumentLoader_DocumentLoaders implements INode {
             }
 
             return response
-        } catch (e) {
+        } catch (e: any) {
             throw new Error(e)
         }
     }

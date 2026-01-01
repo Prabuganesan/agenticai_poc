@@ -349,15 +349,19 @@ export const executeFlow = async ({
 
             // if upload in an image, a rag file, or audio
             if ((upload.type === 'file' || upload.type === 'file:rag' || upload.type === 'audio') && upload.data) {
-                const filename = upload.name
+                const filename = upload.name || `file_${i}`
                 const splitDataURI = upload.data.split(',')
                 const bf = Buffer.from(splitDataURI.pop() || '', 'base64')
                 const mime = splitDataURI[0].split(':')[1].split(';')[0]
                 const { totalSize } = await addSingleFileToStorage(mime, bf, filename, orgId, chatflowid, chatId)
                 await updateStorageUsage(orgId, totalSize, usageCacheManager)
                 upload.type = 'stored-file'
+
+                // Commonized fix: Ensure stripped data is preserved in contextual tags for sandbox nodes to recover
+                uploadedFilesContent += `<doc name='${filename}'>${upload.data}</doc>\n\n`
+
                 // Omit upload.data since we don't store the content in database
-                fileUploads[i] = omit(upload, ['data'])
+                fileUploads[i] = omit({ ...upload, name: filename }, ['data'])
             }
 
             if (upload.type === 'url' && upload.data) {
@@ -400,8 +404,8 @@ export const executeFlow = async ({
                 }
             }
 
-            if (upload.type === 'file:full' && upload.data) {
-                upload.type = 'stored-file:full'
+            if ((upload.type === 'file:full' || upload.type === 'file:raw-payload') && upload.data) {
+                if (upload.type === 'file:full') upload.type = 'stored-file:full'
                 // Omit upload.data since we don't store the content in database
                 uploadedFilesContent += `<doc name='${upload.name}'>${upload.data}</doc>\n\n`
                 fileUploads[i] = omit(upload, ['data'])
@@ -604,7 +608,7 @@ export const executeFlow = async ({
         cachePool,
         usageCacheManager,
         isUpsert: false,
-        uploads,
+        uploads: fileUploads,
         baseURL,
         orgId,
         updateStorageUsage,
@@ -658,8 +662,9 @@ export const executeFlow = async ({
             databaseEntities,
             usageCacheManager,
             analytic: chatflow.analytic,
-            uploads,
+            uploads: fileUploads,
             prependMessages,
+            uploadedFilesContent,
             ...(isStreamValid && { sseStreamer, shouldStreamResponse: isStreamValid }),
             updateStorageUsage,
             checkStorage

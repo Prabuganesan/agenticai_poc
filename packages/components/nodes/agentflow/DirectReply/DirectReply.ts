@@ -1,3 +1,4 @@
+import { get } from 'lodash'
 import { ICommonObject, INode, INodeData, INodeParams, IServerSideEventStreamer } from '../../../src/Interface'
 
 class DirectReply_Agentflow implements INode {
@@ -38,12 +39,36 @@ class DirectReply_Agentflow implements INode {
     }
 
     async run(nodeData: INodeData, _: string, options: ICommonObject): Promise<any> {
-        const directReplyMessage = nodeData.inputs?.directReplyMessage as string
+        let directReplyMessage = nodeData.inputs?.directReplyMessage as string
 
         const state = options.agentflowRuntime?.state as ICommonObject
         const chatId = options.chatId as string
         const isLastNode = options.isLastNode as boolean
         const isStreamable = isLastNode && options.sseStreamer !== undefined
+
+        // Resolve Variables
+        if (directReplyMessage && state) {
+
+
+            // Looser regex to capture any {{ variable }} content
+            directReplyMessage = directReplyMessage.replace(/\{\{\s*([^}]+)\s*\}\}/g, (match, variable) => {
+                const cleanVar = variable.trim();
+                if (cleanVar.startsWith('$flow.state.')) {
+                    const path = cleanVar.replace('$flow.state.', '');
+                    const value = get(state, path);
+
+
+                    if (value !== undefined && value !== null) {
+                        return typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value);
+                    }
+                }
+
+                // If we can't resolve it, leave it alone (or maybe strictly $flow.state was expected but not found)
+                return match;
+            });
+
+
+        }
 
         if (isStreamable) {
             const sseStreamer: IServerSideEventStreamer = options.sseStreamer

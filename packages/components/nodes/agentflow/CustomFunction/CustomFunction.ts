@@ -161,7 +161,7 @@ class CustomFunction_Agentflow implements INode {
             additionalSandbox[`$${variableName}`] = variableValue
         }
 
-        const sandbox = createCodeExecutionSandbox(input, variables, flow, additionalSandbox)
+        const sandbox = createCodeExecutionSandbox(input, variables, flow, additionalSandbox, options)
 
         // Setup streaming function if needed
         const streamOutput = isStreamable
@@ -206,15 +206,32 @@ class CustomFunction_Agentflow implements INode {
                 streamOutput
             })
 
+            let newState = { ...state }
             let finalOutput = response
-            if (typeof response === 'object') {
-                finalOutput = JSON.stringify(response, null, 2)
+
+            if (typeof response === 'object' && response !== null) {
+                if (!Array.isArray(response) && ('output' in response || 'state' in response)) {
+                    // Handle special { output, state } return format
+                    if (response.output !== undefined) {
+                        finalOutput = typeof response.output === 'object'
+                            ? JSON.stringify(response.output, null, 2)
+                            : String(response.output)
+                    } else {
+                        finalOutput = ''
+                    }
+
+                    if (response.state && typeof response.state === 'object') {
+                        newState = { ...newState, ...response.state }
+                    }
+                } else {
+                    // Standard object or array, stringify it
+                    finalOutput = JSON.stringify(response, null, 2)
+                }
             }
 
-            // Update flow state if needed
-            let newState = { ...state }
+            // Update flow state if needed (from UI)
             if (_customFunctionUpdateState && Array.isArray(_customFunctionUpdateState) && _customFunctionUpdateState.length > 0) {
-                newState = updateFlowState(state, _customFunctionUpdateState)
+                newState = updateFlowState(newState, _customFunctionUpdateState)
             }
 
             newState = processTemplateVariables(newState, finalOutput)

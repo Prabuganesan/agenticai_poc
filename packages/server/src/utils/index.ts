@@ -106,9 +106,29 @@ export const getKodivianDataPath = (): string => {
     if (process.env.KODIVIAN_DATA_PATH) {
         return path.join(process.env.KODIVIAN_DATA_PATH, '.kodivian')
     }
-    // Default to .kodivian inside the server package directory
-    // __dirname in compiled code will be dist/utils, so we go up to server root
-    const serverRoot = path.resolve(__dirname, '..', '..')
+
+    // Robust detection of server root
+    const findRoot = (start: string): string => {
+        let current = start
+        for (let i = 0; i < 5; i++) {
+            if (fs.existsSync(path.join(current, 'package.json'))) {
+                try {
+                    const pkg = JSON.parse(fs.readFileSync(path.join(current, 'package.json'), 'utf8'))
+                    if (pkg.name === 'kodivian' || pkg.name === 'server') return current
+                } catch (e) { }
+            }
+            if (fs.existsSync(path.join(current, 'packages', 'server'))) {
+                return path.join(current, 'packages', 'server')
+            }
+            const parent = path.dirname(current)
+            if (parent === current) break
+            current = parent
+        }
+        return start
+    }
+
+    // Start looking from __dirname (usually dist/utils or src/utils)
+    const serverRoot = findRoot(__dirname)
     return path.join(serverRoot, '.kodivian')
 }
 
@@ -633,6 +653,24 @@ export const buildFlow = async ({
 
             if (isUpsert) upsertHistory['flowData'] = saveUpsertFlowData(flowNodeData, upsertHistory)
 
+            // Auto-populate inputs from edges if they are missing/empty
+            const incomingEdges = reactFlowEdges.filter((edge) => edge.target === nodeId)
+            for (const edge of incomingEdges) {
+                if (edge.targetHandle && edge.targetHandle.includes('-input-')) {
+                    const parts = edge.targetHandle.split('-input-')
+                    if (parts.length === 2) {
+                        const handleRemainder = parts[1]
+                        const matchedParam = flowNodeData.inputParams.find((param) => handleRemainder.startsWith(param.name + '-'))
+                        if (matchedParam) {
+                            const paramName = matchedParam.name
+                            if (!flowNodeData.inputs[paramName] || flowNodeData.inputs[paramName] === '') {
+                                flowNodeData.inputs[paramName] = `{{${edge.source}.data.instance}}`
+                            }
+                        }
+                    }
+                }
+            }
+
             const reactFlowNodeData: INodeData = await resolveVariables(
                 flowNodeData,
                 flowNodes,
@@ -689,6 +727,7 @@ export const buildFlow = async ({
                     dynamicVariables,
                     uploads,
                     baseURL,
+                    uploadedFilesContent,
                     componentNodes,
                     updateStorageUsage,
                     checkStorage
@@ -1096,6 +1135,7 @@ export const getVariableValue = async (
             const variableFullPathParts = variableFullPath.split('.')
             const variableNodeId = variableFullPathParts[0]
             const executedNode = reactFlowNodes.find((nd) => nd.id === variableNodeId)
+
             if (executedNode) {
                 let variableValue = get(executedNode.data, 'instance')
 
@@ -1153,12 +1193,16 @@ export const getVariableValue = async (
                     variableValue = { id: nodeId }
                 }
 
-                const stringifiedValue = JSON.stringify(JSON.stringify(variableValue))
-                if (stringifiedValue.startsWith('"') && stringifiedValue.endsWith('"')) {
-                    // get rid of the double quotes
-                    returnVal = returnVal.split(path).join(stringifiedValue.substring(1, stringifiedValue.length - 1))
+                if (returnVal === path) {
+                    returnVal = JSON.stringify(variableValue)
                 } else {
-                    returnVal = returnVal.split(path).join(JSON.stringify(variableValue).replace(/"/g, '\\"'))
+                    const stringifiedValue = JSON.stringify(JSON.stringify(variableValue))
+                    if (stringifiedValue.startsWith('"') && stringifiedValue.endsWith('"')) {
+                        // get rid of the double quotes
+                        returnVal = returnVal.split(path).join(stringifiedValue.substring(1, stringifiedValue.length - 1))
+                    } else {
+                        returnVal = returnVal.split(path).join(JSON.stringify(variableValue).replace(/"/g, '\\"'))
+                    }
                 }
             } else {
                 returnVal = returnVal.split(path).join(variableValue)

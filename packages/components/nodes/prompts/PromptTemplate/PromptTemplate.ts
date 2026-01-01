@@ -46,6 +46,11 @@ class PromptTemplate_Prompts implements INode {
         const promptValuesStr = nodeData.inputs?.promptValues
 
         let promptValues: ICommonObject = {}
+        const inputVariables = getInputVariables(template)
+        template = transformBracesWithColon(template)
+
+
+
         if (promptValuesStr) {
             try {
                 promptValues = typeof promptValuesStr === 'object' ? promptValuesStr : JSON.parse(promptValuesStr)
@@ -54,8 +59,6 @@ class PromptTemplate_Prompts implements INode {
             }
         }
 
-        const inputVariables = getInputVariables(template)
-        template = transformBracesWithColon(template)
 
         try {
             const options: PromptTemplateInput = {

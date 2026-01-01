@@ -8,6 +8,9 @@ const createAttachment = async (req: Request) => {
     try {
         return await createFileAttachment(req)
     } catch (error) {
+        if (error instanceof InternalKodivianError) {
+            throw error
+        }
         throw new InternalKodivianError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: attachmentService.createAttachment - ${getErrorMessage(error)}`

@@ -4,6 +4,13 @@
             "name": "awsChatBedrock",
             "models": [
                 {
+                    "label": "anthropic.claude-opus-4-5-20251101-v1:0",
+                    "name": "anthropic.claude-opus-4-5-20251101-v1:0",
+                    "description": "Claude 4.5 Opus",
+                    "input_cost": 0.000005,
+                    "output_cost": 0.000025
+                },
+                {
                     "label": "anthropic.claude-sonnet-4-5-20250929-v1:0",
                     "name": "anthropic.claude-sonnet-4-5-20250929-v1:0",
                     "description": "Claude 4.5 Sonnet",
@@ -442,6 +449,13 @@
                     "output_cost": 0.000015
                 },
                 {
+                    "label": "claude-opus-4-5",
+                    "name": "claude-opus-4-5",
+                    "description": "Claude 4.5 Opus",
+                    "input_cost": 0.000005,
+                    "output_cost": 0.000025
+                },
+                {
                     "label": "claude-haiku-4-5",
                     "name": "claude-haiku-4-5",
                     "description": "Claude 4.5 Haiku",
@@ -523,6 +537,18 @@
                     "output_cost": 0.00012
                 },
                 {
+                    "label": "gemini-3-flash-preview",
+                    "name": "gemini-3-flash-preview",
+                    "input_cost": 0.0000005,
+                    "output_cost": 0.000003
+                },
+                {
+                    "label": "gemini-3-pro-image-preview",
+                    "name": "gemini-3-pro-image-preview",
+                    "input_cost": 0.00002,
+                    "output_cost": 0.00012
+                },
+                {
                     "label": "gemini-2.5-pro",
                     "name": "gemini-2.5-pro",
                     "input_cost": 0.0000003,
@@ -531,6 +557,12 @@
                 {
                     "label": "gemini-2.5-flash",
                     "name": "gemini-2.5-flash",
+                    "input_cost": 0.00000125,
+                    "output_cost": 0.00001
+                },
+                {
+                    "label": "gemini-2.5-flash-image",
+                    "name": "gemini-2.5-flash-image",
                     "input_cost": 0.00000125,
                     "output_cost": 0.00001
                 },
@@ -580,6 +612,12 @@
                     "name": "gemini-3-pro-preview",
                     "input_cost": 0.00002,
                     "output_cost": 0.00012
+                },
+                {
+                    "label": "gemini-3-flash-preview",
+                    "name": "gemini-3-flash-preview",
+                    "input_cost": 0.0000005,
+                    "output_cost": 0.000003
                 },
                 {
                     "label": "gemini-2.5-pro",
@@ -653,6 +691,13 @@
                     "description": "Claude 4.5 Sonnet",
                     "input_cost": 0.000003,
                     "output_cost": 0.000015
+                },
+                {
+                    "label": "claude-opus-4-5@20251101",
+                    "name": "claude-opus-4-5@20251101",
+                    "description": "Claude 4.5 Opus",
+                    "input_cost": 0.000005,
+                    "output_cost": 0.000025
                 },
                 {
                     "label": "claude-haiku-4-5@20251001",
@@ -1248,8 +1293,8 @@
                 {
                     "label": "sonar",
                     "name": "sonar",
-                    "input_cost": 0.000001,
-                    "output_cost": 0.000001
+                    "input_cost": 0.000002,
+                    "output_cost": 0.000008
                 },
                 {
                     "label": "sonar-pro",
@@ -2063,6 +2108,26 @@
                     "label": "Embed Multilingual v2",
                     "name": "embed-multilingual-v2.0",
                     "description": "Embedding Dimensions: 768"
+                },
+                {
+                    "label": "embed-multilingual-v3.0",
+                    "name": "embed-multilingual-v3.0",
+                    "description": "Embedding Dimensions: 1024"
+                },
+                {
+                    "label": "embed-multilingual-light-v3.0",
+                    "name": "embed-multilingual-light-v3.0",
+                    "description": "Embedding Dimensions: 384"
+                },
+                {
+                    "label": "embed-english-v2.0",
+                    "name": "embed-english-v2.0",
+                    "description": "Embedding Dimensions: 4096"
+                },
+                {
+                    "label": "embed-english-light-v2.0",
+                    "name": "embed-english-light-v2.0",
+                    "description": "Embedding Dimensions: 1024"
                 }
             ]
         },
